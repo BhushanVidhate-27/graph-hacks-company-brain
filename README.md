@@ -314,3 +314,48 @@ We can all explain the schema, the queries, the architecture and the trade-offs.
 ## Credits
 
 Built by **Bhushan**, **Soham** and **Ujwal**.
+
+---
+
+## SaaS & GitHub integration (new)
+
+The product now ships as a slim SaaS surface on top of the same reasoning engine.
+
+### New GitHub endpoints
+- `POST /api/repo/settings` — validates `GITHUB_OWNER`, `GITHUB_REPO` and `GITHUB_TOKEN`.
+- `GET /api/repo/issues` — open (or requested) issues and pull requests for the connected GitHub repository.
+- `GET /api/repo/pulls` — open (or requested) pull requests.
+- `GET /api/repo/items` — combined issues + pull requests.
+
+The items returned are normalised to a small JSON surface:
+
+```json
+{
+  "id": "123",
+  "number": 42,
+  "title": "Rotate provider to Adyen/Stripe",
+  "state": "open",
+  "user": { "login": "soham" },
+  "labels": [{ "name": "pending-review", "color": "e11d48" }],
+  "comments": 4,
+  "created_at": "2026-10-24T10:00:00Z",
+  "updated_at": "2026-10-26T09:12:00Z",
+  "html_url": "https://github.com/BhushanVidhate-27/graph-hacks-company-brain/issues/42",
+  "pull_request": false
+}
+```
+
+### Dashboard
+- Add `/github` to the product UI to view issues and pull requests, filter by state, and open items in GitHub.
+
+### Pricing / position
+- The same open-source core can be self-hosted for individuals and small teams.
+- The managed Helio SaaS keeps the GitHub sync, identity, versioning and onboarding for you.
+
+### Requirements for GitHub sync
+Add these to `.env` (see the new `GITHUB_OWNER`, `GITHUB_REPO` and `GITHUB_TOKEN` fields in `.env.example`):
+
+- `GITHUB_OWNER` — GitHub organisation or user
+- `GITHUB_REPO` — GitHub repository
+- `GITHUB_TOKEN` — GitHub personal access token with `repo` scope
+

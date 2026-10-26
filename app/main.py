@@ -36,6 +36,7 @@ from typing import Any, Iterator
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from app import github as github_service
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
@@ -386,6 +387,56 @@ def ask(req: Ask) -> StreamingResponse:
             "X-Accel-Buffering": "no",
         },
     )
+
+
+@app.get("/api/repo/settings")
+def repo_settings():
+    """Return the configured GitHub repository for the current process."""
+
+    config = github_service.repo_config()
+    return {
+        "configured": config["configured"],
+        "owner": config["owner"],
+        "repo": config["repo"],
+        "missing": config["missing"],
+    }
+
+
+@app.get("/api/repo/issues")
+def repo_issues(state: str = "open"):
+    """Return open (or requested) issues and pull requests for the connected repo."""
+
+    items = github_service.list_repo_items(state)
+    return {
+        "owner": items["owner"],
+        "repo": items["repo"],
+        "configured": items["configured"],
+        "state": state,
+        "items": items["items"],
+        "error": items.get("error"),
+    }
+
+
+@app.get("/api/repo/pulls")
+def repo_pulls(state: str = "open"):
+    """Return open (or requested) pull requests for the connected repo."""
+
+    items = github_service.list_repo_items(state)
+    return {
+        "owner": items["owner"],
+        "repo": items["repo"],
+        "configured": items["configured"],
+        "state": state,
+        "items": items["items"],
+        "error": items.get("error"),
+    }
+
+
+@app.get("/api/repo/items")
+def repo_items(state: str = "open"):
+    """Return issues and pull requests together for the connected repo."""
+
+    return repo_issues(state)
 
 
 if __name__ == "__main__":  # python -m app.main
