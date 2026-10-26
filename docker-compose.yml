@@ -6,7 +6,7 @@ services:
     container_name: helio-backend
     restart: unless-stopped
     ports:
-      - "8000:8000"
+      - "8080:8080"
     environment:
       - GITHUB_OWNER=${GITHUB_OWNER}
       - GITHUB_REPO=${GITHUB_REPO}
@@ -49,7 +49,7 @@ services:
       - "3000:3000"
     environment:
       - NODE_ENV=production
-      - NEXT_PUBLIC_HELIO_API=${NEXT_PUBLIC_HELIO_API:-http://localhost:8000}
+      - NEXT_PUBLIC_HELIO_API=${NEXT_PUBLIC_HELIO_API:-http://localhost:8080}
       - CORS_ALLOW_ORIGINS=${CORS_ALLOW_ORIGINS:-http://localhost:3000,http://127.0.0.1:3000}
     depends_on:
       backend:
