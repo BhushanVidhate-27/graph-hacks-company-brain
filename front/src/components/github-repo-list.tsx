@@ -53,7 +53,9 @@ export function GitHubRepoList({ owner, repo }: Props) {
       setError(null);
 
       try {
-        const res = await fetch(`/api/repo/items?state=open`);
+        const res = await fetch(
+          `/api/repo/items?state=open&owner=${encodeURIComponent(owner)}&repo=${encodeURIComponent(repo)}`,
+        );
         if (!res.ok) {
           throw new Error(`GitHub sync returned HTTP ${res.status}`);
         }
