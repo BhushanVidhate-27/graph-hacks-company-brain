@@ -36,6 +36,7 @@ from typing import Any, Iterator
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from app import billing as billing_service
 from app import github as github_service
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
@@ -406,7 +407,7 @@ def repo_settings():
 def repo_issues(state: str = "open"):
     """Return open (or requested) issues and pull requests for the connected repo."""
 
-    items = github_service.list_repo_items(state)
+    items = github_service.sync_state(state)
     return {
         "owner": items["owner"],
         "repo": items["repo"],
@@ -421,7 +422,7 @@ def repo_issues(state: str = "open"):
 def repo_pulls(state: str = "open"):
     """Return open (or requested) pull requests for the connected repo."""
 
-    items = github_service.list_repo_items(state)
+    items = github_service.sync_state(state)
     return {
         "owner": items["owner"],
         "repo": items["repo"],
@@ -438,6 +439,50 @@ def repo_items(state: str = "open"):
 
     return repo_issues(state)
 
+
+
+
+@app.get("/api/billing/setup")
+def billing_setup():
+    """Publicly describe the Stripe setup for a SaaS operator."""
+
+    configured = billing_service.is_configured()
+    return {
+        "ok": True,
+        "configured": configured,
+        "price_id": billing_service.PRICE_ID,
+        "plan": "free" if not configured else "setup-pending",
+        "details": (
+            "Set NEXT_PUBLIC_HELIO_PRICE_ID, STRIPE_SECRET_KEY, "
+            "STRIPE_WEBHOOK_SECRET, STRIPE_PRICE_FREE and STRIPE_PRICE_PRO, then "
+            "restart the server."
+        ) if not configured else None,
+    }
+
+
+@app.post("/api/billing/checkout")
+def billing_checkout():
+    """Return a checkout payload for the billing UI. Does not charge live."""
+
+    body = billing_service.build_checkout()
+    if not body.get("ok"):
+        return {"ok": False, **body}
+
+    return {"ok": True, **body}
+
+
+@app.post("/api/stripe/webhook")
+def stripe_webhook():
+    """Placeholder webhook. Operators must replace this with signature
+    verification against STRIPE_WEBHOOK_SECRET before going live."""
+
+    try:
+        body = {}
+        # The real deployment must read the raw request body and the
+        # STRIPE_WEBHOOK_SECRET header; this placeholder is intentionally safe.
+        return billing_service.handle_webhook(body, None)
+    except Exception as exc:
+        return {"ok": False, "error": str(exc)}
 
 if __name__ == "__main__":  # python -m app.main
     import uvicorn
