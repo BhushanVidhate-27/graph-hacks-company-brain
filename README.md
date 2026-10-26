@@ -359,3 +359,98 @@ Add these to `.env` (see the new `GITHUB_OWNER`, `GITHUB_REPO` and `GITHUB_TOKEN
 - `GITHUB_REPO` — GitHub repository
 - `GITHUB_TOKEN` — GitHub personal access token with `repo` scope
 
+## Pricing
+
+We believe AI-powered company knowledge should be accessible to everyone, not just well-funded enterprises. Here's our pricing philosophy:
+
+### Why so low? Our reasoning
+- **Bootstrapped, not VC-backed**: We're founder-led without outside investment, so there's no pressure to extract maximum revenue quickly
+- **Open-source core**: The heart of Helio (the graph, Cypher queries, reasoning engine) is fully open-source and can be self-hosted for free
+- **No SaaS markup**: We don't add 3-5x multipliers just because it's "cloud"; you pay mostly for the small Groq/FalkorDB costs
+- **GitHub-native**: Since GitHub issues/PR sync is the new value-add, we keep it inexpensive to encourage adoption
+- **Early-adopter friendly**: We're building the product in public and want power users, not just deep-pocketed companies
+
+### Starter tier — $15/mo / $150/year
+_Save 20% with annual billing_
+
+- Unlimited queries
+- 1 knowledge graph
+- FalkorDB embedded
+- Groq inference
+- GitHub integration (issues & pull requests)
+- Email support
+
+### Professional tier — $49/mo
+
+- Unlimited knowledge graphs
+- Priority Groq inference
+- Analytics & usage dashboards
+- API access (REST endpoints)
+- Phone/Slack support
+- Team collaboration features
+
+### Enterprise tier — custom
+
+- Dedicated FalkorDB instance
+- SLA-backed uptime
+- Custom model integration
+- White-glove onboarding
+- Volume discounts
+
+### What's included at each tier
+| Feature | Starter | Professional | Enterprise |
+|---------|---------|--------------|------------|
+| Unlimited queries | ✅ | ✅ | ✅ |
+| 1+ knowledge graphs | 1 | Unlimited | Unlimited |
+| Priority inference | ❌ | ✅ | ✅ |
+| Analytics dashboard | ❌ | ✅ | ✅ |
+| API access | ❌ | ✅ | ✅ |
+| Email support | ✅ | ✅ | ✅ |
+| Phone/Slack support | ❌ | ✅ | ✅ |
+| Team collaboration | ❌ | ✅ | ✅ |
+| Custom model integration | ❌ | ❌ | ✅ |
+| SLA-backed uptime | ❌ | ❌ | ✅ |
+
+### One-time setup
+- **Docker compose up**: Get running in minutes
+- **Stripe config**: Add 6 env vars (see `.env.example`)
+- **GitHub sync**: Set 3 env vars (`GITHUB_OWNER`, `GITHUB_REPO`, `GITHUB_TOKEN`)
+- All of the above takes ~10 minutes for a single repository
+
+### Risk-free guarantee
+- 30-day money-back if the product doesn't meet your needs
+- No long-term contracts — monthly or annual, your choice
+- Self-host the core for free anytime; the SaaS layer is optional
+
+### Compare vs. competitors
+| Competitor | Monthly | Key Differentiator |
+|------------|---------|-------------------|
+| Competitor A | $99/mo | Closed-source, VC-backed, 2-year contracts |
+| Competitor B | $149/mo | Per-seat pricing, limited queries |
+| **Helio** | **$15/mo** | **Open-source core, bootstrapped, per-repo pricing** |
+
+Join the growing community of bootstrapped teams using Helio to surface internal knowledge without the enterprise price tag.
+## Pricing
+
+- **Starter tier**: $15/mo / $150/year (with 20% annual savings badge) — unlimited queries, 1 knowledge graph, FalkorDB embedded, Groq inference, GitHub integration, email support.
+- **Professional tier**: $49/mo — unlimited graphs, priority inference, analytics, API access, phone support.
+- **Explicit low-price reasoning**: Bootstrapped (not VC-backed), open-source core, no SaaS markup, GitHub-native founder-led setup, only Groq/FalkorDB costs, kept cheap for early adopters.
+
+## Stripe setup requirements
+
+Add these to `.env` (see the new env vars in `.env.example`):
+
+- `NEXT_PUBLIC_HELIO_PRICE_ID` — Stripe Price ID from Dashboard
+- `STRIPE_SECRET_KEY` — Secret key from Developers → API keys (never commit to VCS)
+- `STRIPE_WEBHOOK_SECRET` — Signing secret from Webhooks setup
+- `STRIPE_PRICE_FREE` — Price ID for free tier
+- `STRIPE_PRICE_PRO` — Price ID for pro tier
+- `STRIPE_MODE=local|test|live` with mode explanations
+
+See `billing-setup.md` for a complete guide including how to obtain each value and test locally.
+
+## Deployment
+
+- **Local**: `docker compose up --build` (includes backend, FalkorDB, and frontend)
+- **Production**: Set all env vars in your host environment, use the provided `docker-compose.yml`, and ensure `STRIPE_MODE=live` with valid price IDs.
+- **CI**: GitHub Actions workflow runs backend lint/type-check, frontend type-check + build, and optional Docker image push.

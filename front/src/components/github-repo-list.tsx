@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect, useState } from "react";
 
 export interface GitHubItem {
@@ -97,7 +99,7 @@ export function GitHubRepoList({ owner, repo }: Props) {
         </h1>
         <p className="hc-note">
           {loading
-            ? &ldquo;Syncing from GitHub&hellip;&rdquo;
+            ? "Syncing from GitHub…"
             : error
             ? `Sync error: ${error}`
             : `Showing ${items.length} item${items.length === 1 ? "s" : ""} so far.`}
@@ -156,7 +158,7 @@ export function GitHubRepoList({ owner, repo }: Props) {
                       {item.state}
                     </span>
                   </td>
-                  <td>{item.user?.login ?? &ldquo;&mdash;&rdquo;}</td>
+                  <td>{item.user?.login ?? "--"}</td>
                   <td className="truncate">
                     {item.labels.map((label) => (
                       <span
@@ -169,7 +171,7 @@ export function GitHubRepoList({ owner, repo }: Props) {
                     ))}
                   </td>
                   <td>{item.comments}</td>
-                  <td>{item.updated_at ?? &ldquo;&mdash;&rdquo;}</td>
+                  <td>{item.updated_at ?? "--"}</td>
                   <td>
                     <a href={item.html_url} target="_blank" rel="noreferrer" className="hc-link">
                       Open
