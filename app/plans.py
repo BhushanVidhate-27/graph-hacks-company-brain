@@ -131,7 +131,7 @@ PLANS: dict[str, dict[str, Any]] = {
         "features": [
             "Unlimited questions",
             "Unlimited graphs & seats",
-            "Dedicated FalkorDB instance",
+            "Dedicated graph instance",
             "SSO / RBAC",
             "SLA-backed uptime",
             "White-glove onboarding",
