@@ -97,24 +97,6 @@ body {
   overflow-x: hidden;
 }
 
-/* Static plus cursor. The overlay in PlusCursor.tsx draws the mark; hiding
-   the native cursor is what makes it read as the cursor instead of a widget.
-   The class is added on the first pointer move, so a visitor never lands on the
-   page with no cursor at all. */
-@media (pointer: fine) {
-  .plus-cursor-active,
-  .plus-cursor-active * {
-    cursor: none !important;
-  }
-
-  .plus-cursor-active input,
-  .plus-cursor-active textarea,
-  .plus-cursor-active select,
-  .plus-cursor-active [contenteditable='true'] {
-    cursor: text !important;
-  }
-}
-
 /* Hairline CAD border system */
 .cad-border {
   border: 1px solid var(--cl-border);

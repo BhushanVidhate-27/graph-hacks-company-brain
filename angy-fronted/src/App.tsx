@@ -12,7 +12,6 @@ import { Footer } from './components/Footer';
 import { DeviceViewportFrame } from './components/DeviceViewportFrame';
 import { TraversalBand } from './components/TraversalBand';
 import { InspectorStillBand } from './components/InspectorStillBand';
-import { PlusCursor } from './components/PlusCursor';
 import { LearnStrip } from './components/LearnStrip';
 import {
   GRAPH_PAGES,
@@ -191,8 +190,6 @@ const AppShell: React.FC<AppShellProps> = ({
 
   return (
     <div className="min-h-screen bg-[#ecece4] text-[#282828] font-mono relative selection:bg-[#e15c46] selection:text-white pb-20">
-
-      <PlusCursor />
 
       {/* Main Navbar */}
       <Navbar
