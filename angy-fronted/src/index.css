@@ -2,6 +2,42 @@
 @tailwind components;
 @tailwind utilities;
 
+/* WCAG AA contrast for small text.
+   The bright accent (#e15c46) stays on borders, fills and large graphics, but
+   as small text on the cream surfaces it only reaches 3:1. The darker shade is
+   the same hue at 4.8:1, and the darker fill keeps white labels above 4.5:1. */
+.text-\[\#e15c46\] {
+  color: #b03d28;
+}
+
+.bg-\[\#e15c46\] {
+  background-color: #c2452d;
+}
+
+.text-\[\#8a8a80\] {
+  color: #6b6b63;
+}
+
+.text-white\/45,
+.text-white\/40,
+.text-white\/30 {
+  color: rgb(255 255 255 / 0.62);
+}
+
+.text-\[\#282828\]\/40 {
+  color: rgb(40 40 40 / 0.72);
+}
+
+/* The darker accent is unreadable on the near-black evidence panels, so the
+   same accent is lifted there instead. */
+.bg-\[\#1c1c1b\] .text-\[\#e15c46\],
+.bg-\[\#181817\] .text-\[\#e15c46\],
+.bg-\[\#262624\] .text-\[\#e15c46\],
+.bg-black\/60 .text-\[\#e15c46\],
+.bg-\[\#282828\] .text-\[\#e15c46\] {
+  color: #f08a75;
+}
+
 /* Self-hosted Space Mono (latin subset). Removes the render-blocking Google
    Fonts request and the unused Inter family. Files are served from /fonts with
    long-lived caching by the app server. */
