@@ -10,6 +10,14 @@ import {
 } from './MarketingChrome';
 
 const SUMMARIES: Record<string, string> = {
+  '/learn/service-ownership':
+    'What ownership means, the four questions an ownership system must answer, and how to keep the record current.',
+  '/learn/find-service-owner':
+    'A step-by-step way to find the accountable team, verify it against three signals, and handle the unowned case.',
+  '/learn/service-ownership-checklist':
+    'The four non-negotiables, the monthly review and the failure modes that make an ownership record go stale.',
+  '/learn/service-ownership-tools':
+    'The five capabilities that separate an ownership system from a spreadsheet, plus demo questions that expose weak tools.',
   '/learn/who-owns-this-service':
     'Why the top committer is often the wrong answer, and the four signals that produce an owner you can act on.',
   '/learn/blast-radius-analysis':
@@ -90,6 +98,17 @@ export const ArticlePage: React.FC<{ article: Article }> = ({ article }) => (
               <ul className="list-disc pl-5 space-y-2">
                 {section.bullets.map((bullet) => (
                   <li key={bullet}>{bullet}</li>
+                ))}
+              </ul>
+            ) : null}
+            {section.links ? (
+              <ul className="space-y-2 pt-1">
+                {section.links.map((link) => (
+                  <li key={link.href}>
+                    <a href={link.href} className="text-[#e15c46] underline hover:no-underline">
+                      {link.label}
+                    </a>
+                  </li>
                 ))}
               </ul>
             ) : null}

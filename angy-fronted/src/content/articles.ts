@@ -1,7 +1,11 @@
+import { OWNERSHIP_ARTICLES } from './ownership-articles';
+
 export interface ArticleSection {
   heading: string;
   paragraphs: string[];
   bullets?: string[];
+  /** Inline links rendered after the section's paragraphs and bullets. */
+  links?: { href: string; label: string }[];
 }
 
 export interface Article {
@@ -17,7 +21,7 @@ export interface Article {
   related: { href: string; label: string }[];
 }
 
-export const ARTICLES: Article[] = [
+const BASE_ARTICLES: Article[] = [
   {
     slug: 'who-owns-this-service',
     path: '/learn/who-owns-this-service',
@@ -85,9 +89,10 @@ export const ARTICLES: Article[] = [
       },
     ],
     related: [
+      { href: '/learn/service-ownership', label: 'Service ownership: the practical guide' },
+      { href: '/learn/find-service-owner', label: 'How to find a service owner' },
+      { href: '/learn/service-ownership-checklist', label: 'Service ownership checklist' },
       { href: '/learn/service-ownership-on-call', label: 'Ownership and on-call tracking' },
-      { href: '/learn/blast-radius-analysis', label: 'Blast-radius analysis' },
-      { href: '/pricing', label: 'Helio pricing' },
     ],
   },
   {
@@ -290,8 +295,9 @@ export const ARTICLES: Article[] = [
       },
     ],
     related: [
+      { href: '/learn/service-ownership', label: 'Service ownership: the practical guide' },
+      { href: '/learn/service-ownership-checklist', label: 'Service ownership checklist' },
       { href: '/learn/who-owns-this-service', label: 'Who owns this service?' },
-      { href: '/learn/blast-radius-analysis', label: 'Blast-radius analysis' },
       { href: '/integrations', label: 'Integrations' },
     ],
   },
@@ -363,5 +369,7 @@ export const ARTICLES: Article[] = [
     ],
   },
 ];
+
+export const ARTICLES: Article[] = [...OWNERSHIP_ARTICLES, ...BASE_ARTICLES];
 
 export const ARTICLE_BY_PATH = new Map(ARTICLES.map((article) => [article.path, article]));

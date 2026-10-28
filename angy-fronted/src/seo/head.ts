@@ -127,6 +127,16 @@ const structuredDataFor = (path: string): object[] => {
       mainEntityOfPage: `${SITE_URL}${path}`,
       about: article.eyebrow,
     });
+    if (article.faqs.length) {
+      base.push({
+        '@type': 'FAQPage',
+        mainEntity: article.faqs.map((item) => ({
+          '@type': 'Question',
+          name: item.question,
+          acceptedAnswer: { '@type': 'Answer', text: item.answer },
+        })),
+      });
+    }
   }
 
   return base;

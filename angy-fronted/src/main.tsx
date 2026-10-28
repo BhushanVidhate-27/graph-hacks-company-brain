@@ -1,7 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
-import { MARKETING_PAGES, NotFoundPage } from './pages/registry';
 import { MODE_FOR_PATH } from './lib/appRoutes';
 import './index.css';
 
@@ -13,7 +12,6 @@ const normalizePath = (pathname: string) => {
 
 const path = normalizePath(window.location.pathname);
 const root = document.getElementById('root')!;
-const Page = MARKETING_PAGES[path];
 
 if (path === '/') {
   // The home page is prerendered with the same component tree, so hydrate it
@@ -24,13 +22,6 @@ if (path === '/') {
       <App initialMode="website" />
     </React.StrictMode>,
   );
-} else if (Page) {
-  ReactDOM.hydrateRoot(
-    root,
-    <React.StrictMode>
-      <Page />
-    </React.StrictMode>,
-  );
 } else if (MODE_FOR_PATH[path]) {
   // App screens are intentionally client-rendered and noindex.
   ReactDOM.createRoot(root).render(
@@ -39,9 +30,15 @@ if (path === '/') {
     </React.StrictMode>,
   );
 } else {
-  ReactDOM.createRoot(root).render(
-    <React.StrictMode>
-      <NotFoundPage />
-    </React.StrictMode>,
-  );
+  // Only used by the Vite dev server. Production marketing pages are static
+  // HTML and do not load this bundle, which keeps the article content out of
+  // the home page's JavaScript.
+  import('./pages/registry').then(({ MARKETING_PAGES, NotFoundPage }) => {
+    const Page = MARKETING_PAGES[path] ?? NotFoundPage;
+    ReactDOM.createRoot(root).render(
+      <React.StrictMode>
+        <Page />
+      </React.StrictMode>,
+    );
+  });
 }

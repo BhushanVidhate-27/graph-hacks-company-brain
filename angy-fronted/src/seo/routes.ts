@@ -84,6 +84,46 @@ export const MARKETING_ROUTES: RouteSeo[] = [
     changeFrequency: 'weekly',
   }),
   route({
+    path: '/learn/service-ownership',
+    title: 'Service Ownership: A Practical Guide for Engineering Teams',
+    description:
+      'What service ownership means, how to find the accountable team, the checklist that keeps it current and how to choose a tool that records evidence.',
+    eyebrow: 'Learn · Ownership',
+    ogImage: '/og/helio-who-owns-this-service.png',
+    priority: 0.7,
+    changeFrequency: 'monthly',
+  }),
+  route({
+    path: '/learn/find-service-owner',
+    title: 'How to Find the Owner of a Microservice (Without Guessing)',
+    description:
+      'A step-by-step way to find the accountable team for a service, verify it against code, on-call and decisions, and handle the unowned case with evidence.',
+    eyebrow: 'Learn · Ownership',
+    ogImage: '/og/helio-who-owns-this-service.png',
+    priority: 0.6,
+    changeFrequency: 'monthly',
+  }),
+  route({
+    path: '/learn/service-ownership-checklist',
+    title: 'Service Ownership Checklist: A Practical Guide for Teams',
+    description:
+      'A practical checklist for keeping service ownership current: a named team, an active escalation path, a dated handover and a monthly review.',
+    eyebrow: 'Learn · Ownership',
+    ogImage: '/og/helio-learn.png',
+    priority: 0.6,
+    changeFrequency: 'monthly',
+  }),
+  route({
+    path: '/learn/service-ownership-tools',
+    title: 'Service Ownership Tools: What Engineering Teams Need in 2026',
+    description:
+      'How to evaluate service ownership tools: catalog coverage, dependency edges, on-call integration, decision history and an API with provenance.',
+    eyebrow: 'Learn · Ownership',
+    ogImage: '/og/helio-learn.png',
+    priority: 0.6,
+    changeFrequency: 'monthly',
+  }),
+  route({
     path: '/learn/who-owns-this-service',
     title: 'Who Owns This Service? A Practical Ownership Check',
     description:
