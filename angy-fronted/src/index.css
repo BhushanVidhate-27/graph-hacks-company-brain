@@ -2,6 +2,48 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Self-hosted Space Mono (latin subset). Removes the render-blocking Google
+   Fonts request and the unused Inter family. Files are served from /fonts with
+   long-lived caching by the app server. */
+@font-face {
+  font-family: 'Space Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/space-mono-400.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Space Mono';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/space-mono-700.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Space Mono';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/space-mono-400-italic.woff2') format('woff2');
+}
+
+/* With JavaScript disabled, reveal components keep their server-rendered
+   inline opacity: 0. Force the content visible so the static page is readable. */
+@media (scripting: none) {
+  [data-reveal],
+  [data-reveal] * {
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+  }
+
+  .faq-answer {
+    display: block !important;
+  }
+}
+
 :root {
   --cl-bg: #ecece4;
   --cl-primary: #282828;
