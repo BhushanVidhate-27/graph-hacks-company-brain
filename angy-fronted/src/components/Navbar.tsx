@@ -26,22 +26,26 @@ export const Navbar: React.FC<NavbarProps> = ({ currentMode, onSelectMode, onNav
 
 
   return (
-    <nav className="relative w-full cad-border-b bg-[#ecece4]/95 backdrop-blur-md sticky top-0 z-40 select-none">
+    <header className="relative w-full cad-border-b bg-[#ecece4]/95 backdrop-blur-md sticky top-0 z-40 select-none">
       <CadCrosshair position="tl" />
       <CadCrosshair position="tr" />
 
+      <nav aria-label="Main navigation">
       <div className="max-w-7xl mx-auto px-4 md:px-8 h-14 md:h-16 flex items-center justify-between">
         
         {/* Left: Helio Logo */}
-        <div 
+        <a
+          href="/"
+          aria-label="Helio home"
           className="cursor-pointer flex items-center shrink-0"
-          onClick={() => {
+          onClick={(event) => {
+            event.preventDefault();
             onSelectMode('website');
             window.scrollTo({ top: 0, behavior: 'smooth' });
           }}
         >
           <HelioLogo showText={true} />
-        </div>
+        </a>
 
         {/* Center: Desktop Navigation Links */}
         <div className="hidden xl:flex items-center gap-5 xl:gap-6 text-[11px] xl:text-[12px] font-mono tracking-wider whitespace-nowrap">
@@ -132,26 +136,26 @@ export const Navbar: React.FC<NavbarProps> = ({ currentMode, onSelectMode, onNav
             THE 4 TRAPS
           </button>
 
-          <button 
-            onClick={() => onNavigateSection('workflow-section')} 
+          <a 
+            href="/how-it-works" 
             className="hover:text-[#e15c46] transition-colors whitespace-nowrap"
           >
             HOW IT WORKS
-          </button>
+          </a>
 
-          <button 
-            onClick={() => onNavigateSection('pricing-section')} 
+          <a 
+            href="/pricing" 
             className="hover:text-[#e15c46] transition-colors whitespace-nowrap"
           >
             PLANS
-          </button>
+          </a>
 
-          <button 
-            onClick={() => onNavigateSection('faq-section')} 
+          <a 
+            href="/faq" 
             className="hover:text-[#e15c46] transition-colors whitespace-nowrap"
           >
             FAQS
-          </button>
+          </a>
         </div>
 
         {/* Right CTA / Mode Launcher */}
@@ -207,6 +211,9 @@ export const Navbar: React.FC<NavbarProps> = ({ currentMode, onSelectMode, onNav
         <div className="xl:hidden flex items-center">
           <button 
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={mobileMenuOpen}
+            aria-controls="mobile-menu"
             className="p-2 cad-border text-[#282828]"
           >
             {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -217,7 +224,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentMode, onSelectMode, onNav
 
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
-        <div className="xl:hidden cad-border-t bg-[#f4f4ec] px-6 py-6 flex flex-col gap-4 font-mono text-[13px]">
+        <div id="mobile-menu" className="xl:hidden cad-border-t bg-[#f4f4ec] px-6 py-6 flex flex-col gap-4 font-mono text-[13px]">
           <button
             onClick={() => {
               onSelectMode('website');
@@ -255,33 +262,30 @@ export const Navbar: React.FC<NavbarProps> = ({ currentMode, onSelectMode, onNav
           >
             THE 4 TRAPS
           </button>
-          <button
-            onClick={() => {
-              onNavigateSection('workflow-section');
-              setMobileMenuOpen(false);
-            }}
+          <a
+            href="/how-it-works"
             className="text-left py-2 hover:text-[#e15c46]"
           >
             HOW IT WORKS
-          </button>
-          <button
-            onClick={() => {
-              onNavigateSection('pricing-section');
-              setMobileMenuOpen(false);
-            }}
+          </a>
+          <a
+            href="/pricing"
             className="text-left py-2 hover:text-[#e15c46]"
           >
             PLANS
-          </button>
-          <button
-            onClick={() => {
-              onNavigateSection('faq-section');
-              setMobileMenuOpen(false);
-            }}
+          </a>
+          <a
+            href="/faq"
             className="text-left py-2 hover:text-[#e15c46]"
           >
             FAQS
-          </button>
+          </a>
+          <a
+            href="/security"
+            className="text-left py-2 hover:text-[#e15c46]"
+          >
+            SECURITY
+          </a>
           <div className="pt-2 flex flex-col gap-2">
             {authenticated ? (
               <HeronButton
@@ -306,8 +310,9 @@ export const Navbar: React.FC<NavbarProps> = ({ currentMode, onSelectMode, onNav
           </div>
         </div>
       )}
+      </nav>
 
       <ScrollProgress />
-    </nav>
+    </header>
   );
 };

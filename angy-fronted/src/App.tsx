@@ -9,14 +9,11 @@ import { RolesSection } from './components/RolesSection';
 import { PricingSection } from './components/PricingSection';
 import { FAQSection } from './components/FAQSection';
 import { Footer } from './components/Footer';
-import { ChatWidgetSimulator } from './components/ChatWidgetSimulator';
-import { DashboardSimulator } from './components/DashboardSimulator';
 import { DeviceViewportFrame } from './components/DeviceViewportFrame';
 import { TraversalBand } from './components/TraversalBand';
 import { InspectorStillBand } from './components/InspectorStillBand';
 import { PlusCursor } from './components/PlusCursor';
-import { AuthView } from './components/AuthView';
-import { AccountView } from './components/AccountView';
+import { LearnStrip } from './components/LearnStrip';
 import {
   GRAPH_PAGES,
   PageTransitionFrame,
@@ -26,7 +23,28 @@ import {
 } from './components/GraphPageTransition';
 import { AuthProvider, useAuth } from './lib/auth';
 import { useSwipeNavigation } from './lib/useSwipeNavigation';
+import { MODE_FOR_PATH, PATH_FOR_MODE, TITLE_FOR_MODE } from './lib/appRoutes';
 import { ViewMode } from './types';
+
+// App screens are split out of the marketing bundle. The home page never
+// renders them, and a visitor who only reads the site should not download the
+// agent, console, auth and account code.
+const ChatWidgetSimulator = React.lazy(() =>
+  import('./components/ChatWidgetSimulator').then((module) => ({
+    default: module.ChatWidgetSimulator,
+  })),
+);
+const DashboardSimulator = React.lazy(() =>
+  import('./components/DashboardSimulator').then((module) => ({
+    default: module.DashboardSimulator,
+  })),
+);
+const AuthView = React.lazy(() =>
+  import('./components/AuthView').then((module) => ({ default: module.AuthView })),
+);
+const AccountView = React.lazy(() =>
+  import('./components/AccountView').then((module) => ({ default: module.AccountView })),
+);
 
 interface AppShellProps {
   currentMode: ViewMode;
@@ -164,6 +182,9 @@ const AppShell: React.FC<AppShellProps> = ({
       <div className="cad-border-t border-[#282828]/15" />
       <FAQSection />
 
+      <div className="cad-border-t border-[#282828]/15" />
+      <LearnStrip />
+
       <Footer onSelectMode={transitionTo} />
     </div>
   );
@@ -188,7 +209,8 @@ const AppShell: React.FC<AppShellProps> = ({
         onTouchEnd={swipe.onTouchEnd}
       >
         <PageTransitionFrame phase={phase} fromIndex={fromIndex} toIndex={toIndex}>
-          {currentMode === 'website' && renderWebsiteContent()}
+          <React.Suspense fallback={<div className="min-h-[60vh]" aria-hidden="true" />}>
+            {currentMode === 'website' && renderWebsiteContent()}
 
           {currentMode === 'chat-widget' && (
             <div className="py-8">
@@ -224,6 +246,7 @@ const AppShell: React.FC<AppShellProps> = ({
               onSelectMode={accountNavigate}
             />
           )}
+          </React.Suspense>
         </PageTransitionFrame>
       </main>
 
@@ -231,11 +254,42 @@ const AppShell: React.FC<AppShellProps> = ({
   );
 };
 
-export const App: React.FC = () => {
-  const [currentMode, setCurrentMode] = useState<ViewMode>('website');
+export const App: React.FC<{ initialMode?: ViewMode }> = ({ initialMode = 'website' }) => {
+  const [currentMode, setCurrentMode] = useState<ViewMode>(initialMode);
   const [phase, setPhase] = useState<TransitionPhase>('idle');
   const [transition, setTransition] = useState({ fromIndex: -1, toIndex: -1 });
   const pending = useRef<{ mode: ViewMode; after?: () => void } | null>(null);
+
+  // Keep the URL and the document title in step with the active view. The app
+  // screens are real routes now, so a reload or a shared link lands on the same
+  // screen instead of resetting to the marketing home page.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const path = PATH_FOR_MODE[currentMode];
+    if (window.location.pathname !== path) {
+      window.history.pushState({ mode: currentMode }, '', path);
+    }
+    document.title = TITLE_FOR_MODE[currentMode];
+    const robots = document.querySelector('meta[name="robots"]');
+    if (robots) {
+      robots.setAttribute(
+        'content',
+        currentMode === 'website'
+          ? 'index, follow, max-image-preview:large, max-snippet:-1'
+          : 'noindex, nofollow',
+      );
+    }
+  }, [currentMode]);
+
+  // Browser back/forward between / and /agent, /console and the account views.
+  useEffect(() => {
+    const onPopState = () => {
+      const mode = MODE_FOR_PATH[window.location.pathname];
+      if (mode) setCurrentMode(mode);
+    };
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  }, []);
 
   const transitionTo = useCallback(
     (mode: ViewMode, after?: () => void) => {

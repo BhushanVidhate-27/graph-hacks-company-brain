@@ -1,62 +1,39 @@
 <!doctype html>
 <html lang="en">
   <head>
+    <!--seo-head-start-->
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Helio — The Company Brain for Engineering Teams</title>
-    <meta name="description" content="Helio connects repos, on-call schedules and decision records into one graph, so every answer about ownership, blast radius and history comes with the path that proves it." />
+    <title>Helio: Service Ownership &amp; Blast Radius Knowledge Graph</title>
+    <meta
+      name="description"
+      content="Helio connects repos, on-call schedules and decision records into one graph, so every answer about ownership, blast radius and history shows the path behind it."
+    />
     <link rel="canonical" href="https://helio-brain.onrender.com/" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />
     <meta name="theme-color" content="#ecece4" />
-    <meta name="robots" content="index, follow" />
-
-    <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="Helio" />
-    <meta property="og:url" content="https://helio-brain.onrender.com/" />
-    <meta property="og:title" content="Helio — Know who owns it. Know what breaks." />
-    <meta property="og:description" content="One graph for ownership, dependencies and decisions. Every answer shows the path that proves it — and says so when the graph has no answer." />
-    <meta property="og:image" content="https://helio-brain.onrender.com/og-image.png" />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
-
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Helio — Know who owns it. Know what breaks." />
-    <meta name="twitter:description" content="One graph for ownership, dependencies and decisions, with a verifiable path behind every answer." />
-    <meta name="twitter:image" content="https://helio-brain.onrender.com/og-image.png" />
-
-    <script type="application/ld+json">
-      {
-        "@context": "https://schema.org",
-        "@type": "SoftwareApplication",
-        "name": "Helio",
-        "applicationCategory": "BusinessApplication",
-        "operatingSystem": "Web",
-        "description": "An organizational knowledge graph for engineering teams: ownership, blast radius and decision history with a verifiable path behind every answer.",
-        "url": "https://helio-brain.onrender.com/",
-        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
-      }
-    </script>
-    <!-- Google Fonts: Space Mono & Inter -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  </head>
-  <body class="bg-[#ecece4] text-[#282828] selection:bg-[#e15c46] selection:text-white overflow-x-hidden">
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <link rel="preload" href="/fonts/space-mono-400.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/space-mono-700.woff2" as="font" type="font/woff2" crossorigin />
+    <!--seo-head-end-->
     <!-- SVG displacement filter used for technical blueprint / graph canvas noise textures -->
-    <svg width="0" height="0" style="position: absolute;">
+    <svg width="0" height="0" style="position: absolute" aria-hidden="true">
       <defs>
         <filter id="sharedDisplacementFilter">
           <feTurbulence type="fractalNoise" baseFrequency="0.045 0.055" numOctaves="4" seed="5" result="noise" />
           <feDisplacementMap in="SourceGraphic" in2="noise" scale="4" xChannelSelector="R" yChannelSelector="G" />
-          <feGaussianBlur stdDeviation="0.4" result="blurred"/>
+          <feGaussianBlur stdDeviation="0.4" result="blurred" />
         </filter>
         <filter id="path-filter">
-          <feFlood flood-opacity="0" result="BackgroundImageFix"/>
-          <feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
-          <feTurbulence type="fractalNoise" baseFrequency="4 4" numOctaves="3" seed="5387"/>
-          <feDisplacementMap in="shape" scale="2" xChannelSelector="R" yChannelSelector="G" result="displacedImage" width="100%" height="100%"/>
+          <feFlood flood-opacity="0" result="BackgroundImageFix" />
+          <feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape" />
+          <feTurbulence type="fractalNoise" baseFrequency="4 4" numOctaves="3" seed="5387" />
+          <feDisplacementMap in="shape" scale="2" xChannelSelector="R" yChannelSelector="G" result="displacedImage" width="100%" height="100%" />
           <feMerge>
-            <feMergeNode in="displacedImage"/>
+            <feMergeNode in="displacedImage" />
           </feMerge>
         </filter>
       </defs>
@@ -64,15 +41,17 @@
 
     <div id="root"></div>
     <noscript>
-      <div style="max-width: 640px; margin: 80px auto; padding: 0 24px; font-family: 'Space Mono', monospace; color: #282828;">
-        <h1 style="font-size: 40px; line-height: 1.05;">Know who owns it. Know what breaks. Know who to page.</h1>
-        <p style="font-size: 15px; line-height: 1.7; color: #5c5c56;">
-          Helio connects your repos, on-call schedules and decision records into one graph.
-          Every answer about ownership, blast radius and history comes with the path that proves it —
-          and when the graph has no answer, Helio says so instead of guessing.
+      <div style="max-width: 640px; margin: 40px auto; padding: 0 24px; font-family: 'Space Mono', monospace; color: #282828;">
+        <p style="font-size: 24px; line-height: 1.15; font-weight: 700;">Know who owns it. Know what breaks. Know who to page.</p>
+        <p style="font-size: 14px; line-height: 1.7; color: #5c5c56;">
+          Helio connects your repositories, on-call schedules and decision records into one graph.
+          Every answer about ownership, blast radius and history comes with the path that proves it.
+          The site works without JavaScript; the interactive agent needs it.
         </p>
-        <p style="font-size: 15px;">
-          <a href="mailto:contact.helio.brain@gmail.com?subject=Helio%20walkthrough" style="color: #e15c46;">Book a walkthrough</a>
+        <p style="font-size: 14px;">
+          <a href="/agent" style="color: #e15c46;">Open the demo</a> ·
+          <a href="/auth" style="color: #e15c46;">Create an account</a> ·
+          <a href="/pricing" style="color: #e15c46;">See pricing</a>
         </p>
       </div>
     </noscript>

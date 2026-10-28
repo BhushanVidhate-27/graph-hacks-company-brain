@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+
+# Application screens require a session and are marked noindex. Keep crawlers
+# out of the account, auth and console paths entirely.
+Disallow: /account
+Disallow: /auth
+Disallow: /api
+Disallow: /console
+Disallow: /preview
+
+Sitemap: https://helio-brain.onrender.com/sitemap.xml
