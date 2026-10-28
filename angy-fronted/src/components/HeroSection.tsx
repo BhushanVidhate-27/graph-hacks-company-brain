@@ -13,7 +13,7 @@ interface HeroSectionProps {
 
 export const HeroSection: React.FC<HeroSectionProps> = ({ onSelectMode, onNavigateSection }) => {
   return (
-    <section className="relative w-full min-h-[calc(100vh-5rem)] py-12 md:py-16 px-4 md:px-8 max-w-7xl mx-auto select-none flex flex-col justify-center">
+    <section className="relative w-full min-h-[calc(100vh-3.5rem)] md:min-h-[calc(100vh-4rem)] py-12 md:py-16 px-4 md:px-8 max-w-7xl mx-auto select-none flex flex-col justify-center">
 
       {/* Hero Grid Container */}
       <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start cad-border-b pb-12">
@@ -26,6 +26,8 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onSelectMode, onNaviga
               lineClassNames={['', '', 'text-[#e15c46]']}
               stagger={0.07}
               delay={0.1}
+              whileInView
+              once={false}
             />
           </h1>
 
@@ -60,7 +62,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onSelectMode, onNaviga
                 size="lg" 
                 onClick={() => onSelectMode('dashboard')}
               >
-                FalkorDB Console
+                Graph Console
               </HeronButton>
             </div>
           </Reveal>
@@ -106,11 +108,6 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onSelectMode, onNaviga
                   <div className="text-[11px] text-[#5c5c56]">When the graph has no answer, Helio says so instead of inventing one.</div>
                 </div>
               </div>
-            </div>
-
-            <div className="mt-6 pt-4 cad-border-t text-[10px] font-mono text-[#5c5c56] flex items-center justify-between">
-              <span>GRAPH INFRASTRUCTURE:</span>
-              <span className="text-[#282828] font-bold">FALKORDB + CYPHER</span>
             </div>
           </div>
         </Reveal>

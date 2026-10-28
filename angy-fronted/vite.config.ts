@@ -7,5 +7,7 @@ export default defineConfig({
   server: {
     port: 5173,
     host: true,
+    // Allow quick tunnels (cloudflared) so the dev build can be previewed remotely.
+    allowedHosts: ['.trycloudflare.com'],
   },
 });

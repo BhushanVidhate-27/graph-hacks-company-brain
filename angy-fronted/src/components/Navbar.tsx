@@ -3,7 +3,6 @@ import { HelioLogo } from './HelioLogo';
 import { HeronButton } from './HeronButton';
 import { Menu, X, ChevronDown, Network, Database, Sparkles, Terminal, LogIn, User, Globe, Monitor } from 'lucide-react';
 import { CadCrosshair } from './CadCrosshair';
-import { CoordinateReadout } from './CoordinateReadout';
 import { ScrollProgress } from './ScrollProgress';
 import { ViewMode } from '../types';
 import { useAuth } from '../lib/auth';
@@ -31,7 +30,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentMode, onSelectMode, onNav
       <CadCrosshair position="tl" />
       <CadCrosshair position="tr" />
 
-      <div className="max-w-7xl mx-auto px-4 md:px-8 h-16 md:h-20 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-4 md:px-8 h-14 md:h-16 flex items-center justify-between">
         
         {/* Left: Helio Logo */}
         <div 
@@ -45,7 +44,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentMode, onSelectMode, onNav
         </div>
 
         {/* Center: Desktop Navigation Links */}
-        <div className="hidden xl:flex items-center gap-6 xl:gap-7 text-[12px] xl:text-[13px] font-mono tracking-wider whitespace-nowrap">
+        <div className="hidden xl:flex items-center gap-5 xl:gap-6 text-[11px] xl:text-[12px] font-mono tracking-wider whitespace-nowrap">
           
           {/* Product Dropdown */}
           <div 
@@ -97,7 +96,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentMode, onSelectMode, onNav
                 >
                   <Database className="w-4 h-4 text-[#e15c46] mt-0.5 flex-shrink-0" />
                   <div>
-                    <div className="font-bold text-[12px]">FALKORDB GRAPH CONSOLE</div>
+                    <div className="font-bold text-[12px]">GRAPH CONSOLE</div>
                     <div className="text-[10px] text-[#5c5c56] group-hover:text-white/70">Topology, on-call & blast radius</div>
                   </div>
                 </button>
@@ -156,7 +155,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentMode, onSelectMode, onNav
         </div>
 
         {/* Right CTA / Mode Launcher */}
-        <div className="hidden sm:flex items-center gap-3 shrink-0">
+        <div className="hidden sm:flex items-center gap-2.5 shrink-0">
           {loading ? (
             <span className="font-mono text-[10px] uppercase tracking-wider text-[#5c5c56]">
               Checking session…
@@ -166,7 +165,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentMode, onSelectMode, onNav
               <HeronButton
                 variant="outline"
                 size="sm"
-                className="h-[52px] px-4"
+                className="h-9 md:h-10 px-4"
                 onClick={() => onSelectMode('account')}
               >
                 <User className="w-3.5 h-3.5" />
@@ -175,8 +174,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentMode, onSelectMode, onNav
               <HeronButton
                 variant="brand"
                 size="sm"
-                className="h-[52px] px-4"
-                subLabel={<CoordinateReadout tone="on-brand" />}
+                className="h-9 md:h-10 px-4"
                 onClick={() => onSelectMode('chat-widget')}
               >
                 Query Agent
@@ -187,7 +185,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentMode, onSelectMode, onNav
               <HeronButton
                 variant="outline"
                 size="sm"
-                className="h-[52px] px-4"
+                className="h-9 md:h-10 px-4"
                 onClick={() => goAuth('login')}
               >
                 <LogIn className="w-3.5 h-3.5" />
@@ -196,8 +194,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentMode, onSelectMode, onNav
               <HeronButton
                 variant="brand"
                 size="sm"
-                className="h-[52px] px-4"
-                subLabel={<CoordinateReadout tone="on-brand" />}
+                className="h-9 md:h-10 px-4"
                 onClick={() => goAuth('signup')}
               >
                 Start free
@@ -247,7 +244,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentMode, onSelectMode, onNav
             }}
             className="text-left py-2 text-[#e15c46] font-bold"
           >
-            FALKORDB GRAPH CONSOLE
+            GRAPH CONSOLE
           </button>
           <button
             onClick={() => {

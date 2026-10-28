@@ -62,7 +62,7 @@ export const PageTransitionFrame: React.FC<PageTransitionFrameProps> = ({
 
   const activeIndex = phase === 'out' ? fromIndex : toIndex;
   const node = GRAPH_PAGES[activeIndex];
-  const navbarHeight = viewport.width >= 768 ? 81 : 65;
+  const navbarHeight = viewport.width >= 768 ? 65 : 57;
   const origin = node
     ? {
         x: (node.x / 100) * viewport.width,

@@ -12,7 +12,7 @@ export const FAQSection: React.FC = () => {
       id: 'faq1',
       question: 'Why is a graph traversal better than vector search or RAG?',
       answer:
-        'Vector search checks semantic similarity between text chunks. It cannot tell if Priya left the company 6 months ago, cannot compute a 3-hop dependency cascade, and treats superseded docs as equally valid. Helio uses FalkorDB to traverse real organizational edges with temporal properties, using text search only at the leaves.'
+        'Vector search checks semantic similarity between text chunks. It cannot tell if Priya left the company 6 months ago, cannot compute a 3-hop dependency cascade, and treats superseded docs as equally valid. Helio traverses real organizational edges with temporal properties, using text search only at the leaves.'
     },
     {
       id: 'faq2',
@@ -36,7 +36,7 @@ export const FAQSection: React.FC = () => {
       id: 'faq5',
       question: 'Which graph database powers Helio and how is it deployed?',
       answer:
-        'Helio runs on FalkorDB (Cypher query language). The entire system runs via Docker Compose with synthetic seed generation, automated schema indexing, and a single-origin API entrypoint.'
+        'Helio runs on a property graph (Cypher query language). The entire system runs as a single deployment with synthetic seed generation, automated schema indexing, and one API entrypoint.'
     }
   ];
 

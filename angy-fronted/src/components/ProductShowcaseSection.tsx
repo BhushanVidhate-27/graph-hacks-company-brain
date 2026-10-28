@@ -46,7 +46,7 @@ export const ProductShowcaseSection: React.FC<ProductShowcaseSectionProps> = ({ 
 
               <p className="font-mono text-sm text-[#5c5c56] leading-relaxed mb-6">
                 Ask complex organizational questions in plain English. Helio maps your intent into Cypher queries,
-                traverses FalkorDB edges, and returns verified paths with zero hallucination.
+                traverses graph edges, and returns verified paths with zero hallucination.
               </p>
 
               <div className="space-y-2.5 font-mono text-xs text-[#282828] mb-8 bg-[#ecece4] p-4 cad-border">
@@ -73,7 +73,7 @@ export const ProductShowcaseSection: React.FC<ProductShowcaseSectionProps> = ({ 
           </div>
         </Reveal>
 
-        {/* Product 02: Helio FalkorDB Console */}
+        {/* Product 02: Helio Graph Console */}
         <Reveal className="h-full" delay={0.12}>
           <div className="h-full bg-[#f4f4ec] cad-border p-8 relative flex flex-col justify-between transition-transform duration-300 hover:-translate-y-1">
             <CadCrosshair position="tl" />
@@ -92,7 +92,7 @@ export const ProductShowcaseSection: React.FC<ProductShowcaseSectionProps> = ({ 
                   <Database className="w-5 h-5" />
                 </div>
                 <h3 className="font-mono font-bold text-2xl text-[#282828] uppercase">
-                  Helio FalkorDB Console
+                  Helio Graph Console
                 </h3>
               </div>
 

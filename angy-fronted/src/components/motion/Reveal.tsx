@@ -19,6 +19,10 @@ interface RevealProps {
  * Adapted from beUI's ScrollReveal (MIT):
  * https://beui.dev/r/scroll-reveal.json
  *
+ * Replays on every viewport entry, in both directions: scrolling down past a
+ * block hides it again, so scrolling back up (or down again) re-runs the
+ * unblur. Pass `once` to pin a block to a single reveal instead.
+ *
  * Reduced-motion visitors get a plain fade instead of slide + blur.
  */
 export const Reveal: React.FC<RevealProps> = ({
@@ -28,7 +32,7 @@ export const Reveal: React.FC<RevealProps> = ({
   blur = 6,
   duration = 0.65,
   delay = 0,
-  once = true,
+  once = false,
   amount = 0.2,
 }) => {
   const ref = useRef<HTMLDivElement>(null);

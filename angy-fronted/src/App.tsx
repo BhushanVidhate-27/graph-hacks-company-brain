@@ -12,6 +12,9 @@ import { Footer } from './components/Footer';
 import { ChatWidgetSimulator } from './components/ChatWidgetSimulator';
 import { DashboardSimulator } from './components/DashboardSimulator';
 import { DeviceViewportFrame } from './components/DeviceViewportFrame';
+import { TraversalBand } from './components/TraversalBand';
+import { InspectorStillBand } from './components/InspectorStillBand';
+import { PlusCursor } from './components/PlusCursor';
 import { AuthView } from './components/AuthView';
 import { AccountView } from './components/AccountView';
 import {
@@ -135,6 +138,12 @@ const AppShell: React.FC<AppShellProps> = ({
       />
 
       <div className="cad-border-t border-[#282828]/15" />
+      <InspectorStillBand />
+
+      <div className="cad-border-t border-[#282828]/15" />
+      <TraversalBand />
+
+      <div className="cad-border-t border-[#282828]/15" />
       <ViolationInspector />
 
       <div className="cad-border-t border-[#282828]/15" />
@@ -161,6 +170,8 @@ const AppShell: React.FC<AppShellProps> = ({
 
   return (
     <div className="min-h-screen bg-[#ecece4] text-[#282828] font-mono relative selection:bg-[#e15c46] selection:text-white pb-20">
+
+      <PlusCursor />
 
       {/* Main Navbar */}
       <Navbar

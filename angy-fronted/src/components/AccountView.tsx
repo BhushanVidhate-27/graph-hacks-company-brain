@@ -472,7 +472,7 @@ export const AccountView: React.FC<AccountViewProps> = ({ onBack, onSelectMode }
               <div className="mt-5">
                 {candidate.id === "enterprise" ? (
                   <a
-                    href="mailto:bhushanvidhate002@gmail.com?subject=Helio%20Enterprise"
+                    href="mailto:contact.helio.brain@gmail.com?subject=Helio%20Enterprise"
                     className="inline-flex w-full items-center justify-center border border-[#282828] px-3 py-2 font-mono text-[10px] font-bold uppercase tracking-wider hover:bg-[#282828] hover:text-white"
                   >
                     Talk to us
@@ -637,7 +637,7 @@ export const AccountView: React.FC<AccountViewProps> = ({ onBack, onSelectMode }
           <Sparkles className="w-3.5 h-3.5 text-[#e15c46]" />
           Need more seats or a dedicated graph?{" "}
           <a
-            href="mailto:bhushanvidhate002@gmail.com?subject=Helio%20Enterprise"
+            href="mailto:contact.helio.brain@gmail.com?subject=Helio%20Enterprise"
             className="text-[#e15c46] hover:underline"
           >
             Talk to us

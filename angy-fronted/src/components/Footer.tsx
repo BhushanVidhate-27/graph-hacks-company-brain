@@ -20,7 +20,7 @@ export const Footer: React.FC<FooterProps> = ({ onSelectMode }) => {
           <div className="lg:col-span-5 space-y-6">
             <HelioLogo showText={true} />
             <p className="font-mono text-xs text-[#5c5c56] max-w-sm leading-relaxed">
-              Helio is an organizational knowledge graph engine built on FalkorDB.
+              Helio is an organizational knowledge graph engine.
               Answering who knows what, what breaks if it dies, and where decisions were made —
               with complete Cypher provenance and zero hallucination.
             </p>
@@ -28,11 +28,11 @@ export const Footer: React.FC<FooterProps> = ({ onSelectMode }) => {
             <div className="bg-[#ecece4] cad-border p-4 text-[11px] font-mono text-[#5c5c56] space-y-2">
               <div className="text-[#282828] font-bold">CONTACT & INQUIRIES:</div>
               <a 
-                href="mailto:bhushanvidhate002@gmail.com" 
+                href="mailto:contact.helio.brain@gmail.com" 
                 className="text-[#e15c46] font-bold text-xs hover:underline flex items-center gap-1.5"
               >
                 <Mail className="w-3.5 h-3.5" />
-                <span>bhushanvidhate002@gmail.com</span>
+                <span>contact.helio.brain@gmail.com</span>
               </a>
             </div>
           </div>
@@ -55,7 +55,7 @@ export const Footer: React.FC<FooterProps> = ({ onSelectMode }) => {
                 onClick={() => onSelectMode('dashboard')} 
                 className="hover:text-[#e15c46] transition-colors"
               >
-                FalkorDB Console
+                Graph Console
               </button>
             </div>
             <div>
@@ -113,8 +113,8 @@ export const Footer: React.FC<FooterProps> = ({ onSelectMode }) => {
             © 2026 HELIO. ALL RIGHTS RESERVED.
           </div>
           <div className="flex items-center gap-6">
-            <a href="mailto:bhushanvidhate002@gmail.com" className="hover:text-[#282828] transition-colors">
-              bhushanvidhate002@gmail.com
+            <a href="mailto:contact.helio.brain@gmail.com" className="hover:text-[#282828] transition-colors">
+              contact.helio.brain@gmail.com
             </a>
           </div>
         </div>

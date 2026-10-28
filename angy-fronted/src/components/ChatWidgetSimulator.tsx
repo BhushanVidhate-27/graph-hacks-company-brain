@@ -291,7 +291,7 @@ const GROUND_TRUTH_CASES: GroundTruthCase[] = [
     category: 'negatives',
     categoryLabel: 'Honest Negatives',
     question: "What did checkout decide about pricing?",
-    answer: "The graph contains no decisions whose summary mentions pricing. No pricing ADR or architectural decision exists in FalkorDB.",
+    answer: "The graph contains no decisions whose summary mentions pricing. No pricing ADR or architectural decision exists in the graph.",
     cypher: "MATCH (d:Decision)\nWHERE d.summary CONTAINS 'pricing' OR d.project = 'checkout'\nRETURN d",
     path: ["checkout", "DECISIONS_MATCHING('pricing')", "EMPTY RESULT SET (0 Rows)"],
     trail: [],
@@ -349,7 +349,7 @@ export const ChatWidgetSimulator: React.FC = () => {
     {
       id: 'm-init',
       sender: 'helio',
-      text: "⚡ Helio Autonomous Knowledge Graph Agent initialized.\nConnected to FalkorDB on port 6379.\nLoaded topology: 120 Persons, 20 Services, 5 Teams, 40 Decisions, 22 Dependencies.\n\nAsk any question regarding ownership, blast radius, on-call paging, or ADR provenance, or choose a verification query below.",
+      text: "⚡ Helio Autonomous Knowledge Graph Agent initialized.\nConnected to the Helio graph engine.\nLoaded topology: 120 Persons, 20 Services, 5 Teams, 40 Decisions, 22 Dependencies.\n\nAsk any question regarding ownership, blast radius, on-call paging, or ADR provenance, or choose a verification query below.",
       timestamp: '15:00:00',
       mode: 'live'
     },
@@ -435,7 +435,7 @@ export const ChatWidgetSimulator: React.FC = () => {
       {
         id: 'm-reset',
         sender: 'helio',
-        text: "Transcript reset. Agent connected to FalkorDB Knowledge Graph engine.",
+        text: "Transcript reset. Agent connected to the Helio Knowledge Graph engine.",
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
         mode: executionMode
       }
@@ -601,11 +601,11 @@ export const ChatWidgetSimulator: React.FC = () => {
         matched = {
           id: 99,
           category: 'org',
-          categoryLabel: 'FalkorDB Query',
+          categoryLabel: 'Graph Query',
           question,
-          answer: `Traversed FalkorDB for "${question}". The entity has 0 conflicting ADRs and active telemetry recorded in the Helio Knowledge Graph.`,
+          answer: `Traversed the graph for "${question}". The entity has 0 conflicting ADRs and active telemetry recorded in the Helio Knowledge Graph.`,
           cypher: `MATCH (n {name: '${question.slice(0, 20).trim()}'})-[r*1..2]-(m)\nRETURN n, r, m`,
-          path: [question.slice(0, 16), "TRAVERSED", "FalkorDB OpenCypher"],
+          path: [question.slice(0, 16), "TRAVERSED", "OpenCypher"],
           trail: [
             { type: "Query", name: question.slice(0, 24), detail: "Exact graph match", via_edge: "EVIDENCED_BY" }
           ],
@@ -700,9 +700,7 @@ export const ChatWidgetSimulator: React.FC = () => {
 
           <div className="hidden sm:flex items-center gap-1.5 px-2 py-0.5 bg-[#1c1c1b] cad-border text-[10px] text-white/80">
             <Cpu className="w-3 h-3 text-[#e15c46]" />
-            <span>Groq gpt-oss-120b</span>
-            <span className="text-white/30">•</span>
-            <span>FalkorDB v0.4</span>
+            <span>Helio Agent</span>
           </div>
         </div>
 
@@ -716,7 +714,7 @@ export const ChatWidgetSimulator: React.FC = () => {
               className={`px-2.5 py-1 flex items-center gap-1.5 transition-colors ${
                 executionMode === 'live' ? 'bg-[#e15c46] text-white font-bold' : 'text-white/60 hover:text-white'
               }`}
-              title="Queries the live FalkorDB graph backend deployed on Render"
+              title="Queries the live graph backend"
             >
               <Activity className="w-3 h-3" />
               <span>LIVE CLOUD API</span>
@@ -820,7 +818,7 @@ export const ChatWidgetSimulator: React.FC = () => {
                     <div>
                       <span className="font-bold">RULE 03: HONEST NEGATIVE ASSERTION</span>
                       <p className="text-[10px] text-amber-800 mt-0.5">
-                        Verified absence of edge in FalkorDB. The agent refused to hallucinate an owner, team, or SLA.
+                        Verified absence of edge in the graph. The agent refused to hallucinate an owner, team, or SLA.
                       </p>
                     </div>
                   </div>
@@ -831,7 +829,7 @@ export const ChatWidgetSimulator: React.FC = () => {
                   {m.text || (
                     <span className="italic text-[#5c5c56] flex items-center gap-2">
                       <Sparkles className="w-3.5 h-3.5 animate-spin text-[#e15c46]" />
-                      Streaming graph traversal evidence from FalkorDB...
+                      Streaming graph traversal evidence...
                     </span>
                   )}
                 </div>
@@ -865,7 +863,7 @@ export const ChatWidgetSimulator: React.FC = () => {
                     <div className="text-[10px] text-[#5c5c56] font-bold uppercase mb-2 flex items-center justify-between">
                       <div className="flex items-center gap-1.5">
                         <Network className="w-3.5 h-3.5 text-[#e15c46]" />
-                        <span>FALKORDB PROVENANCE TRAIL ({m.trail.length} ENTITIES):</span>
+                        <span>PROVENANCE TRAIL ({m.trail.length} ENTITIES):</span>
                       </div>
                       <span className="text-[9px] text-[#5c5c56]">Contract: soham.md §3</span>
                     </div>
@@ -921,7 +919,7 @@ export const ChatWidgetSimulator: React.FC = () => {
                     <div className="flex items-center justify-between pb-1.5 text-white/40 text-[9px] uppercase font-bold cad-border-b border-white/10 mb-2">
                       <div className="flex items-center gap-1.5">
                         <Terminal className="w-3 h-3 text-emerald-400" />
-                        <span>FALKORDB CYPHER QUERY (OPEN CYPHER SUBSET):</span>
+                        <span>CYPHER QUERY (OPEN CYPHER SUBSET):</span>
                       </div>
                       <button
                         onClick={() => handleCopyCypher(m.id, m.cypherQuery!)}
@@ -953,7 +951,7 @@ export const ChatWidgetSimulator: React.FC = () => {
           {isTyping && (
             <div className="flex items-center gap-2.5 text-xs font-mono text-[#e15c46] py-2 animate-pulse">
               <Sparkles className="w-4 h-4 animate-spin" />
-              <span>Querying FalkorDB topology & executing multi-hop graph traversal...</span>
+              <span>Querying graph topology & executing multi-hop traversal...</span>
             </div>
           )}
 

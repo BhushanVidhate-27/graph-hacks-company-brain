@@ -132,7 +132,7 @@ const FALLBACK_PLANS: Plan[] = [
     features: [
       'Unlimited questions',
       'Unlimited graphs & seats',
-      'Dedicated FalkorDB instance',
+      'Dedicated graph instance',
       'SSO / RBAC',
       'SLA-backed uptime',
       'White-glove onboarding',
@@ -178,7 +178,7 @@ export const PricingSection: React.FC<PricingSectionProps> = ({ onSelectMode }) 
 
     if (target.id === 'enterprise') {
       window.location.href =
-        'mailto:bhushanvidhate002@gmail.com?subject=Helio%20Enterprise%20enquiry';
+        'mailto:contact.helio.brain@gmail.com?subject=Helio%20Enterprise%20enquiry';
       return;
     }
 
@@ -433,7 +433,7 @@ export const PricingSection: React.FC<PricingSectionProps> = ({ onSelectMode }) 
       </div>
 
       <div className="mt-8 text-center font-mono text-[11px] text-[#5c5c56]">
-        All plans include Cypher-verified answers · FalkorDB graph engine · SSE streaming
+        All plans include Cypher-verified answers on a dedicated graph engine, with streaming answers
       </div>
     </section>
   );

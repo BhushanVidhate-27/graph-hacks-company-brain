@@ -115,7 +115,7 @@ export const ViolationInspector: React.FC = () => {
             <span>•</span>
             <div className="flex items-center gap-2">
               <span className="w-3 h-3 bg-[#282828] inline-block border border-[#282828]" />
-              <span>HELIO FALKORDB CYPHER</span>
+              <span>HELIO GRAPH QUERY</span>
             </div>
           </div>
         </div>
@@ -141,7 +141,7 @@ export const ViolationInspector: React.FC = () => {
             <CadCrosshair position="br" />
 
             {/* Background Layer: Ground Truth Graph Topology */}
-            <div className="absolute inset-0 w-full h-full p-8 flex flex-col justify-between cad-grid-pattern bg-[#181817]">
+            <div className="absolute inset-0 w-full h-full p-8 flex flex-col justify-between cad-grid-pattern bg-[#181817] isolate">
               
               {/* Topology SVG Lines connecting nodes */}
               <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-50">
@@ -153,10 +153,10 @@ export const ViolationInspector: React.FC = () => {
 
               <div className="flex justify-between items-start z-10">
                 <span className="bg-[#282828]/90 text-white font-mono text-[10px] px-2.5 py-1 cad-border uppercase tracking-widest backdrop-blur-sm">
-                  FALKORDB CYPHER TRAVERSAL // 20 VERIFIED NODES
+                  VERIFIED GRAPH TRAVERSAL
                 </span>
                 <span className="text-[10px] text-white/50 font-mono">
-                  CYPHER: PASS
+                  VERIFIED
                 </span>
               </div>
 
@@ -187,8 +187,8 @@ export const ViolationInspector: React.FC = () => {
               ))}
 
               <div className="z-10 text-[10px] font-mono text-white/40 flex justify-between">
-                <span>TRAVERSAL: HAS_DEPENDENT + SUPERSEDES</span>
-                <span>FALKORDB PORT 6379</span>
+                <span>3-HOP TRAVERSAL</span>
+                <span>GRAPH ENGINE</span>
               </div>
             </div>
 
@@ -218,7 +218,7 @@ export const ViolationInspector: React.FC = () => {
                 </div>
 
                 <div className="text-[10px] text-white/40">
-                  KEYWORD TF-IDF // NO EDGE RELATIONS
+                  NO EDGE RELATIONS
                 </div>
               </div>
             </div>

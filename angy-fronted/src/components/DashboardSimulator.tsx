@@ -97,7 +97,7 @@ export const DashboardSimulator: React.FC = () => {
         <div>
           <div className="flex items-center gap-2 text-[#e15c46] font-mono text-xs font-bold uppercase tracking-widest mb-1">
             <Database className="w-4 h-4" />
-            <span>FALKORDB KNOWLEDGE GRAPH // CONSOLE</span>
+            <span>KNOWLEDGE GRAPH // CONSOLE</span>
           </div>
           <h1 className="text-2xl md:text-3xl font-mono font-bold uppercase tracking-tight">
             Helio Company Brain Topology
@@ -137,7 +137,7 @@ export const DashboardSimulator: React.FC = () => {
           <div className="font-mono text-3xl font-bold text-[#e15c46]">
             <AnimatedNumber value={100} />%
           </div>
-          <div className="font-mono text-[10px] text-[#5c5c56] mt-2">Grounded in FalkorDB edges</div>
+          <div className="font-mono text-[10px] text-[#5c5c56] mt-2">Grounded in verified graph edges</div>
         </div>
 
         <div className="bg-[#f4f4ec] cad-border p-5 relative">

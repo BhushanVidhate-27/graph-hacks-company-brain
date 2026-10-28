@@ -8,7 +8,7 @@ export const WorkflowSection: React.FC = () => {
     {
       num: '01',
       title: 'GRAPH INGESTION',
-      subtitle: 'Structured nodes & typed edges in FalkorDB',
+      subtitle: 'Structured nodes & typed edges in the graph engine',
       desc: 'Persons, Teams, Projects, Services, Decisions, and Documents loaded with pre-indexed Cypher properties.',
       icon: Database
     },

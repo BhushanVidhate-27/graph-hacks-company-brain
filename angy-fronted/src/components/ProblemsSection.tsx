@@ -1,6 +1,7 @@
 import React from 'react';
 import { CadCrosshair } from './CadCrosshair';
 import { Reveal } from './motion/Reveal';
+import { HonestNegative } from './HonestNegative';
 
 export const ProblemsSection: React.FC = () => {
   const problems = [
@@ -26,7 +27,7 @@ export const ProblemsSection: React.FC = () => {
       index: '[04]',
       label: 'HALLUCINATION',
       title: 'Invents owners when none exist',
-      desc: "An LLM asked 'who owns config-service?' invents a plausible team. Helio traverses FalkorDB, detects no OWNED_BY edge, and states with confidence: 'No team owns it.' Truth, not an apology."
+      desc: "An LLM asked 'who owns config-service?' invents a plausible team. Helio traverses the graph, detects no OWNED_BY edge, and states with confidence: 'No team owns it.' Truth, not an apology."
     }
   ];
 
@@ -76,6 +77,8 @@ export const ProblemsSection: React.FC = () => {
           </Reveal>
         ))}
       </div>
+
+      <HonestNegative />
 
     </section>
   );
