@@ -128,6 +128,29 @@ section[id] {
   border-color: rgba(40, 40, 40, 0.35);
 }
 
+/* Answer comparison. The hatches mark two different kinds of failure: a
+   ranked result that is stale, and an edge that simply does not exist. They
+   are fills, not borders, so the 1px CAD line system stays intact. */
+.answer-stale {
+  background-image: repeating-linear-gradient(
+    135deg,
+    rgba(194, 69, 45, 0.09) 0,
+    rgba(194, 69, 45, 0.09) 1px,
+    transparent 1px,
+    transparent 7px
+  );
+}
+
+.answer-empty {
+  background-image: repeating-linear-gradient(
+    135deg,
+    rgba(194, 69, 45, 0.12) 0,
+    rgba(194, 69, 45, 0.12) 1px,
+    transparent 1px,
+    transparent 6px
+  );
+}
+
 /* Crosshair '+' markers at grid intersections */
 .cad-plus {
   position: relative;

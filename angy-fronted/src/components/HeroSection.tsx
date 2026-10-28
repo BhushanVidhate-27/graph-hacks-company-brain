@@ -55,7 +55,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onSelectMode, onNaviga
                 onClick={() => onNavigateSection('inspector-section')}
                 className="font-mono text-[11px] uppercase tracking-wider text-[#e15c46] hover:underline flex items-center gap-1.5"
               >
-                See a live blast radius
+                See what search misses
                 <ArrowDown className="w-3.5 h-3.5" />
               </button>
             </div>
@@ -124,7 +124,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onSelectMode, onNaviga
             onClick={() => onNavigateSection('inspector-section')}
             className="flex items-center gap-1.5 text-[#e15c46] hover:underline"
           >
-            <span>INTERACTIVE BLAST RADIUS</span>
+            <span>SEARCH VS. GRAPH</span>
             <ArrowDown className="w-3.5 h-3.5" />
           </button>
         </div>

@@ -11,7 +11,6 @@ import { FAQSection } from './components/FAQSection';
 import { Footer } from './components/Footer';
 import { DeviceViewportFrame } from './components/DeviceViewportFrame';
 import { TraversalBand } from './components/TraversalBand';
-import { InspectorStillBand } from './components/InspectorStillBand';
 import { LearnStrip } from './components/LearnStrip';
 import {
   GRAPH_PAGES,
@@ -153,9 +152,6 @@ const AppShell: React.FC<AppShellProps> = ({
         onSelectMode={transitionTo}
         onNavigateSection={scrollToSection}
       />
-
-      <div className="cad-border-t border-[#282828]/15" />
-      <InspectorStillBand />
 
       <div className="cad-border-t border-[#282828]/15" />
       <TraversalBand />

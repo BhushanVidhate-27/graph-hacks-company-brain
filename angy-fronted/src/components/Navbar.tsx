@@ -126,7 +126,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentMode, onSelectMode, onNav
             onClick={() => onNavigateSection('inspector-section')} 
             className="hover:text-[#e15c46] transition-colors whitespace-nowrap"
           >
-            BLAST RADIUS INSPECTOR
+            SEARCH VS. GRAPH
           </button>
 
           <button 
@@ -233,7 +233,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentMode, onSelectMode, onNav
             }}
             className="text-left py-2 hover:text-[#e15c46]"
           >
-            BLAST RADIUS INSPECTOR
+            SEARCH VS. GRAPH
           </button>
           <button
             onClick={() => {
