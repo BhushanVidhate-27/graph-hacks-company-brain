@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { ArrowLeft, ArrowRight, Check, Lock, ShieldCheck, Sparkles } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, ShieldCheck, Sparkles } from "lucide-react";
 import { CadCrosshair } from "./CadCrosshair";
 import { HeronButton } from "./HeronButton";
 import { useAuth } from "../lib/auth";
@@ -208,12 +208,6 @@ export const AuthView: React.FC<AuthViewProps> = ({ onSuccess, onBack }) => {
               </button>
             </div>
           </form>
-
-          <p className="mt-6 font-mono text-[10px] text-[#5c5c56] flex items-start gap-2">
-            <Lock className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
-            Passwords are hashed with scrypt. Sessions are HttpOnly cookies. No card is required for
-            the free plan.
-          </p>
         </div>
 
         {/* Value panel */}
@@ -233,7 +227,7 @@ export const AuthView: React.FC<AuthViewProps> = ({ onSuccess, onBack }) => {
               "Every answer carries its graph path — nodes, edges and dates.",
               "Staleness is first-class: departed people and superseded docs are flagged, not buried.",
               "Honest negatives: when the graph has no owner, Helio says so.",
-              "Free plan includes 50 questions a month. Upgrade only when the team adopts it.",
+              "Free plan: 50 questions a month, no card required. Upgrade only when the team adopts it.",
             ].map((line) => (
               <div key={line} className="flex items-start gap-3 font-mono text-xs leading-relaxed text-white/85">
                 <Check className="w-4 h-4 mt-0.5 flex-shrink-0 text-[#e15c46]" />
