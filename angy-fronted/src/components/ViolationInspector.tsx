@@ -132,6 +132,7 @@ export const ViolationInspector: React.FC = () => {
             onPointerUp={handlePointerUp}
             onPointerLeave={handlePointerUp}
             onPointerMove={handlePointerMove}
+            data-no-swipe
             className="relative w-full aspect-[4/3] md:aspect-[16/10] bg-[#1c1c1b] cad-border overflow-hidden cursor-ew-resize select-none"
           >
             <CadCrosshair position="tl" />

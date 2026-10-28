@@ -388,7 +388,7 @@ export const ChatWidgetSimulator: React.FC = () => {
   const [backendPing, setBackendPing] = useState<number | null>(null);
   const [copiedQueryId, setCopiedQueryId] = useState<string | null>(null);
 
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messageLogRef = useRef<HTMLDivElement>(null);
   const liveAbortController = useRef<AbortController | null>(null);
 
   const API_BASE = API_URL;
@@ -399,7 +399,8 @@ export const ChatWidgetSimulator: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    const log = messageLogRef.current;
+    if (log) log.scrollTo({ top: log.scrollHeight, behavior: 'smooth' });
   }, [messages, isTyping]);
 
   const checkBackendHealth = async () => {
@@ -772,7 +773,7 @@ export const ChatWidgetSimulator: React.FC = () => {
         <CadCrosshair position="br" />
 
         {/* Message Log */}
-        <div className="h-[520px] overflow-y-auto space-y-5 pr-2">
+        <div ref={messageLogRef} className="h-[520px] overflow-y-auto space-y-5 pr-2">
           {messages.map((m) => (
             <div
               key={m.id}
@@ -956,7 +957,7 @@ export const ChatWidgetSimulator: React.FC = () => {
             </div>
           )}
 
-          <div ref={messagesEndRef} />
+          <div />
         </div>
 
         {/* Input Bar */}
