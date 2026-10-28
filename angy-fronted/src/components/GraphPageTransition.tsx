@@ -49,12 +49,13 @@ export const PageTransitionFrame: React.FC<PageTransitionFrameProps> = ({
   children,
 }) => {
   const reduceMotion = useReducedMotion();
-  const [viewport, setViewport] = useState({
-    width: typeof window === 'undefined' ? 1440 : window.innerWidth,
-    height: typeof window === 'undefined' ? 900 : window.innerHeight,
-  });
+  // Start from the same values on the server and the client so hydration
+  // matches. The real viewport is measured in an effect after mount, before
+  // any transition can use the transform origin.
+  const [viewport, setViewport] = useState({ width: 1440, height: 900 });
 
   useEffect(() => {
+    setViewport({ width: window.innerWidth, height: window.innerHeight });
     const onResize = () => setViewport({ width: window.innerWidth, height: window.innerHeight });
     window.addEventListener('resize', onResize);
     return () => window.removeEventListener('resize', onResize);

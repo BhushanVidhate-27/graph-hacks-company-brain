@@ -13,6 +13,8 @@ interface RevealProps {
   delay?: number;
   once?: boolean;
   amount?: number;
+  /** Render visible on first paint. Used above the fold so LCP is not delayed. */
+  priority?: boolean;
 }
 
 /**
@@ -34,6 +36,7 @@ export const Reveal: React.FC<RevealProps> = ({
   delay = 0,
   once = false,
   amount = 0.2,
+  priority = false,
 }) => {
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once, amount });
@@ -49,8 +52,9 @@ export const Reveal: React.FC<RevealProps> = ({
   return (
     <motion.div
       ref={ref}
-      initial={hidden}
-      animate={inView ? shown : hidden}
+      data-reveal
+      initial={priority ? false : hidden}
+      animate={priority || inView ? shown : hidden}
       transition={{ duration, ease: EASE_OUT, delay }}
       className={className}
     >

@@ -28,10 +28,11 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onSelectMode, onNaviga
               delay={0.1}
               whileInView
               once={false}
+              priority
             />
           </h1>
 
-          <Reveal delay={0.35} y={14}>
+          <Reveal delay={0.35} y={14} priority>
             <div className="mt-8 max-w-2xl text-[14px] md:text-[16px] font-mono text-[#5c5c56] leading-relaxed">
               Helio connects your repositories, on-call rotations and decision records into one graph.
               Ask who really knows a system, what fails downstream, or why it was built that way —
@@ -40,7 +41,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onSelectMode, onNaviga
             </div>
           </Reveal>
 
-          <Reveal delay={0.45} y={14}>
+          <Reveal delay={0.45} y={14} priority>
             <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-4">
               <HeronButton 
                 variant="brand" 
@@ -65,7 +66,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onSelectMode, onNaviga
         </div>
 
         {/* Right 4 Cols: Technical Metadata HUD Card */}
-        <Reveal className="lg:col-span-4" delay={0.3} y={22}>
+        <Reveal className="lg:col-span-4" delay={0.3} y={22} priority>
           <div className="bg-[#f4f4ec] cad-border p-6 relative transition-transform duration-300 hover:-translate-y-1">
             <CadCrosshair position="tl" />
             <CadCrosshair position="tr" />
@@ -111,7 +112,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onSelectMode, onNaviga
       </div>
 
       {/* Sub-bar: Supported tools ticker */}
-      <Reveal className="relative z-10" delay={0.55} y={10}>
+      <Reveal className="relative z-10" delay={0.55} y={10} priority>
         <div className="pt-4 flex flex-wrap items-center justify-between gap-4 font-mono text-xs text-[#5c5c56]">
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 bg-[#e15c46]" />

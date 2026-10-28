@@ -228,7 +228,7 @@ export const PricingSection: React.FC<PricingSectionProps> = ({ onSelectMode }) 
       className="relative w-full py-16 md:py-24 px-4 md:px-8 max-w-7xl mx-auto select-none"
     >
       {/* Header */}
-      <Reveal>
+      <Reveal priority>
         <div className="text-center max-w-3xl mx-auto mb-12">
         <h2 className="text-3xl md:text-5xl font-mono font-bold tracking-tight text-[#282828] uppercase leading-tight mb-4">
           Priced for the team that needs the answer

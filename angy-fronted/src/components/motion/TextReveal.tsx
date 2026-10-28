@@ -12,6 +12,8 @@ interface TextRevealProps {
   yOffset?: string | number;
   once?: boolean;
   whileInView?: boolean;
+  /** Render visible on first paint. Used above the fold so LCP is not delayed. */
+  priority?: boolean;
 }
 
 /**
@@ -30,6 +32,7 @@ export const TextReveal: React.FC<TextRevealProps> = ({
   yOffset = '38%',
   once = true,
   whileInView = false,
+  priority = false,
 }) => {
   const ref = useRef<HTMLSpanElement>(null);
   const inView = useInView(ref, { once, amount: 0.35 });
@@ -40,7 +43,7 @@ export const TextReveal: React.FC<TextRevealProps> = ({
   let unitIndex = 0;
 
   return (
-    <span ref={ref} className={className}>
+    <span ref={ref} data-reveal className={className}>
       {lines.map((line, lineIndex) => {
         const groups = line.match(/\S+\s*|\s+/g) ?? [];
 
@@ -63,8 +66,8 @@ export const TextReveal: React.FC<TextRevealProps> = ({
               return (
                 <motion.span
                   key={`${group}-${groupIndex}`}
-                  initial={hidden}
-                  animate={shouldAnimate ? shown : hidden}
+                  initial={priority ? false : hidden}
+                  animate={priority || shouldAnimate ? shown : hidden}
                   transition={
                     reduce
                       ? { opacity: { duration: 0.3, ease: EASE_OUT, delay: wordDelay * 0.3 } }
