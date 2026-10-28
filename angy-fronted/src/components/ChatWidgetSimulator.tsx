@@ -58,13 +58,13 @@ const GROUND_TRUTH_CASES: GroundTruthCase[] = [
     category: 'ownership',
     categoryLabel: 'Ownership',
     question: "Who owns payments-gateway today?",
-    answer: "The Platform team owns payments-gateway. Decision D-21 (2026-04-15, authored by Elena Vasquez) named Ravi Menon as its accountable owner. Priya Sharma held that role previously.",
+    answer: "The Platform team owns payments-gateway. Decision D-21 (2026-04-15, authored by the VP of Engineering) named the Platform team as its accountable owner. The former payments lead held that role previously.",
     cypher: "MATCH (s:Service {name: 'payments-gateway'})-[:OWNED_BY]->(t:Team)\nOPTIONAL MATCH (d:Decision {id: 'D-21'})\nRETURN s.name, t.name, d.summary, d.author, d.date",
-    path: ["payments-gateway", "OWNED_BY", "Platform", "REASSIGNED_BY", "Decision D-21", "ASSIGNEE", "Ravi Menon"],
+    path: ["payments-gateway", "OWNED_BY", "Platform", "REASSIGNED_BY", "Decision D-21", "ASSIGNEE", "Platform"],
     trail: [
       { type: "Team", name: "Platform", detail: "owns payments-gateway", via_edge: "OWNED_BY" },
-      { type: "Decision", name: "D-21", detail: "Reassign payments-gateway ownership to Ravi Menon", date: "2026-04-15", via_edge: "REASSIGNED_IN" },
-      { type: "Person", name: "Ravi Menon", detail: "Active maintainer (Platform Lead)", via_edge: "ASSIGNED_TO" }
+      { type: "Decision", name: "D-21", detail: "Reassign payments-gateway ownership to Platform", date: "2026-04-15", via_edge: "REASSIGNED_IN" },
+      { type: "Person", name: "Platform On-Call", detail: "Active maintainer (Platform Lead)", via_edge: "ASSIGNED_TO" }
     ],
     stale: []
   },
@@ -73,12 +73,12 @@ const GROUND_TRUTH_CASES: GroundTruthCase[] = [
     category: 'ownership',
     categoryLabel: 'Ownership',
     question: "Who owns ledger-service?",
-    answer: "The Ledger team owns ledger-service, led by Ana Duarte. Ana has worked extensively across both payments and ledger architecture.",
+    answer: "The Ledger team owns ledger-service. Its team lead has worked extensively across both payments and ledger architecture.",
     cypher: "MATCH (s:Service {name: 'ledger-service'})-[:OWNED_BY]->(t:Team)<-[:LEADS]-(p:Person)\nRETURN s.name, t.name, p.name",
-    path: ["ledger-service", "OWNED_BY", "Ledger Team", "LEADS", "Ana Duarte"],
+    path: ["ledger-service", "OWNED_BY", "Ledger Team", "LEADS", "Ledger Lead"],
     trail: [
       { type: "Team", name: "Ledger", detail: "owns ledger-service", via_edge: "OWNED_BY" },
-      { type: "Person", name: "Ana Duarte", detail: "Team Lead, Ledger", via_edge: "LEADS" }
+      { type: "Person", name: "Ledger Lead", detail: "Team Lead, Ledger", via_edge: "LEADS" }
     ],
     stale: []
   },
@@ -87,12 +87,12 @@ const GROUND_TRUTH_CASES: GroundTruthCase[] = [
     category: 'ownership',
     categoryLabel: 'Ownership',
     question: "Who owns fraud-scoring?",
-    answer: "The Risk team owns fraud-scoring, with Diego Alvarez as the engineering owner and on-call specialist.",
+    answer: "The Risk team owns fraud-scoring, with the Risk on-call as the engineering owner and on-call specialist.",
     cypher: "MATCH (s:Service {name: 'fraud-scoring'})-[:OWNED_BY]->(t:Team)\nRETURN s.name, t.name",
-    path: ["fraud-scoring", "OWNED_BY", "Risk Team", "OWNER", "Diego Alvarez"],
+    path: ["fraud-scoring", "OWNED_BY", "Risk Team", "OWNER", "Risk On-Call"],
     trail: [
       { type: "Team", name: "Risk", detail: "owns fraud-scoring", via_edge: "OWNED_BY" },
-      { type: "Person", name: "Diego Alvarez", detail: "Risk Engineer", via_edge: "MEMBER_OF" }
+      { type: "Person", name: "Risk On-Call", detail: "Risk Engineer", via_edge: "MEMBER_OF" }
     ],
     stale: []
   },
@@ -101,7 +101,7 @@ const GROUND_TRUTH_CASES: GroundTruthCase[] = [
     category: 'negatives',
     categoryLabel: 'Honest Negatives',
     question: "Does every service have an owner?",
-    answer: "No. Of the 20 services in the graph, 19 have a team owner, but config-service has no :OWNED_BY edge. Mei Lin contributes to it, but nobody owns it. This is a structural unowned service.",
+    answer: "No. Of the 20 services in the graph, 19 have a team owner, but config-service has no :OWNED_BY edge. An engineer contributes to it, but nobody owns it. This is a structural unowned service.",
     cypher: "MATCH (s:Service)\nWHERE NOT (s)-[:OWNED_BY]->()\nRETURN s.name",
     path: ["config-service", "OWNED_BY (ABSENT)", "NO OWNER FOUND (Orphan)"],
     trail: [
@@ -161,15 +161,15 @@ const GROUND_TRUTH_CASES: GroundTruthCase[] = [
     category: 'expertise',
     categoryLabel: 'Expertise vs Recency',
     question: "Who has the most commits on payments-gateway?",
-    answer: "Priya Sharma has the most historical commits (14 commits), but her last contribution was on 2026-04-15 and is flagged as stale (>90 days). In contrast, Ravi Menon has 5 commits with recent activity on 2026-09-28 and holds active ownership.",
+    answer: "The former payments lead has the most historical commits (14), but the last contribution was on 2026-04-15 and is flagged as stale (>90 days). In contrast, the current Platform on-call has 5 commits with recent activity on 2026-09-28 and holds active ownership.",
     cypher: "MATCH (p:Person)-[c:CONTRIBUTED_TO]->(s:Service {name: 'payments-gateway'})\nRETURN p.name, c.commits, c.latest\nORDER BY c.commits DESC",
-    path: ["payments-gateway", "MOST_COMMITS (14)", "Priya Sharma (Stale 2026-04-15)", "RECENCY (5)", "Ravi Menon (Active)"],
+    path: ["payments-gateway", "MOST_COMMITS (14)", "Former Payments Lead (Stale 2026-04-15)", "RECENCY (5)", "Platform On-Call (Active)"],
     trail: [
-      { type: "Person", name: "Priya Sharma", detail: "14 commits [STALE, last touch 2026-04-15]", date: "2026-04-15", via_edge: "CONTRIBUTED_TO" },
-      { type: "Person", name: "Ravi Menon", detail: "5 commits [FRESH, active touch 2026-09-28]", date: "2026-09-28", via_edge: "CONTRIBUTED_TO" }
+      { type: "Person", name: "Former Payments Lead", detail: "14 commits [STALE, last touch 2026-04-15]", date: "2026-04-15", via_edge: "CONTRIBUTED_TO" },
+      { type: "Person", name: "Platform On-Call", detail: "5 commits [FRESH, active touch 2026-09-28]", date: "2026-09-28", via_edge: "CONTRIBUTED_TO" }
     ],
     stale: [
-      { type: "Person", name: "Priya Sharma", reason: "Contribution history is older than 90 days (last active 2026-04-15)", last_verified_at: "2026-04-15" }
+      { type: "Person", name: "Former Payments Lead", reason: "Contribution history is older than 90 days (last active 2026-04-15)", last_verified_at: "2026-04-15" }
     ]
   },
   {
@@ -177,11 +177,11 @@ const GROUND_TRUTH_CASES: GroundTruthCase[] = [
     category: 'expertise',
     categoryLabel: 'Expertise vs Recency',
     question: "Who should I ask about the payments service?",
-    answer: "Ravi Menon. While Priya Sharma authored the early architecture, Ravi Menon is the current Platform Lead and active owner under Decision D-21 with recent commits in September 2026.",
+    answer: "The current Platform on-call. While the former payments lead authored the early architecture, the current Platform lead is the active owner under Decision D-21 with recent commits in September 2026.",
     cypher: "MATCH (s:Service {name: 'payments-gateway'})-[:OWNED_BY]->(t:Team)<-[:MEMBER_OF]-(p:Person)\nOPTIONAL MATCH (d:Decision {id: 'D-21'})\nRETURN p.name, d.summary",
-    path: ["payments-gateway", "CURRENT_OWNER", "Ravi Menon", "DECISION", "D-21 Handoff"],
+    path: ["payments-gateway", "CURRENT_OWNER", "Platform On-Call", "DECISION", "D-21 Handoff"],
     trail: [
-      { type: "Person", name: "Ravi Menon", detail: "Platform Lead & assigned owner", via_edge: "ASSIGNED_OWNER" }
+      { type: "Person", name: "Platform On-Call", detail: "Platform Lead & assigned owner", via_edge: "ASSIGNED_OWNER" }
     ],
     stale: []
   },
@@ -190,11 +190,11 @@ const GROUND_TRUTH_CASES: GroundTruthCase[] = [
     category: 'expertise',
     categoryLabel: 'Expertise vs Recency',
     question: "Who has worked on both payments and ledger?",
-    answer: "Ana Duarte. She holds cross-domain expertise across both systems: she contributed to early payments-gateway architecture and is currently the Team Lead for ledger-service.",
+    answer: "The Ledger team lead. That person holds cross-domain expertise across both systems: they contributed to early payments-gateway architecture and now lead ledger-service.",
     cypher: "MATCH (p:Person)-[:CONTRIBUTED_TO]->(s1:Service {name: 'payments-gateway'})\nMATCH (p)-[:CONTRIBUTED_TO]->(s2:Service {name: 'ledger-service'})\nRETURN p.name, count(p)",
-    path: ["payments-gateway", "CONTRIBUTED_TO", "Ana Duarte", "CONTRIBUTED_TO", "ledger-service"],
+    path: ["payments-gateway", "CONTRIBUTED_TO", "Ledger Lead", "CONTRIBUTED_TO", "ledger-service"],
     trail: [
-      { type: "Person", name: "Ana Duarte", detail: "Cross-system contributor (Payments & Ledger)", via_edge: "CROSS_DOMAIN" }
+      { type: "Person", name: "Ledger Lead", detail: "Cross-system contributor (Payments & Ledger)", via_edge: "CROSS_DOMAIN" }
     ],
     stale: []
   },
@@ -203,12 +203,12 @@ const GROUND_TRUTH_CASES: GroundTruthCase[] = [
     category: 'org',
     categoryLabel: 'Org & On-Call',
     question: "Who is on call for Ledger this week?",
-    answer: "Diego Alvarez is ON_CALL this week for the Ledger rotation. Ravi Menon is also on the rotation schedule, but not on call this week.",
+    answer: "The Risk engineer is on call this week for the Ledger rotation. The Platform engineer is also on the rotation schedule, but not on call this week.",
     cypher: "MATCH (t:Team {name: 'Ledger'})<-[r:ON_CALL]-(p:Person)\nWHERE r.active = true\nRETURN p.name, r.week",
-    path: ["Ledger Team", "ON_CALL (Active Week)", "Diego Alvarez", "ROTATION (Idle)", "Ravi Menon"],
+    path: ["Ledger Team", "ON_CALL (Active Week)", "Risk On-Call", "ROTATION (Idle)", "Platform On-Call"],
     trail: [
-      { type: "Person", name: "Diego Alvarez", detail: "Primary on-call engineer (Active)", via_edge: "ON_CALL" },
-      { type: "Person", name: "Ravi Menon", detail: "Rotation member (Standby)", via_edge: "ROTATION_SCHEDULE" }
+      { type: "Person", name: "Risk On-Call", detail: "Primary on-call engineer (Active)", via_edge: "ON_CALL" },
+      { type: "Person", name: "Platform On-Call", detail: "Rotation member (Standby)", via_edge: "ROTATION_SCHEDULE" }
     ],
     stale: []
   },
@@ -217,9 +217,9 @@ const GROUND_TRUTH_CASES: GroundTruthCase[] = [
     category: 'decisions',
     categoryLabel: 'Decisions & ADRs',
     question: "Where was the payments migration decided?",
-    answer: "Decision D-14 ('Migrate to Single Provider Stripe', dated 2026-03-20, authored by Elena Vasquez). Note: D-14 was later superseded by Decision D-19.",
+    answer: "Decision D-14 ('Migrate to Single Provider Stripe', dated 2026-03-20, authored by the VP of Engineering). Note: D-14 was later superseded by Decision D-19.",
     cypher: "MATCH (d:Decision {id: 'D-14'})\nRETURN d.id, d.summary, d.date, d.author, d.status",
-    path: ["payments-migration", "DECIDED_IN", "Decision D-14 (2026-03-20)", "AUTHOR", "Elena Vasquez"],
+    path: ["payments-migration", "DECIDED_IN", "Decision D-14 (2026-03-20)", "AUTHOR", "VP Engineering"],
     trail: [
       { type: "Decision", name: "D-14", detail: "Migrate to Single Provider Stripe (Superseded)", date: "2026-03-20", via_edge: "EVIDENCED_BY" }
     ],
@@ -232,7 +232,7 @@ const GROUND_TRUTH_CASES: GroundTruthCase[] = [
     category: 'decisions',
     categoryLabel: 'Decisions & ADRs',
     question: "Is D-14 still the current decision?",
-    answer: "No. Decision D-14 is SUPERSEDED. Decision D-19 (dated 2026-05-06, authored by Elena Vasquez) superseded D-14, establishing a dual-provider architecture: Adyen primary, Stripe fallback.",
+    answer: "No. Decision D-14 is SUPERSEDED. Decision D-19 (dated 2026-05-06, authored by the VP of Engineering) superseded D-14, establishing a dual-provider architecture: Adyen primary, Stripe fallback.",
     cypher: "MATCH (d:Decision {id: 'D-14'})<-[:SUPERSEDES]-(newer:Decision)\nRETURN d.id, newer.id, newer.summary, newer.status",
     path: ["Decision D-14 (Single Stripe)", "SUPERSEDED_BY", "Decision D-19 (Adyen Primary / Stripe Fallback)"],
     trail: [
@@ -248,11 +248,11 @@ const GROUND_TRUTH_CASES: GroundTruthCase[] = [
     category: 'decisions',
     categoryLabel: 'Decisions & ADRs',
     question: "Who holds decision authority for payments and ledger?",
-    answer: "Elena Vasquez (VP of Engineering). She authored and signed off on Decisions D-14, D-19, and D-21 governing payments and ledger architecture.",
-    cypher: "MATCH (d:Decision)-[:AUTHORED_BY]->(p:Person {name: 'Elena Vasquez'})\nRETURN p.name, collect(d.id) as decisions",
-    path: ["payments & ledger", "DECISION_AUTHORITY", "Elena Vasquez (VP Eng)", "SIGN-OFFS", "D-14, D-19, D-21"],
+    answer: "The VP of Engineering. They authored and signed off on Decisions D-14, D-19, and D-21 governing payments and ledger architecture.",
+    cypher: "MATCH (d:Decision)-[:AUTHORED_BY]->(p:Person)\nWHERE p.seniority = 'executive'\nRETURN p.name, collect(d.id) as decisions",
+    path: ["payments & ledger", "DECISION_AUTHORITY", "VP Engineering", "SIGN-OFFS", "D-14, D-19, D-21"],
     trail: [
-      { type: "Person", name: "Elena Vasquez", detail: "VP Engineering & Decision Authority for Core Architecture", via_edge: "AUTHORED_BY" }
+      { type: "Person", name: "VP Engineering", detail: "Decision Authority for Core Architecture", via_edge: "AUTHORED_BY" }
     ],
     stale: []
   },
@@ -277,7 +277,7 @@ const GROUND_TRUTH_CASES: GroundTruthCase[] = [
     category: 'negatives',
     categoryLabel: 'Honest Negatives',
     question: "Who owns config-service?",
-    answer: "The graph contains no OWNED_BY edge for config-service. Mei Lin has contributed to it, but no team or individual is recorded as its owner. Rule 3: This is an honest absence, not missing data.",
+    answer: "The graph contains no OWNED_BY edge for config-service. An engineer has contributed to it, but no team or individual is recorded as its owner. Rule 3: This is an honest absence, not missing data.",
     cypher: "MATCH (s:Service {name: 'config-service'})\nOPTIONAL MATCH (s)-[:OWNED_BY]->(t:Team)\nRETURN s.name, t.name",
     path: ["config-service", "OWNED_BY", "NULL (NO EDGE FOUND)", "VERIFIED ABSENCE"],
     trail: [
@@ -316,15 +316,15 @@ const GROUND_TRUTH_CASES: GroundTruthCase[] = [
     id: 19,
     category: 'negatives',
     categoryLabel: 'Honest Negatives',
-    question: "What team is Aisha Khan on now?",
-    answer: "Aisha Khan is no longer on any team; she departed Helio on 2026-06-30. Her previous role was on the Payments team. The graph correctly records the departure rather than an active assignment.",
-    cypher: "MATCH (p:Person {name: 'Aisha Khan'})\nOPTIONAL MATCH (p)-[r:MEMBER_OF]->(t:Team)\nRETURN p.name, p.departed_at, t.name",
-    path: ["Aisha Khan", "DEPARTED_AT (2026-06-30)", "FORMER_TEAM", "Payments", "CURRENT_STATUS", "DEPARTED"],
+    question: "What team is the departed Payments engineer on now?",
+    answer: "That engineer is no longer on any team; they departed Helio on 2026-06-30. Their previous role was on the Payments team. The graph correctly records the departure rather than an active assignment.",
+    cypher: "MATCH (p:Person)\nWHERE p.departed_at = date('2026-06-30')\nOPTIONAL MATCH (p)-[r:MEMBER_OF]->(t:Team)\nRETURN p.name, p.departed_at, t.name",
+    path: ["Former Payments Engineer", "DEPARTED_AT (2026-06-30)", "FORMER_TEAM", "Payments", "CURRENT_STATUS", "DEPARTED"],
     trail: [
-      { type: "Person", name: "Aisha Khan", detail: "Departed company on 2026-06-30", date: "2026-06-30", via_edge: "DEPARTED" }
+      { type: "Person", name: "Former Payments Engineer", detail: "Departed company on 2026-06-30", date: "2026-06-30", via_edge: "DEPARTED" }
     ],
     stale: [
-      { type: "Person", name: "Aisha Khan", reason: "Employee departed Helio on 2026-06-30", last_verified_at: "2026-06-30" }
+      { type: "Person", name: "Former Payments Engineer", reason: "Employee departed Helio on 2026-06-30", last_verified_at: "2026-06-30" }
     ],
     honestNegative: true
   },
@@ -362,18 +362,18 @@ export const ChatWidgetSimulator: React.FC = () => {
     {
       id: 'm-demo-a',
       sender: 'helio',
-      text: "The Platform team owns payments-gateway today. While Priya Sharma authored the original service (14 commits), ownership was formally transferred to Ravi Menon in Decision D-21 (2026-04-15, authored by Elena Vasquez).\n\nBlast radius: 8 services cascade across 3 hops (checkout-api, dispute-service, mobile-bff, config-service, notifications, webhook-relay, fraud-scoring, recommendation).\n\n⚠️ Incident Alert: config-service has NO OWNER and NO ON-CALL engineer. Page Ravi Menon for payments-gateway.",
+      text: "The Platform team owns payments-gateway today. While the former payments lead authored the original service (14 commits), ownership was formally transferred to the Platform team in Decision D-21 (2026-04-15, authored by the VP of Engineering).\n\nBlast radius: 8 services cascade across 3 hops (checkout-api, dispute-service, mobile-bff, config-service, notifications, webhook-relay, fraud-scoring, recommendation).\n\n⚠️ Incident Alert: config-service has NO OWNER and NO ON-CALL engineer. Page the Platform rotation for payments-gateway.",
       timestamp: '15:00:18',
       cypherQuery: "MATCH (s:Service {name: 'payments-gateway'})-[:OWNED_BY]->(t:Team)\nMATCH (s)-[:HAS_DEPENDENT*1..3]->(d:Service)\nMATCH (t)<-[:ON_CALL]-(p:Person)\nRETURN s, t, d, p",
-      graphPath: ["payments-gateway", "OWNED_BY", "Platform", "ON_CALL", "Ravi Menon", "HAS_DEP(3)", "8 Services"],
+      graphPath: ["payments-gateway", "OWNED_BY", "Platform", "ON_CALL", "Platform On-Call", "HAS_DEP(3)", "8 Services"],
       trail: [
         { type: "Team", name: "Platform", detail: "owns payments-gateway", via_edge: "OWNED_BY" },
-        { type: "Decision", name: "D-21", detail: "Handover to Ravi Menon", date: "2026-04-15", via_edge: "REASSIGNED_IN" },
-        { type: "Person", name: "Ravi Menon", detail: "On-call Platform Lead", via_edge: "ON_CALL" },
+        { type: "Decision", name: "D-21", detail: "Handover to Platform", date: "2026-04-15", via_edge: "REASSIGNED_IN" },
+        { type: "Person", name: "Platform On-Call", detail: "On-call Platform Lead", via_edge: "ON_CALL" },
         { type: "Service", name: "config-service", detail: "Unowned cascade dependent", via_edge: "HAS_DEPENDENT" }
       ],
       stale: [
-        { type: "Person", name: "Priya Sharma", reason: "Historical owner touch older than 90 days (2026-04-15)", last_verified_at: "2026-04-15" }
+        { type: "Person", name: "Former Payments Lead", reason: "Historical owner touch older than 90 days (2026-04-15)", last_verified_at: "2026-04-15" }
       ],
       latencyMs: 840,
       mode: 'live'

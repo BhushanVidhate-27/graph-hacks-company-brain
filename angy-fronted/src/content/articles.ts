@@ -34,7 +34,7 @@ const BASE_ARTICLES: Article[] = [
         heading: 'Why the top committer is often the wrong answer',
         paragraphs: [
           'A commit count is a history of attention, not a statement of accountability. The person who wrote the most code may have changed teams, left the company, or handed the service over a year ago. A query ordered by commit count returns a confident, checkable-looking answer that is wrong.',
-          'The sample company makes the failure concrete. Priya Sharma has 14 commits on payments-gateway, the highest count in the company. She left in April 2026. Ravi Menon committed on 2026-09-28, and Decision D-21 named him the accountable owner. The right answer is Ravi, even though the volume signal points at Priya.',
+          'The sample company makes the failure concrete. The former payments lead has 14 commits on payments-gateway, the highest count in the company, but left in April 2026. The current Platform on-call committed on 2026-09-28, and Decision D-21 named the Platform team the accountable owner. The right answer is the current owner, even though the volume signal points at the person who left.',
         ],
       },
       {
@@ -67,7 +67,7 @@ const BASE_ARTICLES: Article[] = [
     example: {
       title: 'Worked example: payments-gateway',
       paragraphs: [
-        'Question: "Who owns payments-gateway today, and who gets paged?" The graph returns the Platform team as owner, Decision D-21 (2026-04-15) as the handover, and Ravi Menon as the active on-call. It also returns Priya Sharma with a stale flag: 14 commits, last touch 2026-04-15.',
+        'Question: "Who owns payments-gateway today, and who gets paged?" The graph returns the Platform team as owner, Decision D-21 (2026-04-15) as the handover, and the current Platform on-call as the active responder. It also returns the former payments lead with a stale flag: 14 commits, last touch 2026-04-15.',
         'The answer is checkable. Open the trail and each claim has an edge and a date. If the handover was reversed last week, the graph is wrong until the record is updated — but the date on the edge makes that visible instead of hiding it.',
       ],
     },
@@ -251,15 +251,15 @@ const BASE_ARTICLES: Article[] = [
       {
         heading: 'Model the rotation, not just the person',
         paragraphs: [
-          'A rotation is a schedule with membership and a current slot. The active on-call is a time-bounded fact derived from that schedule. Recording only "on-call: Ravi" goes stale the moment the rotation changes.',
-          'In the sample graph, rotation membership and the active weekly on-call are separate edges. The distinction is deliberate: it lets the answer say "Ravi is on call this week" rather than "Ravi is the owner forever".',
+          'A rotation is a schedule with membership and a current slot. The active on-call is a time-bounded fact derived from that schedule. Recording only a name in an on-call field goes stale the moment the rotation changes.',
+          'In the sample graph, rotation membership and the active weekly on-call are separate edges. The distinction is deliberate: it lets the answer say "this engineer is on call this week" rather than "this engineer is the owner forever".',
         ],
       },
       {
         heading: 'Ownership changes need a record',
         paragraphs: [
           'A handover in a chat message is not a record. Write it as a decision with a date, the previous owner, the new owner and the reason. Then the graph can show both the current state and the history without pretending the old owner never existed.',
-          'This is also how you avoid the departed-engineer trap. Priya Sharma remains in the history with 14 commits. Decision D-21 marks the handover. Ravi Menon is current. Nobody has to delete Priya to make the answer correct.',
+          'This is also how you avoid the departed-engineer trap. The former owner remains in the history with 14 commits. Decision D-21 marks the handover. The current Platform on-call is a separate, dated fact. Nobody has to delete the history to make the answer correct.',
         ],
       },
       {
@@ -273,7 +273,7 @@ const BASE_ARTICLES: Article[] = [
     example: {
       title: 'Worked example: two services, two answers',
       paragraphs: [
-        'payments-gateway: owned by the Platform team, active on-call Ravi Menon. dispute-service: owned by Payments, on-call Aisha Rao, with an SLA that expires on 2026-06-30. The second answer includes an expiry warning because the record has a valid_to date.',
+        'payments-gateway: owned by the Platform team, with the Platform rotation on call. dispute-service: owned by Payments, with the Payments rotation on call, and an SLA that expires on 2026-06-30. The second answer includes an expiry warning because the record has a valid_to date.',
         'Both answers carry dates. If the rotation changed this morning and the graph was not synced, the date shows the lag instead of hiding it.',
       ],
     },

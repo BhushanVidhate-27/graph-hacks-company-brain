@@ -36,7 +36,7 @@ const WORKED_EXAMPLE = [
   {
     question: 'Who owns payments-gateway?',
     answer:
-      'The Platform team owns it. Priya Sharma has the most commits (14), but her last touch was 2026-04-15 and she left in April. Decision D-21 (2026-04-15) named Ravi Menon as the accountable owner, and he committed on 2026-09-28. Ask Ravi.',
+      'The Platform team owns it. The former payments lead has the most commits (14), but the last touch was 2026-04-15 and that person left in April. Decision D-21 (2026-04-15) named the Platform team as the accountable owner, and its on-call engineer committed on 2026-09-28. Ask the Platform rotation.',
   },
   {
     question: 'What breaks if it goes down?',

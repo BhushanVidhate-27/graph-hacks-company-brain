@@ -63,7 +63,7 @@ export const OWNERSHIP_ARTICLES: Article[] = [
     example: {
       title: 'Worked example: one question, four records',
       paragraphs: [
-        'Question: "Who owns payments-gateway, who gets paged, what breaks if it fails, and why did the owner change?" The graph returns the Platform team as owner, Ravi Menon as the active on-call, eight downstream services across three hops, and Decision D-21 as the handover from the previous owner.',
+        'Question: "Who owns payments-gateway, who gets paged, what breaks if it fails, and why did the owner change?" The graph returns the Platform team as owner, the current Platform on-call as the active responder, eight downstream services across three hops, and Decision D-21 as the handover from the previous owner.',
         'Each part of the answer has a source and a date. If the handover was reversed last week, the graph is wrong until the record is updated, but the date on the edge makes that visible instead of hiding it.',
       ],
     },
@@ -141,8 +141,8 @@ export const OWNERSHIP_ARTICLES: Article[] = [
     example: {
       title: 'Worked example: payments-gateway',
       paragraphs: [
-        'The catalog says the Platform team owns payments-gateway. The last commit is from Ravi Menon on 2026-09-28, the active on-call rotation also includes Ravi, and Decision D-21 (2026-04-15) records the handover to Platform.',
-        'A commit-count query returns Priya Sharma first with 14 commits, but her last touch is 2026-04-15 and she left in April. The evidence points to Platform and Ravi; the volume signal points at a person who is no longer there. That is why the four signals are checked together.',
+        'The catalog says the Platform team owns payments-gateway. The last commit is from the Platform on-call engineer on 2026-09-28, the active on-call rotation belongs to Platform, and Decision D-21 (2026-04-15) records the handover to Platform.',
+        'A commit-count query returns the former payments lead first with 14 commits, but that last touch is 2026-04-15 and the person left in April. The evidence points to Platform; the volume signal points at someone who is no longer there. That is why the four signals are checked together.',
       ],
     },
     faqs: [

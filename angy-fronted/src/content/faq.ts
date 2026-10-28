@@ -10,7 +10,7 @@ export const FAQ_ITEMS: FAQItem[] = [
     id: 'faq1',
     question: 'Why is a graph traversal better than vector search or RAG?',
     answer:
-      'Vector search checks semantic similarity between text chunks. It cannot tell that Priya left the company six months ago, cannot compute a three-hop dependency cascade, and treats superseded documents as equally valid. Helio traverses typed organizational edges with temporal properties, and uses text search only at the leaves.',
+      'Vector search checks semantic similarity between text chunks. It cannot tell that the top committer left the company six months ago, cannot compute a three-hop dependency cascade, and treats superseded documents as equally valid. Helio traverses typed organizational edges with temporal properties, and uses text search only at the leaves.',
   },
   {
     id: 'faq2',
@@ -20,9 +20,9 @@ export const FAQ_ITEMS: FAQItem[] = [
   },
   {
     id: 'faq3',
-    question: 'How is the Priya Sharma volume-versus-recency trap resolved?',
+    question: 'How is the volume-versus-recency trap resolved?',
     answer:
-      'Priya Sharma has 14 commits on payments-gateway, the highest in the sample company. A naive ORDER BY count DESC returns her even though she left in April 2026. Helio returns volume and recency as two separate signals: Ravi Menon touched the service most recently on 2026-09-28; Priya has the most commits, but her last touch was 2026-04-15 and is flagged stale.',
+      'The top committer has 14 commits on payments-gateway, the highest in the sample company. A naive ORDER BY count DESC returns that person even though they left in April 2026. Helio returns volume and recency as two separate signals: the current Platform on-call touched the service most recently on 2026-09-28; the former lead has the most commits, but the last touch was 2026-04-15 and is flagged stale.',
   },
   {
     id: 'faq4',

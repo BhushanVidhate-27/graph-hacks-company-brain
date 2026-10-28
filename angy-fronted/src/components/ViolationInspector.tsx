@@ -20,12 +20,12 @@ export const ViolationInspector: React.FC = () => {
       category: 'critical-path',
       tier: 'Tier 1 (Critical)',
       owningTeam: 'Platform Team',
-      onCall: 'Ravi Menon (Active)',
+      onCall: 'Platform rotation (Active)',
       blastRadius: ['checkout-api', 'dispute-service', 'mobile-bff', 'config-service', 'notifications', 'webhook-relay', 'fraud-scoring', 'recommendation'],
       hopDepth: 3,
       status: 'healthy',
       cypherQuery: "MATCH (s:Service {name: 'payments-gateway'})-[:HAS_DEPENDENT*1..3]->(downstream)\nMATCH (s)-[:OWNED_BY]->(t:Team)<-[:ON_CALL]-(m:Person)\nRETURN s, downstream, t, m",
-      summary: "Priya Sharma has 14 commits (departed April 2026, stale). Ravi Menon committed recently (2026-09-28). Ask Ravi Menon. 8 downstream services fail across 3 hops if this goes down.",
+      summary: "The top committer has 14 commits but departed in April 2026, so that signal is stale. The Platform on-call committed recently (2026-09-28). Ask the Platform rotation. 8 downstream services fail across 3 hops if this goes down.",
       groundTruthFact: "Volume alone misleads; recency and ownership resolve it.",
       x: 35,
       y: 42
@@ -52,7 +52,7 @@ export const ViolationInspector: React.FC = () => {
       category: 'provenance',
       tier: 'Architecture Decision Record',
       owningTeam: 'Architecture Review Board',
-      onCall: 'Elena Vasquez (Author)',
+      onCall: 'VP Engineering (Author)',
       blastRadius: ['payments-gateway', 'stripe-connector', 'adyen-vault'],
       hopDepth: 2,
       status: 'superseded',
@@ -68,12 +68,12 @@ export const ViolationInspector: React.FC = () => {
       category: 'stale-edge',
       tier: 'Tier 1 (Financial Core)',
       owningTeam: 'Ledger Team',
-      onCall: 'Diego Alvarez (This Week)',
+      onCall: 'Ledger on-call (This Week)',
       blastRadius: ['audit-pipeline', 'reconciliation-worker'],
       hopDepth: 2,
       status: 'healthy',
-      cypherQuery: "MATCH (t:Team {name: 'Ledger'})<-[:ON_CALL]-(m:Person:Member)\nWHERE m.on_call_week = date()\nRETURN m.name // Diego Alvarez, NOT Ravi or Priya",
-      summary: "Ravi Menon and Diego Alvarez are both on rotation. Diego is on call this week. Priya Sharma is on no rotation at all.",
+      cypherQuery: "MATCH (t:Team {name: 'Ledger'})<-[:ON_CALL]-(m:Person:Member)\nWHERE m.on_call_week = date()\nRETURN m.name // the active member only, not the whole rotation",
+      summary: "The Ledger rotation has an active on-call this week and a standby member. The former payments lead is on no rotation at all.",
       groundTruthFact: "Rotation member and active on-call are different facts.",
       x: 22,
       y: 65
@@ -211,7 +211,7 @@ export const ViolationInspector: React.FC = () => {
                 {/* Stale Text Callouts */}
                 <div className="space-y-4 max-w-sm text-white/80 text-[11px] bg-black/60 p-4 cad-border backdrop-blur-md">
                   <div className="text-[#e15c46] font-bold">⚠️ NAIVE RANK TRAP 01:</div>
-                  <div>"Priya Sharma has 14 commits on payments-gateway. Returns Priya as #1 expert (she left 6 months ago)."</div>
+                  <div>"The top committer has 14 commits on payments-gateway. Returns them as #1 expert (they left 6 months ago)."</div>
                   
                   <div className="text-amber-400 font-bold pt-2 cad-border-t border-white/20">⚠️ CONTRADICTION TRAP 02:</div>
                   <div>"March document found: 'Single provider, Stripe.' Misses Decision D-19 completely."</div>

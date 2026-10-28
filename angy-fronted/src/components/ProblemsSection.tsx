@@ -8,8 +8,8 @@ export const ProblemsSection: React.FC = () => {
     {
       index: '[01]',
       label: 'VOLUME TRAP',
-      title: 'Priya Sharma left in April',
-      desc: "Priya has 14 commits on payments-gateway — the most. A single 'ORDER BY count DESC' returns her, technically correct on volume but wrong on recency. Helio returns both signals: Ask Ravi Menon."
+      title: 'The top committer left in April',
+      desc: "The top committer has 14 commits on payments-gateway — the most. A single 'ORDER BY count DESC' returns them, technically correct on volume but wrong on recency. Helio returns both signals: ask the current on-call."
     },
     {
       index: '[02]',
