@@ -1,5 +1,6 @@
 import React from 'react';
 import { CadCrosshair } from './CadCrosshair';
+import { Reveal } from './motion/Reveal';
 
 export const ProblemsSection: React.FC = () => {
   const problems = [
@@ -33,46 +34,46 @@ export const ProblemsSection: React.FC = () => {
     <section id="problems-section" className="relative w-full py-16 md:py-24 px-4 md:px-8 max-w-7xl mx-auto select-none">
       
       {/* Section Header */}
-      <div className="mb-12 max-w-2xl">
-        <div className="text-[#e15c46] font-mono text-xs font-bold uppercase tracking-widest mb-2">
-          THE 4 FAILURE MODES // WHY FLAT SEARCH FAILS
+      <Reveal>
+        <div className="mb-12 max-w-2xl">
+          <h2 className="text-3xl md:text-5xl font-mono font-bold tracking-tight text-[#282828] uppercase leading-tight">
+            Enterprise search tells you where documents live, not what is true.
+          </h2>
+          <p className="mt-4 text-sm md:text-base font-mono text-[#5c5c56]">
+            A hallucinated ownership chain looks exactly like a correct one because both are plausible prose.
+            Helio replaces probabilistic guessing with deterministic Cypher traversals over real organizational edges.
+          </p>
         </div>
-        <h2 className="text-3xl md:text-5xl font-mono font-bold tracking-tight text-[#282828] uppercase leading-tight">
-          Enterprise search tells you where documents live, not what is true.
-        </h2>
-        <p className="mt-4 text-sm md:text-base font-mono text-[#5c5c56]">
-          A hallucinated ownership chain looks exactly like a correct one because both are plausible prose.
-          Helio replaces probabilistic guessing with deterministic Cypher traversals over real organizational edges.
-        </p>
-      </div>
+      </Reveal>
 
       {/* 4 Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {problems.map((item) => (
-          <div
-            key={item.index}
-            className="bg-[#f4f4ec] cad-border p-6 flex flex-col justify-between relative group hover:bg-[#282828] hover:text-white transition-colors duration-300"
-          >
-            <CadCrosshair position="tl" />
-            <CadCrosshair position="tr" />
-            <CadCrosshair position="bl" />
-            <CadCrosshair position="br" />
+        {problems.map((item, index) => (
+          <Reveal key={item.index} delay={index * 0.07} className="h-full">
+            <div
+              className="h-full bg-[#f4f4ec] cad-border p-6 flex flex-col justify-between relative group hover:bg-[#282828] hover:text-white hover:-translate-y-1 transition-all duration-300"
+            >
+              <CadCrosshair position="tl" />
+              <CadCrosshair position="tr" />
+              <CadCrosshair position="bl" />
+              <CadCrosshair position="br" />
 
-            <div>
-              <div className="flex items-center justify-between font-mono text-xs text-[#5c5c56] group-hover:text-white/60 mb-6">
-                <span className="font-bold text-[#e15c46]">{item.label}</span>
-                <span>{item.index}</span>
+              <div>
+                <div className="flex items-center justify-between font-mono text-xs text-[#5c5c56] group-hover:text-white/60 mb-6">
+                  <span className="font-bold text-[#e15c46]">{item.label}</span>
+                  <span>{item.index}</span>
+                </div>
+
+                <h3 className="font-mono font-bold text-xl uppercase mb-4 leading-snug">
+                  {item.title}
+                </h3>
               </div>
 
-              <h3 className="font-mono font-bold text-xl uppercase mb-4 leading-snug">
-                {item.title}
-              </h3>
+              <p className="font-mono text-xs text-[#5c5c56] group-hover:text-white/80 leading-relaxed pt-6 cad-border-t border-[#282828]/20 group-hover:border-white/20">
+                {item.desc}
+              </p>
             </div>
-
-            <p className="font-mono text-xs text-[#5c5c56] group-hover:text-white/80 leading-relaxed pt-6 cad-border-t border-[#282828]/20 group-hover:border-white/20">
-              {item.desc}
-            </p>
-          </div>
+          </Reveal>
         ))}
       </div>
 

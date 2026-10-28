@@ -3,10 +3,11 @@ import { Monitor, Tablet, Smartphone, Maximize2 } from 'lucide-react';
 
 interface DeviceViewportFrameProps {
   device: 'desktop' | 'tablet' | 'mobile';
+  onChangeDevice: (device: 'desktop' | 'tablet' | 'mobile') => void;
   children: React.ReactNode;
 }
 
-export const DeviceViewportFrame: React.FC<DeviceViewportFrameProps> = ({ device, children }) => {
+export const DeviceViewportFrame: React.FC<DeviceViewportFrameProps> = ({ device, onChangeDevice, children }) => {
   const getDeviceStyles = () => {
     switch (device) {
       case 'mobile':
@@ -37,13 +38,35 @@ export const DeviceViewportFrame: React.FC<DeviceViewportFrameProps> = ({ device
     <div className="w-full flex flex-col items-center justify-center p-4 min-h-[90vh]">
       
       {/* Device Info Bar */}
-      <div className="bg-[#282828] text-white font-mono text-xs px-4 py-2 cad-border mb-3 flex items-center justify-between w-full max-w-4xl">
+      <div className="bg-[#282828] text-white font-mono text-xs px-4 py-2 cad-border mb-3 flex flex-wrap items-center justify-between gap-3 w-full max-w-4xl">
         <div className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-[#e15c46] animate-pulse" />
           <span className="font-bold text-[#e15c46]">SIMULATED VIEWPORT:</span>
           <span className="text-white/80">{current.label}</span>
         </div>
-        <div className="text-[11px] text-[#5c5c56]">SCROLL INSIDE FRAME TO TEST RESPONSIVENESS</div>
+        <div className="flex items-center gap-1">
+          <button
+            onClick={() => onChangeDevice('desktop')}
+            className={`p-1.5 transition-colors ${device === 'desktop' ? 'bg-[#e15c46] text-white' : 'bg-white/10 text-white/70 hover:bg-white/20'}`}
+            title="Desktop 1440px"
+          >
+            <Monitor className="w-3.5 h-3.5" />
+          </button>
+          <button
+            onClick={() => onChangeDevice('tablet')}
+            className={`p-1.5 transition-colors ${device === 'tablet' ? 'bg-[#e15c46] text-white' : 'bg-white/10 text-white/70 hover:bg-white/20'}`}
+            title="Tablet 820px"
+          >
+            <Tablet className="w-3.5 h-3.5" />
+          </button>
+          <button
+            onClick={() => onChangeDevice('mobile')}
+            className={`p-1.5 transition-colors ${device === 'mobile' ? 'bg-[#e15c46] text-white' : 'bg-white/10 text-white/70 hover:bg-white/20'}`}
+            title="Mobile 390px"
+          >
+            <Smartphone className="w-3.5 h-3.5" />
+          </button>
+        </div>
       </div>
 
       {/* Frame Container */}

@@ -3,6 +3,8 @@ import { ArrowRight } from 'lucide-react';
 
 interface HeronButtonProps {
   children: React.ReactNode;
+  /** Optional second line rendered inside the button, under the label. */
+  subLabel?: React.ReactNode;
   variant?: 'outline' | 'brand' | 'dark' | 'ghost';
   size?: 'sm' | 'md' | 'lg';
   icon?: boolean;
@@ -13,6 +15,7 @@ interface HeronButtonProps {
 
 export const HeronButton: React.FC<HeronButtonProps> = ({
   children,
+  subLabel,
   variant = 'outline',
   size = 'md',
   icon = true,
@@ -50,17 +53,20 @@ export const HeronButton: React.FC<HeronButtonProps> = ({
     <button
       type={type}
       onClick={onClick}
-      className={`group relative inline-flex items-center justify-between border font-mono font-bold uppercase tracking-wider transition-colors duration-300 select-none overflow-hidden ${getVariantStyles()} ${getSizeStyles()} ${className}`}
+      className={`group relative inline-flex items-center justify-center border font-mono font-bold uppercase tracking-wider transition-colors duration-300 select-none overflow-hidden ${getVariantStyles()} ${getSizeStyles()} ${className}`}
     >
-      {/* Sliding Text Container */}
-      <div className="relative overflow-hidden h-[1.3em] flex flex-col justify-center">
-        <span className="block transform transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:-translate-y-full">
+      {subLabel ? (
+        <span className="inline-flex flex-col items-start leading-none">
+          <span className="inline-flex items-center gap-2 whitespace-nowrap">
+            {children}
+          </span>
+          <span className="mt-1 whitespace-nowrap">{subLabel}</span>
+        </span>
+      ) : (
+        <span className="inline-flex items-center gap-2 whitespace-nowrap">
           {children}
         </span>
-        <span className="absolute top-0 left-0 block transform translate-y-full transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-y-0 text-current">
-          {children}
-        </span>
-      </div>
+      )}
 
       {/* Sliding Arrow Icon */}
       {icon && (

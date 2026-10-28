@@ -34,9 +34,6 @@ export const Footer: React.FC<FooterProps> = ({ onSelectMode }) => {
                 <Mail className="w-3.5 h-3.5" />
                 <span>bhushanvidhate002@gmail.com</span>
               </a>
-              <div className="text-[10px] text-[#5c5c56] pt-1">
-                Track 03: Company Brain · Graph Hacks · Ground Truth Verified
-              </div>
             </div>
           </div>
 
@@ -85,13 +82,14 @@ export const Footer: React.FC<FooterProps> = ({ onSelectMode }) => {
             <div className="text-[#5c5c56]">CONTRIBUTED_TO</div>
           </div>
 
-          {/* Col 10-12: Hackathon & Recognition */}
+          {/* Col 10-12: Open Source */}
           <div className="lg:col-span-3 space-y-3 font-mono text-xs">
             <div className="text-[#282828] font-bold uppercase tracking-wider mb-2">
-              TRACK 03: GRAPH HACKS
+              OPEN SOURCE
             </div>
             <p className="text-[#5c5c56] text-[11px] leading-relaxed">
-              Company Brain Track · Built for Graph Hacks with ground truth-first architecture.
+              The graph, Cypher layer and agent loop are open source. Self-host the core,
+              or use the managed product.
             </p>
             <div className="flex flex-col gap-1.5 pt-2 text-[11px] font-bold">
               <a 
@@ -104,9 +102,6 @@ export const Footer: React.FC<FooterProps> = ({ onSelectMode }) => {
                 <span>GITHUB REPOSITORY</span>
                 <ArrowUpRight className="w-3 h-3" />
               </a>
-              <span className="text-[#e15c46] flex items-center gap-1">
-                <span>FALKORDB CERTIFIED PASS</span>
-              </span>
             </div>
           </div>
 
@@ -115,16 +110,12 @@ export const Footer: React.FC<FooterProps> = ({ onSelectMode }) => {
         {/* Bottom Bar */}
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 font-mono text-[11px] text-[#5c5c56]">
           <div>
-            © 2026 HELIO — A COMPANY BRAIN. ALL RIGHTS RESERVED.
+            © 2026 HELIO. ALL RIGHTS RESERVED.
           </div>
           <div className="flex items-center gap-6">
             <a href="mailto:bhushanvidhate002@gmail.com" className="hover:text-[#282828] transition-colors">
               bhushanvidhate002@gmail.com
             </a>
-            <span>•</span>
-            <span>GROUND_TRUTH.MD</span>
-            <span>•</span>
-            <span>SCHEMA.MD</span>
           </div>
         </div>
 

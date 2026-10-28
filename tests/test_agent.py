@@ -162,12 +162,12 @@ def test_expertise_only_marks_the_stale_person():
 
 def test_provenance_marks_only_the_superseded_decision_not_the_current_one():
     """D-19 is active AND supersedes D-14; app/graph.py names that key
-    `superseded_by`, which is inverted.  Only `status` may decide staleness, or
-    the current decision gets badged as out of date."""
+    `supersedes`, which holds what this decision replaces. Only `status` may
+    decide staleness, or the current decision gets badged as out of date."""
     rows = [
-        {"id": "D-19", "status": "active", "superseded_by": "D-14",
+        {"id": "D-19", "status": "active", "supersedes": "D-14",
          "date": "2026-05-06", "detail": "Dual provider [SUPERSEDES D-14]"},
-        {"id": "D-14", "status": "superseded", "superseded_by": None,
+        {"id": "D-14", "status": "superseded", "supersedes": None,
          "date": "2026-03-18", "detail": "Single provider [SUPERSEDED]"},
     ]
     out = agent.extract_stale("provenance", rows)

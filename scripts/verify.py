@@ -126,8 +126,8 @@ def main() -> int:
           "D-14 2026-03-18 Elena Vasquez, evidence payments-provider-eval-v3.md")
 
     check("13 D-14 superseded by D-19",
-          bool(d19) and d19[0]["superseded_by"] == "D-14",
-          f"D-19 supersedes {d19[0]['superseded_by']}" if d19 else "absent",
+          bool(d19) and d19[0]["supersedes"] == "D-14",
+          f"D-19 supersedes {d19[0]['supersedes']}" if d19 else "absent",
           "D-19 (2026-05-06) supersedes D-14, Adyen primary")
 
     authors = graph._graph().query(

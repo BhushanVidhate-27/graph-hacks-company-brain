@@ -258,7 +258,7 @@ def _check_provenance(project, _mp) -> None:
     for row in r["rows"]:
         assert set(row) == {
             "id", "summary", "date", "status", "author", "evidence",
-            "superseded_by", "supersedes_summary", "detail",
+            "supersedes", "supersedes_summary", "detail",
         }
         assert re.match(r"^D-\d+$", row["id"]), row["id"]
         assert isinstance(row["evidence"], list)
@@ -567,7 +567,7 @@ def _gt_d14_superseded(_p, _mp):
 
 
 def _gt_d19_supersedes(_p, _mp):
-    assert _prov_rows(MIGRATION_PROJECT)["D-19"]["superseded_by"] == "D-14"
+    assert _prov_rows(MIGRATION_PROJECT)["D-19"]["supersedes"] == "D-14"
 
 
 def _gt_pricing_zero(_p, _mp):

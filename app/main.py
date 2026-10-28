@@ -30,15 +30,21 @@ from __future__ import annotations
 import json
 import logging
 import os
+import re
+import sqlite3
 from pathlib import Path
-from typing import Any, Iterator
+from typing import Any, Callable, Iterator
 
 from dotenv import load_dotenv
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
+from app import auth as auth_service
 from app import billing as billing_service
 from app import github as github_service
-from fastapi.responses import StreamingResponse
+from app import plans as plan_service
+from app import store
+from app import usage as usage_service
+from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel, Field
 
 load_dotenv()
@@ -112,6 +118,55 @@ class Answer(BaseModel):
     answer: str
     trail: list[TrailItem]
     stale: list[StaleItem]
+
+
+# --------------------------------------------------------------------------- #
+# SaaS request models
+# --------------------------------------------------------------------------- #
+
+
+class SignupRequest(BaseModel):
+    name: str = Field(min_length=1, max_length=80)
+    email: str = Field(min_length=3, max_length=254)
+    password: str = Field(min_length=8, max_length=200)
+    account_name: str | None = Field(default=None, max_length=80)
+
+
+class LoginRequest(BaseModel):
+    email: str = Field(min_length=3, max_length=254)
+    password: str = Field(min_length=1, max_length=200)
+
+
+class CheckoutRequest(BaseModel):
+    plan: str = Field(min_length=2, max_length=40)
+    success_url: str | None = Field(default=None, max_length=500)
+    cancel_url: str | None = Field(default=None, max_length=500)
+
+
+class ApiKeyRequest(BaseModel):
+    name: str = Field(default="Default key", min_length=1, max_length=80)
+
+
+_EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+
+
+def _valid_email(email: str) -> bool:
+    return bool(_EMAIL_RE.match(email.strip()))
+
+
+def _app_base_url(request: Request) -> str:
+    """The public origin for Stripe redirects.
+
+    Behind Render/Fly the request scheme is often http even though the browser
+    used https, so an explicit env var wins. Falling back to request.base_url is
+    correct for local development and tests.
+    """
+
+    configured = os.getenv("HELIO_APP_URL", "").rstrip("/")
+    if configured:
+        return configured
+    return str(request.base_url).rstrip("/")
+
 
 
 # --------------------------------------------------------------------------- #
@@ -290,12 +345,17 @@ def _failure_frame(exc: Exception) -> dict[str, Any]:
     }
 
 
-def stream_answer(question: str) -> Iterator[str]:
+def stream_answer(
+    question: str, on_success: Callable[[], None] | None = None
+) -> Iterator[str]:
     """Yield the trail first, then the answer.
 
     Order matters for the demo: the chips (trail + stale) render as soon as the
     first frame lands, so the UI shows its evidence before the prose arrives.
     Every frame keeps all three canonical keys.
+
+    ``on_success`` runs only after the lookup produced a real result, so a failed
+    question is not charged against a paid plan's monthly quota.
     """
     try:
         result = answer_question(question)
@@ -306,6 +366,12 @@ def stream_answer(question: str) -> Iterator[str]:
         yield _sse(_failure_frame(exc))
         yield "data: [DONE]\n\n"
         return
+
+    if on_success is not None:
+        try:
+            on_success()
+        except Exception:  # noqa: BLE001 - metering must not kill the answer
+            logger.exception("usage recording failed")
 
     # Frame 1 — the evidence.  Answer is empty on purpose: nothing is claimed yet.
     yield _sse({"answer": "", "trail": result["trail"], "stale": result["stale"]})
@@ -369,15 +435,62 @@ def health() -> dict[str, Any]:
 
 
 @app.post("/ask")
-def ask(req: Ask) -> StreamingResponse:
-    """Frozen contract: POST /ask -> SSE stream of {answer, trail[], stale[]}."""
+def ask(req: Ask, request: Request) -> Any:
+    """Frozen contract: POST /ask -> SSE stream of {answer, trail[], stale[]}.
+
+    Authentication is optional by default so the public demo keeps working.
+    Set ``HELIO_REQUIRE_AUTH=1`` to make every question require a session or API
+    key. Anonymous visitors get a small per-day allowance; signed-in accounts
+    are metered against their plan. The quota is checked BEFORE the stream
+    starts, because an SSE response commits its status on the first byte.
+    """
+
+    identity = auth_service.resolve_identity(request)
+
+    if identity is None and auth_service.presented_api_key(request):
+        return JSONResponse(
+            status_code=401,
+            content={
+                "error": "invalid_api_key",
+                "message": "That API key is invalid or has been revoked.",
+            },
+        )
+
+    if identity is None and usage_service.auth_required():
+        return JSONResponse(
+            status_code=401,
+            content={
+                "error": "auth_required",
+                "message": "Sign in or create a free account to ask the graph.",
+                "login_url": "/?auth=login",
+            },
+        )
+
+    quota = usage_service.check(identity, request)
+    if not quota["allowed"]:
+        return JSONResponse(
+            status_code=429,
+            content={
+                "error": "quota_exceeded",
+                "message": quota["message"],
+                "plan": quota["plan"],
+                "used": quota["used"],
+                "limit": quota["limit"],
+                "upgrade_url": quota["upgrade_url"],
+            },
+        )
+
     if not USE_MOCK:
         from app import graph
         if not graph.db_health():
             from fastapi import HTTPException
             raise HTTPException(status_code=503, detail="database unavailable")
+
+    def _meter() -> None:
+        usage_service.record(identity, question=req.question)
+
     return StreamingResponse(
-        stream_answer(req.question),
+        stream_answer(req.question, on_success=_meter),
         media_type="text/event-stream",
         headers={
             # Proxies buffer a naive stream into one lump: it works on
@@ -388,6 +501,161 @@ def ask(req: Ask) -> StreamingResponse:
             "X-Accel-Buffering": "no",
         },
     )
+
+
+# --------------------------------------------------------------------------- #
+# SaaS: accounts, sessions and API keys
+# --------------------------------------------------------------------------- #
+
+
+@app.post("/api/auth/signup")
+def signup(req: SignupRequest, request: Request, response: Response):
+    """Create an account and its owner, then sign the owner in."""
+
+    email = req.email.strip().lower()
+    if not _valid_email(email):
+        raise HTTPException(status_code=422, detail="Enter a valid email address.")
+    if store.get_user_by_email(email) is not None:
+        raise HTTPException(
+            status_code=409, detail="An account with that email already exists."
+        )
+
+    account_name = (req.account_name or f"{req.name.strip()}'s workspace").strip()
+    try:
+        created = store.create_account_with_owner(
+            account_name=account_name,
+            email=email,
+            name=req.name,
+            password_hash=auth_service.hash_password(req.password),
+        )
+    except sqlite3.IntegrityError:
+        # A concurrent signup won the race. The message is the same as above so
+        # an attacker cannot tell the two paths apart.
+        raise HTTPException(
+            status_code=409, detail="An account with that email already exists."
+        )
+
+    token = store.create_session(created["user"]["id"])
+    auth_service.set_session_cookie(response, token, request)
+    store.mark_login(created["user"]["id"])
+
+    identity = auth_service.Identity(
+        user=created["user"],
+        account=created["account"],
+        subscription=created["subscription"],
+        via="session",
+    )
+    return auth_service.identity_payload(identity)
+
+
+@app.post("/api/auth/login")
+def login(req: LoginRequest, request: Request, response: Response):
+    email = req.email.strip().lower()
+    if not auth_service.login_allowed(request, email):
+        raise HTTPException(
+            status_code=429,
+            detail="Too many sign-in attempts. Try again in a few minutes.",
+        )
+
+    user = auth_service.authenticate(email, req.password)
+    if user is None:
+        auth_service.note_login_failure(request, email)
+        raise HTTPException(status_code=401, detail="Invalid email or password.")
+
+    auth_service.clear_login_failures(request, email)
+    store.mark_login(user["id"])
+    token = store.create_session(user["id"])
+    auth_service.set_session_cookie(response, token, request)
+
+    identity = auth_service.identity_for_user(user, "session")
+    if identity is None:
+        raise HTTPException(status_code=401, detail="This account is unavailable.")
+    return auth_service.identity_payload(identity)
+
+
+@app.post("/api/auth/logout")
+def logout(request: Request, response: Response):
+    cookie = request.cookies.get(auth_service.SESSION_COOKIE)
+    if cookie:
+        store.delete_session(cookie)
+    auth_service.clear_session_cookie(response)
+    return {"ok": True}
+
+
+@app.get("/api/auth/me")
+def me(request: Request):
+    """Return the signed-in identity, or an explicit anonymous response.
+
+    The 200-with-authenticated:false shape is deliberate: a 401 here would make
+    every landing-page load look like a console error in the browser.
+    """
+
+    identity = auth_service.resolve_identity(request)
+    if identity is None:
+        return {
+            "authenticated": False,
+            "plans": plan_service.public_plans(),
+            "billing": billing_service.setup_details(),
+        }
+    payload = auth_service.identity_payload(identity)
+    payload["plans"] = plan_service.public_plans()
+    payload["billing"] = billing_service.setup_details()
+    return payload
+
+
+@app.get("/api/plans")
+def plans_catalog():
+    return {
+        "plans": plan_service.public_plans(),
+        "billing": billing_service.setup_details(),
+    }
+
+
+@app.get("/api/usage")
+def usage_summary(request: Request):
+    identity = auth_service.require_identity(request)
+    return {
+        "plan": identity.plan,
+        "usage": store.usage_summary(identity.account["id"], identity.plan),
+    }
+
+
+@app.get("/api/keys")
+def list_keys(request: Request):
+    identity = auth_service.require_identity(request)
+    return {"keys": store.list_api_keys(identity.account["id"])}
+
+
+@app.post("/api/keys")
+def create_key(req: ApiKeyRequest, request: Request):
+    identity = auth_service.require_identity(request)
+    auth_service.require_session(identity)
+
+    if not plan_service.limit_for(identity.plan, "api_access"):
+        raise HTTPException(
+            status_code=403,
+            detail="API access is available on the Professional plan and above.",
+        )
+
+    plaintext, record = store.create_api_key(
+        identity.account["id"], identity.user["id"], req.name
+    )
+    return {
+        "ok": True,
+        "key": plaintext,
+        "record": record,
+        "message": "Copy this key now. It will not be shown again.",
+    }
+
+
+@app.delete("/api/keys/{key_id}")
+def revoke_key(key_id: str, request: Request):
+    identity = auth_service.require_identity(request)
+    auth_service.require_session(identity)
+    if not store.revoke_api_key(identity.account["id"], key_id):
+        raise HTTPException(status_code=404, detail="API key not found.")
+    return {"ok": True}
+
 
 
 @app.get("/api/repo/settings")
@@ -446,43 +714,65 @@ def repo_items(state: str = "open"):
 def billing_setup():
     """Publicly describe the Stripe setup for a SaaS operator."""
 
-    configured = billing_service.is_configured()
-    return {
-        "ok": True,
-        "configured": configured,
-        "price_id": billing_service.PRICE_ID,
-        "plan": "free" if not configured else "setup-pending",
-        "details": (
-            "Set NEXT_PUBLIC_HELIO_PRICE_ID, STRIPE_SECRET_KEY, "
-            "STRIPE_WEBHOOK_SECRET, STRIPE_PRICE_FREE and STRIPE_PRICE_PRO, then "
-            "restart the server."
-        ) if not configured else None,
-    }
+    return {"ok": True, **billing_service.setup_details()}
+
+
+@app.get("/api/billing/me")
+def billing_me(request: Request):
+    identity = auth_service.require_identity(request)
+    payload = auth_service.identity_payload(identity)
+    payload["billing"] = billing_service.setup_details()
+    return payload
 
 
 @app.post("/api/billing/checkout")
-def billing_checkout():
-    """Return a checkout payload for the billing UI. Does not charge live."""
+def billing_checkout(req: CheckoutRequest, request: Request):
+    """Create a Stripe Checkout Session for a paid plan.
 
-    body = billing_service.build_checkout()
-    if not body.get("ok"):
-        return {"ok": False, **body}
+    In local development (``STRIPE_MODE=local`` and
+    ``HELIO_ALLOW_LOCAL_BILLING=1``) this upgrades the account immediately so
+    the whole flow can be demonstrated without live keys.
+    """
 
-    return {"ok": True, **body}
+    identity = auth_service.require_identity(request)
+    base = _app_base_url(request)
+    result = billing_service.build_checkout(
+        plan_id=req.plan,
+        account=identity.account,
+        user=identity.user,
+        success_url=req.success_url or f"{base}/?checkout=success",
+        cancel_url=req.cancel_url or f"{base}/?checkout=cancelled",
+    )
+    if not result.get("ok"):
+        status = 503 if result.get("error") == "billing_not_configured" else 400
+        return JSONResponse(status_code=status, content=result)
+    return result
+
+
+@app.post("/api/billing/portal")
+def billing_portal(request: Request):
+    identity = auth_service.require_identity(request)
+    base = _app_base_url(request)
+    result = billing_service.build_portal(identity.account, f"{base}/?billing=portal")
+    if not result.get("ok"):
+        return JSONResponse(status_code=400, content=result)
+    return result
 
 
 @app.post("/api/stripe/webhook")
-def stripe_webhook():
-    """Placeholder webhook. Operators must replace this with signature
-    verification against STRIPE_WEBHOOK_SECRET before going live."""
+async def stripe_webhook(request: Request):
+    """Stripe webhook. Verifies the Stripe-Signature header against
+    STRIPE_WEBHOOK_SECRET before accepting the event.
 
-    try:
-        body = {}
-        # The real deployment must read the raw request body and the
-        # STRIPE_WEBHOOK_SECRET header; this placeholder is intentionally safe.
-        return billing_service.handle_webhook(body, None)
-    except Exception as exc:
-        return {"ok": False, "error": str(exc)}
+    Reads the raw request body (not the parsed JSON) because Stripe signs
+    the exact bytes sent over the wire.
+    """
+
+    body = await request.body()
+    signature = request.headers.get("stripe-signature")
+    result = billing_service.handle_webhook(body, signature)
+    return JSONResponse(status_code=200 if result.get("ok") else 400, content=result)
+
 
 if __name__ == "__main__":  # python -m app.main
     import uvicorn

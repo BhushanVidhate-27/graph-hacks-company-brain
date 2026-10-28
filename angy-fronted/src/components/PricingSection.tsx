@@ -1,183 +1,440 @@
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { motion } from 'motion/react';
 import { HeronButton } from './HeronButton';
 import { CadCrosshair } from './CadCrosshair';
-import { Check, Sparkles, Award } from 'lucide-react';
-import { PricingPlan } from '../types';
+import { Reveal } from './motion/Reveal';
+import { Check, Sparkles, AlertTriangle, ShieldCheck } from 'lucide-react';
+import { useAuth } from '../lib/auth';
+import {
+  ApiError,
+  api,
+  formatPrice,
+  type BillingSetup,
+  type Plan,
+} from '../lib/api';
+import { ViewMode } from '../types';
 
-export const PricingSection: React.FC = () => {
-  const plans: PricingPlan[] = [
-    {
-      id: 'free',
-      name: 'Developer',
-      tagline: 'For individuals and contributors exploring graph traversals locally.',
-      priceMonthly: 0,
-      priceYearly: 0,
-      credits: 'Up to 10 microservices',
-      features: [
-        'Local FalkorDB container support',
-        'Basic Cypher natural language queries',
-        'Ground truth fact evaluation',
-        'Community Discord access',
-        'Standard traversal speed'
-      ],
-      cta: 'Explore in Demo'
+interface PricingSectionProps {
+  onSelectMode: (mode: ViewMode) => void;
+}
+
+/**
+ * Local fallback mirrors app/plans.py. The live catalog is fetched from
+ * GET /api/plans; the fallback exists so the marketing page still renders its
+ * prices if the API is down cold. It is not the source of truth: a price change
+ * belongs in the Python catalog.
+ */
+const FALLBACK_PLANS: Plan[] = [
+  {
+    id: 'free',
+    name: 'Free',
+    tagline: 'Evaluate the graph on a real company brain, no card required.',
+    price_monthly: 0,
+    price_yearly: 0,
+    currency: 'usd',
+    credits: '50 questions / month',
+    cta: 'Start free',
+    highlighted: false,
+    limits: {
+      questions_per_month: 50,
+      seats: 1,
+      graphs: 1,
+      api_access: false,
+      github_sync: false,
+      analytics: false,
+      priority_inference: false,
     },
-    {
-      id: 'standard',
-      name: 'Team',
-      tagline: 'For fast-growing engineering teams managing distributed services.',
-      priceMonthly: 0,
-      priceYearly: 0,
-      credits: 'Up to 50 microservices',
-      highlighted: true,
-      features: [
-        'Helio Cypher Natural Language Agent',
-        'Automated blast radius calculation',
-        'Live on-call rotation synchronization',
-        'Slack & PagerDuty notification hooks',
-        'Expertise volume vs. recency weighting',
-        'Email & Slack support'
-      ],
-      cta: 'Test Team Tier'
+    features: [
+      '50 questions / month',
+      '1 knowledge graph',
+      '1 seat',
+      'Provenance trail on every answer',
+      'Cypher-verified answers',
+      'Community support',
+    ],
+  },
+  {
+    id: 'starter',
+    name: 'Starter',
+    tagline: 'For one engineering team that needs answers it can defend.',
+    price_monthly: 15,
+    price_yearly: 150,
+    currency: 'usd',
+    credits: '1,000 questions / month',
+    cta: 'Start Starter',
+    highlighted: false,
+    limits: {
+      questions_per_month: 1000,
+      seats: 3,
+      graphs: 1,
+      api_access: false,
+      github_sync: true,
+      analytics: false,
+      priority_inference: false,
     },
-    {
-      id: 'business',
-      name: 'Scale',
-      tagline: 'For multi-team engineering organizations needing full architectural provenance.',
-      priceMonthly: 0,
-      priceYearly: 0,
-      credits: 'Unlimited microservices',
-      features: [
-        'Everything in Team',
-        'Helio FalkorDB Web Console',
-        'Automated 90-day staleness decay alerts',
-        'SUPERSEDES architectural decision audit',
-        'Audit logs & honest negative detection',
-        'API & Cypher query export',
-        'Priority support'
-      ],
-      cta: 'Test Scale Tier'
+    features: [
+      '1,000 questions / month',
+      '1 knowledge graph',
+      '3 seats',
+      'GitHub issue & PR sync',
+      '90-day staleness alerts',
+      'Email support',
+    ],
+  },
+  {
+    id: 'professional',
+    name: 'Professional',
+    tagline: 'For platform teams running multiple services and decisions.',
+    price_monthly: 49,
+    price_yearly: 490,
+    currency: 'usd',
+    credits: '5,000 questions / month',
+    cta: 'Start Professional',
+    highlighted: true,
+    limits: {
+      questions_per_month: 5000,
+      seats: 10,
+      graphs: null,
+      api_access: true,
+      github_sync: true,
+      analytics: true,
+      priority_inference: true,
     },
-    {
-      id: 'enterprise',
-      name: 'Enterprise',
-      tagline: 'For security-sensitive fintechs and enterprises needing airgapped compliance.',
-      priceMonthly: 0,
-      priceYearly: 0,
-      credits: 'Custom dedicated nodes',
-      features: [
-        'On-premise airgapped FalkorDB cluster',
-        'Custom entity resolution algorithms',
-        'Dedicated graph solutions architect',
-        'Custom RBAC & enterprise SSO',
-        'Strict 99.99% uptime SLA',
-        '24/7 incident response'
-      ],
-      cta: 'Contact for Enterprise'
+    features: [
+      '5,000 questions / month',
+      'Unlimited knowledge graphs',
+      '10 seats',
+      'API access & keys',
+      'Priority inference',
+      'Analytics & usage dashboard',
+      'Slack support',
+    ],
+  },
+  {
+    id: 'enterprise',
+    name: 'Enterprise',
+    tagline: 'For security-sensitive organisations with their own graph.',
+    price_monthly: null,
+    price_yearly: null,
+    currency: 'usd',
+    credits: 'Custom volume',
+    cta: 'Talk to us',
+    highlighted: false,
+    limits: {
+      questions_per_month: null,
+      seats: null,
+      graphs: null,
+      api_access: true,
+      github_sync: true,
+      analytics: true,
+      priority_inference: true,
+    },
+    features: [
+      'Unlimited questions',
+      'Unlimited graphs & seats',
+      'Dedicated FalkorDB instance',
+      'SSO / RBAC',
+      'SLA-backed uptime',
+      'White-glove onboarding',
+    ],
+  },
+];
+
+export const PricingSection: React.FC<PricingSectionProps> = ({ onSelectMode }) => {
+  const { me, openAuth, checkout } = useAuth();
+  const [catalog, setCatalog] = useState<Plan[]>(FALLBACK_PLANS);
+  const [billing, setBilling] = useState<BillingSetup | null>(null);
+  const [busy, setBusy] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    api.plans
+      .list()
+      .then((data) => {
+        if (cancelled) return;
+        if (data.plans?.length) setCatalog(data.plans);
+        setBilling(data.billing);
+      })
+      .catch(() => {
+        /* fallback catalog keeps the section usable */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const plans = useMemo(
+    () => (me?.plans?.length ? me.plans : catalog),
+    [me?.plans, catalog],
+  );
+  const currentPlanId = me?.authenticated ? me?.plan?.id : undefined;
+  const checkoutConfigured = Boolean(billing?.configured || billing?.local_billing);
+
+  const handleSelect = async (target: Plan) => {
+    setError(null);
+    setNotice(null);
+
+    if (target.id === 'enterprise') {
+      window.location.href =
+        'mailto:bhushanvidhate002@gmail.com?subject=Helio%20Enterprise%20enquiry';
+      return;
     }
-  ];
+
+    if (!me?.authenticated) {
+      openAuth('signup', target.id);
+      return;
+    }
+
+    if (target.id === currentPlanId || target.id === 'free') {
+      onSelectMode('account');
+      return;
+    }
+
+    setBusy(target.id);
+    try {
+      const result = await checkout(target.id);
+      if (result.upgraded) {
+        setNotice(result.message || `You are now on the ${target.name} plan.`);
+      } else if (result.url) {
+        setNotice('Redirecting to secure checkout…');
+      } else {
+        setNotice(result.message || 'Checkout session created.');
+      }
+    } catch (err) {
+      setError(
+        err instanceof ApiError
+          ? err.message
+          : err instanceof Error
+            ? err.message
+            : 'Could not start checkout.',
+      );
+    } finally {
+      setBusy(null);
+    }
+  };
 
   return (
-    <section id="pricing-section" className="relative w-full py-16 md:py-24 px-4 md:px-8 max-w-7xl mx-auto select-none">
-      
+    <section
+      id="pricing-section"
+      className="relative w-full py-16 md:py-24 px-4 md:px-8 max-w-7xl mx-auto select-none"
+    >
       {/* Header */}
-      <div className="text-center max-w-3xl mx-auto mb-12">
-        <div className="text-[#e15c46] font-mono text-xs font-bold uppercase tracking-widest mb-2 flex items-center justify-center gap-1.5">
-          <Award className="w-3.5 h-3.5" />
-          <span>PRICING // YET TO DECIDE (HACKATHON PROJECT)</span>
-        </div>
+      <Reveal>
+        <div className="text-center max-w-3xl mx-auto mb-12">
         <h2 className="text-3xl md:text-5xl font-mono font-bold tracking-tight text-[#282828] uppercase leading-tight mb-4">
-          Yet to decide (Hackathon Project)
+          Priced for the team that needs the answer
         </h2>
-        <p className="text-sm font-mono text-[#5c5c56] max-w-xl mx-auto">
-          Commercial pricing is yet to be finalized as this is an active Hackathon project for 
-          <span className="text-[#e15c46] font-bold"> Graph Hacks Track 03: Company Brain</span>. All capabilities are currently open for evaluation.
+        <p className="text-sm font-mono text-[#5c5c56] max-w-2xl mx-auto leading-relaxed">
+          Start free. Upgrade when the graph becomes part of how your team works.
+          Every plan includes the provenance trail, staleness flags and honest
+          negatives — the parts that make an answer checkable.
         </p>
 
-        {/* Hackathon Badge Pill */}
-        <div className="mt-6 inline-flex items-center gap-2 bg-[#f4f4ec] cad-border px-4 py-2 font-mono text-xs text-[#282828]">
+        <div className="mt-6 inline-flex flex-wrap items-center justify-center gap-2 bg-[#f4f4ec] cad-border px-4 py-2 font-mono text-[10px] text-[#282828]">
           <span className="w-2 h-2 rounded-full bg-[#e15c46] animate-pulse" />
-          <span className="font-bold">STATUS:</span>
-          <span className="text-[#e15c46] font-bold uppercase">YET TO DECIDE (HACKATHON PROJECT)</span>
-          <span className="text-[#5c5c56]">· All Tiers Open for Demo</span>
+          <span className="font-bold uppercase">Billing:</span>
+          <span className="text-[#5c5c56]">USD, billed monthly · cancel anytime</span>
+          <span className="text-[#5c5c56]">· Annual saves ~17%</span>
         </div>
-      </div>
+
+        {billing && !checkoutConfigured && (
+          <div className="mt-4 max-w-2xl mx-auto cad-border border-[#e15c46]/40 bg-[#e15c46]/5 px-4 py-2 font-mono text-[10px] text-[#5c5c56] flex items-center justify-center gap-2">
+            <AlertTriangle className="w-3.5 h-3.5 text-[#e15c46] flex-shrink-0" />
+            Checkout is not configured on this deployment. Start free, or email us for a manual
+            invoice.
+          </div>
+        )}
+
+        {billing?.local_billing && (
+          <div className="mt-4 max-w-2xl mx-auto cad-border border-[#282828]/20 bg-[#f4f4ec] px-4 py-2 font-mono text-[10px] text-[#5c5c56] flex items-center justify-center gap-2">
+            <ShieldCheck className="w-3.5 h-3.5 text-[#e15c46] flex-shrink-0" />
+            Local billing mode: upgrades apply instantly for development.
+          </div>
+        )}
+
+        {notice && (
+          <div className="mt-4 max-w-2xl mx-auto cad-border border-emerald-700/40 bg-emerald-50 px-4 py-2 font-mono text-[10px] text-emerald-800">
+            {notice}
+          </div>
+        )}
+        {error && (
+          <div className="mt-4 max-w-2xl mx-auto cad-border border-[#e15c46] bg-[#e15c46]/10 px-4 py-2 font-mono text-[10px] text-[#a33b2b]">
+            {error}
+          </div>
+        )}
+        </div>
+      </Reveal>
 
       {/* Pricing Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
-        {plans.map((p) => (
-          <div
-            key={p.id}
-            className={`cad-border p-6 flex flex-col justify-between relative transition-all duration-300 ${
-              p.highlighted ? 'bg-[#282828] text-white shadow-2xl scale-[1.02]' : 'bg-[#f4f4ec] text-[#282828]'
-            }`}
-          >
-            <CadCrosshair position="tl" />
-            <CadCrosshair position="tr" />
-            <CadCrosshair position="bl" />
-            <CadCrosshair position="br" />
+        {plans.map((plan, index) => {
+          const isCurrent = plan.id === currentPlanId;
+          const isBusy = busy === plan.id;
+          return (
+            <Reveal key={plan.id} delay={index * 0.07} className="h-full">
+              <div
+                className={`h-full cad-border p-6 flex flex-col justify-between relative transition-all duration-300 hover:-translate-y-1 ${
+                  plan.highlighted
+                    ? 'bg-[#282828] text-white shadow-2xl scale-[1.02]'
+                    : 'bg-[#f4f4ec] text-[#282828]'
+                }`}
+              >
+                <CadCrosshair position="tl" />
+                <CadCrosshair position="tr" />
+                <CadCrosshair position="bl" />
+                <CadCrosshair position="br" />
 
-            {p.highlighted && (
-              <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-[#e15c46] text-white font-mono text-[10px] font-bold px-3 py-1 uppercase tracking-wider shadow-lg flex items-center gap-1">
-                <Sparkles className="w-3 h-3" />
-                <span>RECOMMENDED</span>
-              </div>
-            )}
+                {plan.highlighted && (
+                  <>
+                    <svg
+                      className="pointer-events-none absolute inset-0 h-full w-full"
+                      aria-hidden="true"
+                    >
+                      <motion.rect
+                        x="1"
+                        y="1"
+                        width="calc(100% - 2px)"
+                        height="calc(100% - 2px)"
+                        fill="none"
+                        stroke="#e15c46"
+                        strokeWidth="2"
+                        pathLength={100}
+                        strokeDasharray="16 84"
+                        initial={{ strokeDashoffset: 0 }}
+                        animate={{ strokeDashoffset: -100 }}
+                        transition={{ duration: 6, repeat: Infinity, ease: 'linear' }}
+                      />
+                    </svg>
+                    <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-[#e15c46] text-white font-mono text-[10px] font-bold px-3 py-1 uppercase tracking-wider shadow-lg flex items-center gap-1">
+                      <Sparkles className="w-3 h-3" />
+                      <span>RECOMMENDED</span>
+                    </div>
+                  </>
+                )}
 
-            <div>
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-mono font-bold text-xl uppercase tracking-wider">
-                  {p.name}
-                </h3>
-                <span className={`font-mono text-[10px] px-2 py-0.5 cad-border ${p.highlighted ? 'border-white/30 text-white/80' : 'border-[#282828]/20 text-[#5c5c56]'}`}>
-                  GRAPH TIER
-                </span>
-              </div>
-
-              <div className="mb-4">
-                <div className="font-mono text-lg md:text-xl font-bold tracking-tight text-[#e15c46] uppercase">
-                  Yet to decide
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-mono font-bold text-xl uppercase tracking-wider">
+                    {plan.name}
+                  </h3>
+                  {isCurrent && (
+                    <span
+                      className={`font-mono text-[9px] px-2 py-0.5 cad-border uppercase ${
+                        plan.highlighted
+                          ? 'border-white/30 text-white/80'
+                          : 'border-[#e15c46] text-[#e15c46]'
+                      }`}
+                    >
+                      Current
+                    </span>
+                  )}
                 </div>
-                <div className={`font-mono text-[11px] mt-0.5 ${p.highlighted ? 'text-white/60' : 'text-[#5c5c56]'}`}>
-                  (Hackathon Project)
-                </div>
-                <div className={`font-mono text-xs mt-2 ${p.highlighted ? 'text-white/80 font-bold' : 'text-[#282828] font-bold'}`}>
-                  {p.credits}
-                </div>
-              </div>
 
-              <p className={`font-mono text-xs leading-relaxed mb-6 cad-border-b pb-4 ${
-                p.highlighted ? 'text-white/70 border-white/20' : 'text-[#5c5c56] border-[#282828]/20'
-              }`}>
-                {p.tagline}
-              </p>
-
-              {/* Features List */}
-              <div className="space-y-3 font-mono text-xs mb-8">
-                {p.features.map((f, i) => (
-                  <div key={i} className="flex items-start gap-2.5">
-                    <Check className={`w-3.5 h-3.5 mt-0.5 flex-shrink-0 ${p.highlighted ? 'text-[#e15c46]' : 'text-[#e15c46]'}`} />
-                    <span className={p.highlighted ? 'text-white/90' : 'text-[#282828]'}>{f}</span>
+                <div className="mb-4">
+                  <div className="font-mono text-3xl font-bold tracking-tight text-[#e15c46]">
+                    {formatPrice(plan)}
+                    {plan.price_monthly !== null && plan.price_monthly > 0 && (
+                      <span
+                        className={`text-xs font-normal ${
+                          plan.highlighted ? 'text-white/50' : 'text-[#5c5c56]'
+                        }`}
+                      >
+                        /mo
+                      </span>
+                    )}
                   </div>
-                ))}
-              </div>
-            </div>
+                  <div
+                    className={`font-mono text-[10px] mt-1 ${
+                      plan.highlighted ? 'text-white/60' : 'text-[#5c5c56]'
+                    }`}
+                  >
+                    {plan.price_monthly === 0
+                      ? 'Free forever · no card'
+                      : plan.price_monthly === null
+                        ? 'Custom · annual or monthly'
+                        : `$${plan.price_yearly}/year (save ~17%)`}
+                  </div>
+                  <div
+                    className={`font-mono text-xs mt-2 ${
+                      plan.highlighted ? 'text-white/80 font-bold' : 'text-[#282828] font-bold'
+                    }`}
+                  >
+                    {plan.credits}
+                  </div>
+                </div>
 
-            <HeronButton
-              variant={p.highlighted ? 'brand' : 'outline'}
-              className="w-full justify-center"
-            >
-              {p.cta}
-            </HeronButton>
-          </div>
+                <p
+                  className={`font-mono text-xs leading-relaxed mb-6 cad-border-b pb-4 ${
+                    plan.highlighted ? 'text-white/70 border-white/20' : 'text-[#5c5c56] border-[#282828]/20'
+                  }`}
+                >
+                  {plan.tagline}
+                </p>
+
+                {/* Features List */}
+                <div className="space-y-3 font-mono text-xs mb-8">
+                  {plan.features.map((feature) => (
+                    <div key={feature} className="flex items-start gap-2.5">
+                      <Check className="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-[#e15c46]" />
+                      <span className={plan.highlighted ? 'text-white/90' : 'text-[#282828]'}>
+                        {feature}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <HeronButton
+                variant={plan.highlighted ? 'brand' : 'outline'}
+                className="w-full justify-center"
+                onClick={() => void handleSelect(plan)}
+              >
+                {isBusy
+                  ? 'Starting…'
+                  : isCurrent
+                    ? 'Current plan'
+                    : plan.id === 'enterprise'
+                      ? 'Talk to us'
+                      : plan.cta}
+              </HeronButton>
+              </div>
+            </Reveal>
+          );
+        })}
+      </div>
+
+      {/* Pricing rationale */}
+      <div className="mt-10 grid grid-cols-1 md:grid-cols-3 gap-4">
+        {[
+          {
+            title: 'No per-seat surprise',
+            body: 'Every plan includes seats. You pay for the questions your team actually asks, not for inviting a reviewer to read a trail.',
+          },
+          {
+            title: 'Open-source core',
+            body: 'The graph, Cypher and agent loop are open source. Self-host them for free; the paid plans pay for the managed surface.',
+          },
+          {
+            title: 'Cancel from the portal',
+            body: 'Stripe Customer Portal handles plan changes, payment methods and cancellation. No retention call required.',
+          },
+        ].map((item, index) => (
+          <Reveal key={item.title} delay={index * 0.05} y={12}>
+            <div className="bg-[#f4f4ec] cad-border p-4">
+              <div className="font-mono text-[11px] font-bold uppercase tracking-wider text-[#282828] mb-1.5">
+                {item.title}
+              </div>
+              <p className="font-mono text-[10px] leading-relaxed text-[#5c5c56]">{item.body}</p>
+            </div>
+          </Reveal>
         ))}
       </div>
 
-      {/* Credit Explanation Note */}
       <div className="mt-8 text-center font-mono text-[11px] text-[#5c5c56]">
-        Pricing: Yet to decide (Hackathon Project) · FalkorDB graph engine runs locally in Docker or via managed cloud cluster.
+        All plans include Cypher-verified answers · FalkorDB graph engine · SSE streaming
       </div>
-
     </section>
   );
 };

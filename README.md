@@ -24,16 +24,16 @@ An LLM asked *"is this answer correct?"* is **circular**. A hallucinated ownersh
 chain looks exactly like a correct one, because both are plausible prose over
 structurally valid edges.
 
-So the 20 ground-truth facts in [`GROUND_TRUTH.md`](GROUND_TRUTH.md) were written by
-hand, independently, **before any data was generated** — including 5 questions
-designed to have no answer. The agent is scored against those, not against itself.
+So Helio answers from the graph itself: every ownership, dependency and provenance
+claim is a Cypher result, and a missing edge returns an explicit negative instead
+of invented prose.
 
 ```
-GROUND_TRUTH.md → generate.py → load.py → graph.py (Cypher) → verify.py
-                                                              │
-                                                ┌─────────────┘
-                                                ▼
-                                      agent.py + main.py → web/
+generate.py → load.py → graph.py (Cypher) → verify.py
+                                              │
+                                    ┌─────────┘
+                                    ▼
+                          agent.py + main.py → angy-fronted/
 ```
 
 ---
@@ -317,17 +317,55 @@ Built by **Bhushan**, **Soham** and **Ujwal**.
 
 ---
 
-## SaaS & GitHub integration (new)
 
-The product now ships as a slim SaaS surface on top of the same reasoning engine.
+## SaaS layer
 
-### New GitHub endpoints
-- `POST /api/repo/settings` — validates `GITHUB_OWNER`, `GITHUB_REPO` and `GITHUB_TOKEN`.
-- `GET /api/repo/issues` — open (or requested) issues and pull requests for the connected GitHub repository.
+The reasoning engine is the product; the SaaS layer is the commercial surface around it. It is implemented, not mocked:
+
+- **Accounts and sessions** — email/password signup creates an account, an owner user, a free subscription and an HttpOnly session cookie. Passwords are hashed with stdlib `scrypt`; only session-token hashes are stored.
+- **Plans and quotas** — Free (50 questions/month), Starter ($15/mo, 1,000), Professional ($49/mo, 5,000), Enterprise (custom). The catalog lives in `app/plans.py` and is served from `GET /api/plans`, so the marketing page and the quota check cannot drift.
+- **Metering** — signed-in questions are counted per calendar month in SQLite and checked *before* the SSE stream starts. A failed answer is not charged. Anonymous visitors keep a per-IP daily allowance (`ANON_DAILY_LIMIT`, default 100) so the public demo still works.
+- **Stripe** — Checkout Sessions, Customer Portal, HMAC-verified webhooks with replay tolerance, and idempotent event handling. No Stripe SDK; the API is called over `httpx`.
+- **API keys** — available on Professional and above. Keys are shown once, stored hashed, revoked individually, and authenticate `POST /ask` with `Authorization: Bearer helio_...` or `X-API-Key`.
+- **Account console** — the frontend has real sign-in, signup, plan, usage, billing and API-key views; pricing CTAs create checkouts instead of scrolling nowhere.
+
+### Auth and billing endpoints
+
+| Method | Path | Purpose |
+|---|---|---|
+| `POST` | `/api/auth/signup` | Create account + owner, start session |
+| `POST` | `/api/auth/login` | Sign in (throttled after repeated failures) |
+| `POST` | `/api/auth/logout` | Delete the session |
+| `GET` | `/api/auth/me` | Identity, plan, usage, catalog, billing state |
+| `GET` | `/api/plans` | Public plan catalog |
+| `GET` | `/api/usage` | Current month's usage |
+| `GET` / `POST` / `DELETE` | `/api/keys` | List, create and revoke API keys |
+| `GET` | `/api/billing/me` | Subscription and billing state |
+| `POST` | `/api/billing/checkout` | Create a Stripe Checkout Session |
+| `POST` | `/api/billing/portal` | Create a Stripe Customer Portal session |
+| `POST` | `/api/stripe/webhook` | Verify and apply Stripe events |
+
+`POST /ask` keeps its frozen contract: an SSE stream of `{answer, trail[], stale[]}` followed by `data: [DONE]`. Authentication is optional by default; set `HELIO_REQUIRE_AUTH=1` to require it.
+
+### Pricing
+
+| Plan | Price | Questions/month | Seats | Graphs | API keys |
+|---|---|---|---|---|---|
+| Free | $0 | 50 | 1 | 1 | — |
+| Starter | $15/mo ($150/yr) | 1,000 | 3 | 1 | — |
+| Professional | $49/mo ($490/yr) | 5,000 | 10 | Unlimited | Yes |
+| Enterprise | Custom | Unlimited | Unlimited | Unlimited | Yes |
+
+The low price is deliberate: the graph, Cypher and agent loop are open source and self-hostable, so the paid plans pay for the managed surface — identity, quotas, billing, GitHub sync and onboarding — rather than for a markup on inference.
+
+### GitHub integration
+
+- `GET /api/repo/settings` — validates `GITHUB_OWNER`, `GITHUB_REPO` and `GITHUB_TOKEN`.
+- `GET /api/repo/issues` — open (or requested) issues.
 - `GET /api/repo/pulls` — open (or requested) pull requests.
-- `GET /api/repo/items` — combined issues + pull requests.
+- `GET /api/repo/items` — combined issues and pull requests.
 
-The items returned are normalised to a small JSON surface:
+Items are normalised to a small JSON surface:
 
 ```json
 {
@@ -345,112 +383,30 @@ The items returned are normalised to a small JSON surface:
 }
 ```
 
-### Dashboard
-- Add `/github` to the product UI to view issues and pull requests, filter by state, and open items in GitHub.
+## Configuration for the SaaS layer
 
-### Pricing / position
-- The same open-source core can be self-hosted for individuals and small teams.
-- The managed Helio SaaS keeps the GitHub sync, identity, versioning and onboarding for you.
+Add these to `.env` (`.env.example` documents each one):
 
-### Requirements for GitHub sync
-Add these to `.env` (see the new `GITHUB_OWNER`, `GITHUB_REPO` and `GITHUB_TOKEN` fields in `.env.example`):
+| Variable | Default | Meaning |
+|---|---|---|
+| `HELIO_DB_PATH` | `data/helio.db` | SQLite file for accounts, sessions, keys, usage, subscriptions |
+| `HELIO_REQUIRE_AUTH` | `0` | `1` requires a session or API key for `/ask` |
+| `ANON_DAILY_LIMIT` | `100` | Anonymous questions per IP per day (0 disables) |
+| `HELIO_TRUST_PROXY` | `0` | Trust `X-Forwarded-For` for the anonymous limit |
+| `HELIO_COOKIE_SECURE` | auto | Force the session cookie's `Secure` flag |
+| `HELIO_APP_URL` | request origin | Public origin for Stripe redirects |
+| `STRIPE_MODE` | `local` | `local`, `test` or `live` |
+| `HELIO_ALLOW_LOCAL_BILLING` | `0` | Development-only immediate upgrade; never enable in production |
+| `STRIPE_SECRET_KEY` | — | Stripe secret key |
+| `STRIPE_WEBHOOK_SECRET` | — | Webhook signing secret |
+| `STRIPE_PRICE_STARTER` | — | Stripe Price ID for Starter |
+| `STRIPE_PRICE_PROFESSIONAL` | — | Stripe Price ID for Professional |
 
-- `GITHUB_OWNER` — GitHub organisation or user
-- `GITHUB_REPO` — GitHub repository
-- `GITHUB_TOKEN` — GitHub personal access token with `repo` scope
-
-## Pricing
-
-We believe AI-powered company knowledge should be accessible to everyone, not just well-funded enterprises. Here's our pricing philosophy:
-
-### Why so low? Our reasoning
-- **Bootstrapped, not VC-backed**: We're founder-led without outside investment, so there's no pressure to extract maximum revenue quickly
-- **Open-source core**: The heart of Helio (the graph, Cypher queries, reasoning engine) is fully open-source and can be self-hosted for free
-- **No SaaS markup**: We don't add 3-5x multipliers just because it's "cloud"; you pay mostly for the small Groq/FalkorDB costs
-- **GitHub-native**: Since GitHub issues/PR sync is the new value-add, we keep it inexpensive to encourage adoption
-- **Early-adopter friendly**: We're building the product in public and want power users, not just deep-pocketed companies
-
-### Starter tier — $15/mo / $150/year
-_Save 20% with annual billing_
-
-- Unlimited queries
-- 1 knowledge graph
-- FalkorDB embedded
-- Groq inference
-- GitHub integration (issues & pull requests)
-- Email support
-
-### Professional tier — $49/mo
-
-- Unlimited knowledge graphs
-- Priority Groq inference
-- Analytics & usage dashboards
-- API access (REST endpoints)
-- Phone/Slack support
-- Team collaboration features
-
-### Enterprise tier — custom
-
-- Dedicated FalkorDB instance
-- SLA-backed uptime
-- Custom model integration
-- White-glove onboarding
-- Volume discounts
-
-### What's included at each tier
-| Feature | Starter | Professional | Enterprise |
-|---------|---------|--------------|------------|
-| Unlimited queries | ✅ | ✅ | ✅ |
-| 1+ knowledge graphs | 1 | Unlimited | Unlimited |
-| Priority inference | ❌ | ✅ | ✅ |
-| Analytics dashboard | ❌ | ✅ | ✅ |
-| API access | ❌ | ✅ | ✅ |
-| Email support | ✅ | ✅ | ✅ |
-| Phone/Slack support | ❌ | ✅ | ✅ |
-| Team collaboration | ❌ | ✅ | ✅ |
-| Custom model integration | ❌ | ❌ | ✅ |
-| SLA-backed uptime | ❌ | ❌ | ✅ |
-
-### One-time setup
-- **Docker compose up**: Get running in minutes
-- **Stripe config**: Add 6 env vars (see `.env.example`)
-- **GitHub sync**: Set 3 env vars (`GITHUB_OWNER`, `GITHUB_REPO`, `GITHUB_TOKEN`)
-- All of the above takes ~10 minutes for a single repository
-
-### Risk-free guarantee
-- 30-day money-back if the product doesn't meet your needs
-- No long-term contracts — monthly or annual, your choice
-- Self-host the core for free anytime; the SaaS layer is optional
-
-### Compare vs. competitors
-| Competitor | Monthly | Key Differentiator |
-|------------|---------|-------------------|
-| Competitor A | $99/mo | Closed-source, VC-backed, 2-year contracts |
-| Competitor B | $149/mo | Per-seat pricing, limited queries |
-| **Helio** | **$15/mo** | **Open-source core, bootstrapped, per-repo pricing** |
-
-Join the growing community of bootstrapped teams using Helio to surface internal knowledge without the enterprise price tag.
-## Pricing
-
-- **Starter tier**: $15/mo / $150/year (with 20% annual savings badge) — unlimited queries, 1 knowledge graph, FalkorDB embedded, Groq inference, GitHub integration, email support.
-- **Professional tier**: $49/mo — unlimited graphs, priority inference, analytics, API access, phone support.
-- **Explicit low-price reasoning**: Bootstrapped (not VC-backed), open-source core, no SaaS markup, GitHub-native founder-led setup, only Groq/FalkorDB costs, kept cheap for early adopters.
-
-## Stripe setup requirements
-
-Add these to `.env` (see the new env vars in `.env.example`):
-
-- `NEXT_PUBLIC_HELIO_PRICE_ID` — Stripe Price ID from Dashboard
-- `STRIPE_SECRET_KEY` — Secret key from Developers → API keys (never commit to VCS)
-- `STRIPE_WEBHOOK_SECRET` — Signing secret from Webhooks setup
-- `STRIPE_PRICE_FREE` — Price ID for free tier
-- `STRIPE_PRICE_PRO` — Price ID for pro tier
-- `STRIPE_MODE=local|test|live` with mode explanations
-
-See `billing-setup.md` for a complete guide including how to obtain each value and test locally.
+See [`billing-setup.md`](billing-setup.md) for the full Stripe walkthrough, including local testing.
 
 ## Deployment
 
-- **Local**: `docker compose up --build` (includes backend, FalkorDB, and frontend)
-- **Production**: Set all env vars in your host environment, use the provided `docker-compose.yml`, and ensure `STRIPE_MODE=live` with valid price IDs.
-- **CI**: GitHub Actions workflow runs backend lint/type-check, frontend type-check + build, and optional Docker image push.
+- **Local**: `docker compose -f deploy/docker-compose.yml up --build`, then open <http://localhost:8080>. The `api` service mounts a named volume at `/srv/state` for `helio.db`, so accounts survive a restart.
+- **Production**: set the env vars above in the host's secret store, attach a persistent disk/volume for `HELIO_DB_PATH`, set `STRIPE_MODE=live`, and set `HELIO_APP_URL` to the public HTTPS origin. Add the Stripe webhook endpoint as `https://<your-host>/api/stripe/webhook`.
+- **Single instance only**: SQLite is a single-writer database. The store is isolated in `app/store.py` so it can be moved to Postgres before running multiple API replicas.
+- **CI**: the GitHub Actions workflow runs the backend tests and the frontend type-check + build.

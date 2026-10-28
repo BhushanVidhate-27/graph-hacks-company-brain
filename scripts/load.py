@@ -104,7 +104,7 @@ def main():
     except Exception:
         pass  # absent graph is fine
     try:
-        g.query("DELETE helio")
+        g.query(f"DELETE {GRAPH}")
     except Exception:
         pass
 

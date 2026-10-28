@@ -1,36 +1,12 @@
 # Helio company brain — production image.
-# Bhushan owns deploy/. app/main.py (Soham) and front/ are copied unmodified.
-FROM python:3.12-slim
-
-ENV PYTHONUNBUFFERED=1 \
-    PYTHONDONTWRITEBYTECODE=1 \
-    PIP_NO_CACHE_DIR=1
-
-WORKDIR /srv
+#
+# The frontend is angy-fronted (Vite + React). It is built here and copied into
+# the Python runtime so the site and the API share ONE origin: no CORS, and no
+# proxy between the browser and the SSE stream.
 
 # --------------------------------------------------------------------------- #
-# Stage 1: build the marketing site.
-#
-# front/ is a Next.js app in static-export mode (next.config.ts sets
-# output: "export"), so `next build` emits plain files into front/out/ and needs
-# no Node runtime afterwards. Building here and copying the result into the
-# Python stage keeps the served site and the served API on ONE origin, which is
-# the whole point — see the CMD note below.
-#
-# NEXT_PUBLIC_HELIO_API is deliberately EMPTY, and it must be set here to be
-# empty — omitting it entirely leaves src/lib/api.ts to fall back to its own
-# default of "https://helio-brain.onrender.com", which bakes an absolute URL
-# into the bundle. Empty string is not nullish, so it wins over that default and
-# the browser calls "/ask" relative to the page. Same-origin means CORS never
-# applies and no proxy sits between the page and the SSE stream. Do NOT set it to
-# the public API URL here — that reintroduces a cross-origin request from a page
-# served by that very same host.
+# Stage 1: build the Helio frontend (angy-fronted).
 # --------------------------------------------------------------------------- #
-# Stage 1: build the Helio CAD HUD frontend (angy-fronted).
-#
-# angy-fronted is a Vite + React application. Building here and copying dist/ into
-# the Python stage keeps the served site and the served API on ONE origin, which
-# removes CORS and proxy buffering issues completely.
 FROM node:22-slim AS site
 
 WORKDIR /site
@@ -45,6 +21,12 @@ RUN npm run build
 # --------------------------------------------------------------------------- #
 # Stage 2: the runtime image.
 FROM python:3.12-slim
+
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1
+
+WORKDIR /srv
 
 # deps first so code edits do not invalidate the pip layer
 COPY requirements.txt .

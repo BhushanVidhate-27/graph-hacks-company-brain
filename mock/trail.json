@@ -33,6 +33,7 @@
     "MENTIONS",
     "HAS_DEPENDENT",
     "DEPENDS_ON",
+    "HAS_ROTATION",
     "MEMBER_OF",
     "ON_CALL"
   ],

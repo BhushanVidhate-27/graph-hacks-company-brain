@@ -1,8 +1,9 @@
 import React, { useState, useRef } from 'react';
 import { CadCrosshair } from './CadCrosshair';
 import { HeronButton } from './HeronButton';
+import { Reveal } from './motion/Reveal';
 import { 
-  Network, AlertTriangle, CheckCircle2, ShieldCheck, 
+  AlertTriangle, CheckCircle2, ShieldCheck, 
   Terminal, User, Activity, AlertOctagon, Share2, Layers 
 } from 'lucide-react';
 import { DependencyNode } from '../types';
@@ -98,29 +99,27 @@ export const ViolationInspector: React.FC = () => {
     <section id="inspector-section" className="relative w-full py-16 md:py-24 px-4 md:px-8 max-w-7xl mx-auto select-none">
       
       {/* Header bar */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8 cad-border-b pb-6">
-        <div>
-          <div className="flex items-center gap-2 text-[#e15c46] font-mono text-xs font-bold uppercase tracking-widest mb-2">
-            <Network className="w-4 h-4" />
-            <span>001 // Interactive Graph Topology & Blast Radius</span>
+      <Reveal>
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8 cad-border-b pb-6">
+          <div>
+            <h2 className="text-3xl md:text-5xl font-mono font-bold tracking-tight text-[#282828] uppercase">
+              Click & drag to contrast<br />flat search vs. graph traversal
+            </h2>
           </div>
-          <h2 className="text-3xl md:text-5xl font-mono font-bold tracking-tight text-[#282828] uppercase">
-            Click & drag to contrast<br />flat search vs. graph traversal
-          </h2>
-        </div>
 
-        <div className="flex items-center gap-4 text-xs font-mono text-[#5c5c56]">
-          <div className="flex items-center gap-2">
-            <span className="w-3 h-3 bg-[#e15c46] inline-block border border-[#282828]" />
-            <span>FLAT KEYWORD SEARCH (STALE / TRAPPED)</span>
-          </div>
-          <span>•</span>
-          <div className="flex items-center gap-2">
-            <span className="w-3 h-3 bg-[#282828] inline-block border border-[#282828]" />
-            <span>HELIO FALKORDB CYPHER (GROUND TRUTH)</span>
+          <div className="flex items-center gap-4 text-xs font-mono text-[#5c5c56]">
+            <div className="flex items-center gap-2">
+              <span className="w-3 h-3 bg-[#e15c46] inline-block border border-[#282828]" />
+              <span>FLAT KEYWORD SEARCH (STALE / TRAPPED)</span>
+            </div>
+            <span>•</span>
+            <div className="flex items-center gap-2">
+              <span className="w-3 h-3 bg-[#282828] inline-block border border-[#282828]" />
+              <span>HELIO FALKORDB CYPHER</span>
+            </div>
           </div>
         </div>
-      </div>
+      </Reveal>
 
       {/* Main Interactive Canvas Container */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
@@ -156,7 +155,7 @@ export const ViolationInspector: React.FC = () => {
                   FALKORDB CYPHER TRAVERSAL // 20 VERIFIED NODES
                 </span>
                 <span className="text-[10px] text-white/50 font-mono">
-                  GROUND TRUTH: PASS
+                  CYPHER: PASS
                 </span>
               </div>
 

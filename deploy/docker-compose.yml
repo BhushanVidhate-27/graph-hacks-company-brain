@@ -8,8 +8,8 @@
 #   docker compose up --build
 #   open http://localhost:8080
 #
-# The site is built from front/ inside the image (see the `site` stage of the
-# Dockerfile), so `--build` is required after any frontend change — a plain
+# The site is built from angy-fronted inside the image (see the `site` stage of
+# the Dockerfile), so `--build` is required after any frontend change — a plain
 # `up` reuses the old image and serves the previous site.
 #
 # The `seed` service generates the CSVs and loads them into FalkorDB, so the
@@ -85,4 +85,22 @@ services:
       # applies. Do not set USE_MOCK=1 — that answers from a JSON fixture and
       # never touches the graph, which looks identical to working.
       USE_MOCK: "0"
+      # Commercial state (accounts, sessions, API keys, usage) on a named
+      # volume. Without this every `docker compose up` is a fresh install.
+      HELIO_DB_PATH: /srv/state/helio.db
+      # The public demo stays open with a per-IP daily guard. Set to 1 to make
+      # an account mandatory for every question.
+      HELIO_REQUIRE_AUTH: ${HELIO_REQUIRE_AUTH:-0}
+      ANON_DAILY_LIMIT: ${ANON_DAILY_LIMIT:-100}
+      HELIO_TRUST_PROXY: ${HELIO_TRUST_PROXY:-0}
+      HELIO_APP_URL: ${HELIO_APP_URL:-http://localhost:8080}
+      HELIO_ALLOW_LOCAL_BILLING: ${HELIO_ALLOW_LOCAL_BILLING:-0}
+      STRIPE_PRICE_STARTER: ${STRIPE_PRICE_STARTER:-}
+      STRIPE_PRICE_PROFESSIONAL: ${STRIPE_PRICE_PROFESSIONAL:-}
+    volumes:
+      - helio-state:/srv/state
     restart: unless-stopped
+
+volumes:
+  helio-state:
+    name: helio-state

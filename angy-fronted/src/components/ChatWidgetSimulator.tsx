@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { CadCrosshair } from './CadCrosshair';
 import { HeronButton } from './HeronButton';
+import { API_URL } from '../lib/api';
 import { 
   Send, Bot, User, CheckCircle2, AlertTriangle, ArrowRight, 
   Terminal, Database, Network, GitBranch, Sparkles, Copy, 
@@ -348,7 +349,7 @@ export const ChatWidgetSimulator: React.FC = () => {
     {
       id: 'm-init',
       sender: 'helio',
-      text: "⚡ Helio Autonomous Knowledge Graph Agent initialized.\nConnected to FalkorDB on port 6379.\nLoaded topology: 120 Persons, 20 Services, 5 Teams, 40 Decisions, 22 Dependencies.\n\nAsk any question regarding ownership, blast radius, on-call paging, or ADR provenance, or choose a Ground Truth verification query below.",
+      text: "⚡ Helio Autonomous Knowledge Graph Agent initialized.\nConnected to FalkorDB on port 6379.\nLoaded topology: 120 Persons, 20 Services, 5 Teams, 40 Decisions, 22 Dependencies.\n\nAsk any question regarding ownership, blast radius, on-call paging, or ADR provenance, or choose a verification query below.",
       timestamp: '15:00:00',
       mode: 'live'
     },
@@ -390,15 +391,7 @@ export const ChatWidgetSimulator: React.FC = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const liveAbortController = useRef<AbortController | null>(null);
 
-  const API_BASE = (() => {
-    if ((import.meta as any).env?.VITE_API_URL) {
-      return (import.meta as any).env.VITE_API_URL as string;
-    }
-    if (typeof window !== 'undefined' && window.location.hostname === 'helio-brain.onrender.com') {
-      return '';
-    }
-    return 'https://helio-brain.onrender.com';
-  })();
+  const API_BASE = API_URL;
 
   // Check live backend connectivity on mount
   useEffect(() => {
@@ -413,7 +406,10 @@ export const ChatWidgetSimulator: React.FC = () => {
     setBackendStatus('checking');
     const start = performance.now();
     try {
-      const res = await fetch(`${API_BASE}/health`, { signal: AbortSignal.timeout(6000) });
+      const res = await fetch(`${API_BASE}/health`, {
+        signal: AbortSignal.timeout(6000),
+        credentials: 'include',
+      });
       const elapsed = Math.round(performance.now() - start);
       if (res.ok) {
         setBackendStatus('connected');
@@ -479,10 +475,31 @@ export const ChatWidgetSimulator: React.FC = () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ question }),
-        signal: liveAbortController.current.signal
+        signal: liveAbortController.current.signal,
+        credentials: 'include'
       });
 
       if (!res.ok) {
+        // A quota or auth failure is a product state, not a network failure.
+        // Falling back to the offline simulator would hide the paywall and
+        // teach the user that the limit does not exist.
+        if (res.status === 401 || res.status === 429) {
+          const payload = await res.json().catch(() => null);
+          const message =
+            (payload && (payload.message || payload.detail)) ||
+            (res.status === 401
+              ? 'Sign in or create a free account to keep asking the graph.'
+              : 'You have reached your plan limit. Upgrade to keep asking.');
+          setMessages((prev) =>
+            prev.map((m) =>
+              m.id === botMsgId
+                ? { ...m, text: message, mode: 'live', honestNegative: false }
+                : m
+            )
+          );
+          setIsTyping(false);
+          return;
+        }
         throw new Error(`HTTP ${res.status}: Failed to reach Helio Brain API`);
       }
 
@@ -712,7 +729,7 @@ export const ChatWidgetSimulator: React.FC = () => {
               className={`px-2.5 py-1 flex items-center gap-1.5 transition-colors ${
                 executionMode === 'simulation' ? 'bg-[#e15c46] text-white font-bold' : 'text-white/60 hover:text-white'
               }`}
-              title="Deterministic instant offline verification engine for all 20 Ground Truth cases"
+              title="Deterministic instant offline verification engine"
             >
               <Zap className="w-3 h-3" />
               <span>OFFLINE VERIFIER</span>
@@ -967,12 +984,12 @@ export const ChatWidgetSimulator: React.FC = () => {
           </HeronButton>
         </div>
 
-        {/* Quick Ground Truth Library Header */}
+        {/* Quick Verification Library Header */}
         <div className="mt-5 pt-3 cad-border-t border-[#282828]/15">
           <div className="flex flex-wrap items-center justify-between gap-2 mb-2.5">
             <div className="flex items-center gap-2 text-[11px] font-bold text-[#282828]">
               <Database className="w-3.5 h-3.5 text-[#e15c46]" />
-              <span>20 HAND-WRITTEN GROUND TRUTH CASES:</span>
+              <span>VERIFICATION LIBRARY:</span>
             </div>
 
             {/* Category Filter Pills */}
@@ -981,7 +998,7 @@ export const ChatWidgetSimulator: React.FC = () => {
                 onClick={() => setSelectedFilter('all')}
                 className={`px-2 py-0.5 cad-border ${selectedFilter === 'all' ? 'bg-[#282828] text-white' : 'bg-white hover:bg-stone-200'}`}
               >
-                All (20)
+                All
               </button>
               <button
                 onClick={() => setSelectedFilter('ownership')}

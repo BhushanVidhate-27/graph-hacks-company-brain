@@ -1,5 +1,6 @@
 import React from 'react';
 import { CadCrosshair } from './CadCrosshair';
+import { Reveal } from './motion/Reveal';
 import { Database, GitBranch, Clock, CheckCircle2 } from 'lucide-react';
 
 export const WorkflowSection: React.FC = () => {
@@ -27,9 +28,9 @@ export const WorkflowSection: React.FC = () => {
     },
     {
       num: '04',
-      title: 'GROUND-TRUTH HONESTY',
+      title: 'DETERMINISTIC HONESTY',
       subtitle: 'Explicit negatives with zero hallucination',
-      desc: 'When an edge does not exist, Helio returns a confident negative. Scored against 20 hand-planted ground truth facts.',
+      desc: 'When an edge does not exist, Helio returns a confident negative instead of inventing one.',
       icon: CheckCircle2
     }
   ];
@@ -37,49 +38,50 @@ export const WorkflowSection: React.FC = () => {
   return (
     <section id="workflow-section" className="relative w-full py-16 md:py-24 px-4 md:px-8 max-w-7xl mx-auto select-none">
       
-      <div className="mb-12 max-w-2xl">
-        <div className="text-[#e15c46] font-mono text-xs font-bold uppercase tracking-widest mb-2">
-          HOW IT WORKS // DETERMINISTIC GRAPH VERIFICATION
+      <Reveal>
+        <div className="mb-12 max-w-2xl">
+          <h2 className="text-3xl md:text-5xl font-mono font-bold tracking-tight text-[#282828] uppercase leading-tight">
+            Built on graph topology, not guesswork.
+          </h2>
+          <p className="mt-4 text-sm md:text-base font-mono text-[#5c5c56]">
+            An LLM asked "is this answer correct?" is circular. Helio anchors the agent to a deterministic
+            graph database and grounds every answer in the edges that actually exist.
+          </p>
         </div>
-        <h2 className="text-3xl md:text-5xl font-mono font-bold tracking-tight text-[#282828] uppercase leading-tight">
-          Built on graph topology, verified against truth.
-        </h2>
-        <p className="mt-4 text-sm md:text-base font-mono text-[#5c5c56]">
-          An LLM asked "is this answer correct?" is circular. Helio anchors the agent to a deterministic
-          graph database, scoring every answer against pre-planted ground-truth facts.
-        </p>
-      </div>
+      </Reveal>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {steps.map((s) => {
+        {steps.map((s, index) => {
           const Icon = s.icon;
           return (
-            <div key={s.num} className="bg-[#f4f4ec] cad-border p-6 flex flex-col justify-between relative">
-              <CadCrosshair position="tl" />
-              <CadCrosshair position="tr" />
-              <CadCrosshair position="bl" />
-              <CadCrosshair position="br" />
+            <Reveal key={s.num} delay={index * 0.07} className="h-full">
+              <div className="h-full bg-[#f4f4ec] cad-border p-6 flex flex-col justify-between relative transition-transform duration-300 hover:-translate-y-1">
+                <CadCrosshair position="tl" />
+                <CadCrosshair position="tr" />
+                <CadCrosshair position="bl" />
+                <CadCrosshair position="br" />
 
-              <div>
-                <div className="flex items-center justify-between mb-4">
-                  <div className="w-8 h-8 bg-[#282828] text-white flex items-center justify-center font-mono font-bold text-xs">
-                    {s.num}
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="w-8 h-8 bg-[#282828] text-white flex items-center justify-center font-mono font-bold text-xs">
+                      {s.num}
+                    </div>
+                    <Icon className="w-5 h-5 text-[#e15c46]" />
                   </div>
-                  <Icon className="w-5 h-5 text-[#e15c46]" />
+
+                  <h3 className="font-mono font-bold text-lg text-[#282828] uppercase mb-1">
+                    {s.title}
+                  </h3>
+                  <div className="font-mono text-xs font-semibold text-[#e15c46] mb-4">
+                    {s.subtitle}
+                  </div>
                 </div>
 
-                <h3 className="font-mono font-bold text-lg text-[#282828] uppercase mb-1">
-                  {s.title}
-                </h3>
-                <div className="font-mono text-xs font-semibold text-[#e15c46] mb-4">
-                  {s.subtitle}
-                </div>
+                <p className="font-mono text-xs text-[#5c5c56] leading-relaxed pt-4 cad-border-t">
+                  {s.desc}
+                </p>
               </div>
-
-              <p className="font-mono text-xs text-[#5c5c56] leading-relaxed pt-4 cad-border-t">
-                {s.desc}
-              </p>
-            </div>
+            </Reveal>
           );
         })}
       </div>

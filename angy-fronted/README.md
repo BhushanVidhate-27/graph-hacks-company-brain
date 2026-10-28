@@ -27,10 +27,10 @@ Existing enterprise search answers *"where is the doc about X"*. Helio answers:
 2. **Interactive Blast Radius & Dependency Inspector**:
    - Compare naive flat search (stale documents & hallucinations) with deterministic graph traversal.
    - Interactive nodes for `payments-gateway`, `config-service`, `decision-d19`, and `ledger-service`.
-   - Real Cypher statements and ground-truth citations.
+   - Real Cypher statements and provenance citations.
 
 3. **Helio Natural Language Cypher Agent**:
-   - Pre-loaded with test questions from `GROUND_TRUTH.md`.
+   - Pre-loaded with verification questions.
    - Live Cypher query execution and visual path traversal chips.
 
 4. **Helio FalkorDB Graph Console**:
@@ -49,6 +49,16 @@ npm install
 npm run dev
 ```
 Open **[http://localhost:5173](http://localhost:5173)**.
+
+The Vite dev server proxies API calls to `http://localhost:8080` by default. Set
+`VITE_API_URL` to point at another backend origin.
+
+### SaaS views
+
+The app includes real signup/login (`AuthView`), an account console (`AccountView`)
+with plan, usage, billing and API-key management, and a pricing section that reads
+the live catalog from `GET /api/plans`. See the repository root `README.md` and
+`billing-setup.md` for the backend and Stripe configuration.
 
 ### Production Build
 ```bash

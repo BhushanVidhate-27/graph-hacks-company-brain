@@ -16,15 +16,32 @@ services:
       - FALKORDB_SSL=false
       - FALKORDB_GRAPH=helio
       - USE_MOCK=0
+      # Commercial state lives on the bind-mounted repo, so accounts survive a
+      # container restart. deploy/docker-compose.yml uses a named volume.
+      - HELIO_DB_PATH=/app/data/helio.db
+      - HELIO_REQUIRE_AUTH=${HELIO_REQUIRE_AUTH:-0}
+      - ANON_DAILY_LIMIT=${ANON_DAILY_LIMIT:-100}
+      - HELIO_TRUST_PROXY=${HELIO_TRUST_PROXY:-0}
+      - HELIO_APP_URL=${HELIO_APP_URL:-http://localhost:8080}
+      - HELIO_ALLOW_LOCAL_BILLING=${HELIO_ALLOW_LOCAL_BILLING:-0}
       - STRIPE_MODE=${STRIPE_MODE:-local}
       - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
       - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
-      - STRIPE_PRICE_FREE=${STRIPE_PRICE_FREE}
+      - STRIPE_PRICE_STARTER=${STRIPE_PRICE_STARTER}
+      - STRIPE_PRICE_PROFESSIONAL=${STRIPE_PRICE_PROFESSIONAL}
+      # Legacy names kept so an older .env still works.
       - STRIPE_PRICE_PRO=${STRIPE_PRICE_PRO}
+      - STRIPE_PRICE_FREE=${STRIPE_PRICE_FREE}
       - NEXT_PUBLIC_HELIO_PRICE_ID=${NEXT_PUBLIC_HELIO_PRICE_ID}
     volumes:
       - .:/app
     working_dir: /app
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/health')"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
 
   falkordb:
     image: falkordb/falkordb:latest

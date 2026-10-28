@@ -296,7 +296,12 @@ def expertise(service: str) -> dict[str, Any]:
 
 def _cutoff():
     from datetime import date, timedelta
-    return (date(2026, 10, 17) - timedelta(days=STALE_DAYS)).isoformat()
+    today_str = os.getenv("HELIO_TODAY")
+    if today_str:
+        today = date.fromisoformat(today_str)
+    else:
+        today = date.today()
+    return (today - timedelta(days=STALE_DAYS)).isoformat()
 
 
 # ---------------------------------------------------------------------------
@@ -353,7 +358,7 @@ def provenance(project: str) -> dict[str, Any]:
         ev_names = [e for e in (evidence or []) if e]
         out_rows.append({
             "id": did, "summary": summary, "date": dt, "status": status,
-            "author": author or "", "evidence": ev_names, "superseded_by": sup_id,
+            "author": author or "", "evidence": ev_names, "supersedes": sup_id,
             "supersedes_summary": sup_summary, "detail": detail,
         })
         # via_edge is restricted to Ujwal's FROZEN vocabulary of 9 values
@@ -563,12 +568,11 @@ def ownership_overview() -> dict[str, Any]:
 # keyword search that cannot say whether a decision is still in force cannot
 # answer the question people actually ask about decisions.
 #
-# NOTE on the key name: here `superseded_by` means what it says — the decision
-# that REPLACED this one. provenance() above uses the same key for the OPPOSITE
-# direction (it holds the decision this one SUPERSEDES), which is documented at
-# its definition and at agent.extract_stale(). The names collide; the meanings
-# do not. Confusing them is the single cheapest way to badged the live decision
-# as stale, so it is called out in both places rather than left to be rediscovered.
+# `superseded_by` here means what it says — the decision(s) that REPLACED this
+# one. provenance() above uses `supersedes` for the opposite direction (the
+# decision this one replaces). The names are now distinct so they cannot be
+# confused; confusing them is the single cheapest way to badge the live
+# decision as stale.
 DECISIONS_ABOUT = """
 MATCH (d:Decision)
 WHERE d.id = $keyword OR d.summary CONTAINS $keyword
@@ -590,6 +594,7 @@ def decisions_about(keyword: str) -> dict[str, Any]:
     g = _graph()
     rows = g.query(DECISIONS_ABOUT, {"keyword": keyword}).result_set
     out = []
+    trail = []
     for did, summary, date, status, author, replaced in rows:
         newer = sorted({r for r in (replaced or []) if r})
         detail = summary
@@ -601,7 +606,13 @@ def decisions_about(keyword: str) -> dict[str, Any]:
             "id": did, "summary": summary, "date": date, "status": status or "",
             "author": author or "", "superseded_by": newer, "detail": detail,
         })
-    return {"keyword": keyword, "rows": out, "trail": [], "count": len(out)}
+        # Same chained-vs-evidence logic as provenance(): a decision in a
+        # supersession chain is reached via SUPERSEDES, otherwise via its
+        # evidence documents.
+        chained = bool(newer) or status == "superseded"
+        trail.append({"type": "Decision", "name": did, "detail": detail,
+                      "date": date or "", "via_edge": "SUPERSEDES" if chained else "EVIDENCED_BY"})
+    return {"keyword": keyword, "rows": out, "trail": _trail(trail), "count": len(out)}
 
 
 # Fact 18.
@@ -670,8 +681,11 @@ def on_call(team: str) -> dict[str, Any]:
 
     trail = _trail([{"type": "Person", "name": n, "detail": "ON CALL this week",
                      "date": w, "via_edge": "ON_CALL"} for n, w in now])
-    # Rotation members who are NOT on call stay in rows but not in trail:
-    # HAS_ROTATION is not in the frozen via_edge vocabulary.
+    # Rotation members who are NOT on call get their own chip via HAS_ROTATION
+    # (now in the frozen via_edge vocabulary). This completes the provenance:
+    # the graph can show who IS on the rotation but NOT on call this week.
+    trail += _trail([{"type": "Person", "name": n, "detail": "On rotation, not on call this week",
+                      "date": "", "via_edge": "HAS_ROTATION"} for n in not_on])
     return {"team": team, "rows": rows, "trail": trail, "count": len(rows),
             "on_call": on_names, "rotation_not_on_call": not_on}
 
@@ -690,10 +704,7 @@ def sla_of(service: str) -> dict[str, Any]:
         "MATCH (s:Service {name: $service}) RETURN s.sla AS sla",
         {"service": service}).result_set if r[0]]
     return {"service": service, "rows": [{"sla": s} for s in rows],
-            "trail": _trail([{"type": "Service", "name": service,
-                              "detail": f"SLA {s}",
-                              "via_edge": "OWNED_BY"} for s in rows]),
-            "count": len(rows)}
+            "trail": [], "count": len(rows)}
 
 
 def current_team(person: str) -> dict[str, Any]:

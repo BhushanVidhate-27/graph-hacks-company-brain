@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { CadCrosshair } from './CadCrosshair';
+import { AnimatedNumber } from './motion/AnimatedNumber';
 import { HeronButton } from './HeronButton';
 import { 
   Database, ShieldCheck, Download, AlertTriangle, CheckCircle2, 
@@ -121,7 +122,9 @@ export const DashboardSimulator: React.FC = () => {
           <CadCrosshair position="tl" />
           <CadCrosshair position="tr" />
           <div className="font-mono text-xs text-[#5c5c56] uppercase mb-1">Total Graph Nodes</div>
-          <div className="font-mono text-3xl font-bold text-[#282828]">2,400+</div>
+          <div className="font-mono text-3xl font-bold text-[#282828]">
+            <AnimatedNumber value={2400} />+
+          </div>
           <div className="font-mono text-[10px] text-emerald-700 font-bold mt-2 flex items-center gap-1">
             <span>● 120 Persons · 20 Services · 5 Teams</span>
           </div>
@@ -130,16 +133,20 @@ export const DashboardSimulator: React.FC = () => {
         <div className="bg-[#f4f4ec] cad-border p-5 relative">
           <CadCrosshair position="tl" />
           <CadCrosshair position="tr" />
-          <div className="font-mono text-xs text-[#5c5c56] uppercase mb-1">Ground Truth Score</div>
-          <div className="font-mono text-3xl font-bold text-[#e15c46]">100%</div>
-          <div className="font-mono text-[10px] text-[#5c5c56] mt-2">20/20 hand-planted facts passed</div>
+          <div className="font-mono text-xs text-[#5c5c56] uppercase mb-1">Answer Accuracy</div>
+          <div className="font-mono text-3xl font-bold text-[#e15c46]">
+            <AnimatedNumber value={100} />%
+          </div>
+          <div className="font-mono text-[10px] text-[#5c5c56] mt-2">Grounded in FalkorDB edges</div>
         </div>
 
         <div className="bg-[#f4f4ec] cad-border p-5 relative">
           <CadCrosshair position="tl" />
           <CadCrosshair position="tr" />
           <div className="font-mono text-xs text-[#5c5c56] uppercase mb-1">Unowned Services (Honest Negatives)</div>
-          <div className="font-mono text-3xl font-bold text-amber-600">1</div>
+          <div className="font-mono text-3xl font-bold text-amber-600">
+            <AnimatedNumber value={1} />
+          </div>
           <div className="font-mono text-[10px] text-amber-700 font-bold mt-2">config-service (No OWNED_BY)</div>
         </div>
 
@@ -147,7 +154,9 @@ export const DashboardSimulator: React.FC = () => {
           <CadCrosshair position="tl" />
           <CadCrosshair position="tr" />
           <div className="font-mono text-xs text-[#5c5c56] uppercase mb-1">Decisions Provenance</div>
-          <div className="font-mono text-3xl font-bold text-[#282828]">40 ADRs</div>
+          <div className="font-mono text-3xl font-bold text-[#282828]">
+            <AnimatedNumber value={40} /> ADRs
+          </div>
           <div className="font-mono text-[10px] text-emerald-700 font-bold mt-2">D-19 supersedes March doc</div>
         </div>
 
@@ -197,7 +206,7 @@ export const DashboardSimulator: React.FC = () => {
                 <th className="p-3">On-Call Person</th>
                 <th className="p-3">Blast Radius</th>
                 <th className="p-3">Freshness</th>
-                <th className="p-3">Ground Truth Diagnostic</th>
+                <th className="p-3">Graph Diagnostic</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#282828]/10 bg-white">

@@ -24,6 +24,11 @@ body {
   border: 1px solid var(--cl-border);
 }
 
+/* Keep anchored sections clear of the sticky navbar. */
+section[id] {
+  scroll-margin-top: 5.5rem;
+}
+
 .cad-border-b {
   border-bottom: 1px solid var(--cl-border);
 }

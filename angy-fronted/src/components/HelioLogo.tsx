@@ -35,14 +35,9 @@ export const HelioLogo: React.FC<HelioLogoProps> = ({ className = '', showText =
 
       {/* Helio Logotype */}
       {showText && (
-        <div className="flex flex-col">
-          <div className="flex items-center gap-1.5 font-mono font-bold tracking-tight text-xl leading-none text-[#282828]">
-            <span>HELIO</span>
-            <span className="w-1.5 h-1.5 bg-[#e15c46] rounded-full inline-block" />
-          </div>
-          <span className="font-mono text-[9px] text-[#5c5c56] tracking-widest uppercase font-semibold mt-0.5">
-            A Company Brain // Graph
-          </span>
+        <div className="flex items-center gap-1.5 font-mono font-bold tracking-tight text-xl leading-none text-[#282828]">
+          <span>HELIO</span>
+          <span className="w-1.5 h-1.5 bg-[#e15c46] rounded-full inline-block" />
         </div>
       )}
     </div>

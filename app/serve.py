@@ -16,9 +16,9 @@ Why same-origin matters, twice:
     the SSE response. A proxy that buffers turns a working local stream into a
     dead production one.
 
-`site/` is the static export of front/ (Next.js, `output: "export"`), produced by
-the `site` stage of the Dockerfile. It is plain HTML/CSS/JS with no Node runtime
-behind it, so this process is still the only thing that has to stay alive.
+`site/` is the Vite build of angy-fronted, produced by the `site` stage of the
+Dockerfile. It is plain HTML/CSS/JS with no Node runtime behind it, so this
+process is still the only thing that has to stay alive.
 
 The StaticFiles mount is registered LAST so it cannot shadow the API routes:
 Starlette matches routes in registration order, and /ask and /health are already
@@ -33,7 +33,7 @@ import anyio.to_thread
 from app.main import app
 from fastapi.staticfiles import StaticFiles
 
-# Overridable so a local `npm run build` in front/ can be served without
+# Overridable so a local `npm run build` in angy-fronted can be served without
 # rebuilding the image.
 SITE_DIR = Path(os.getenv("HELIO_SITE_DIR", "site"))
 

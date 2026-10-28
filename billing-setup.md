@@ -1,80 +1,114 @@
-# Stripe Billing Integration Setup
+# Stripe billing setup
 
-## 1. Environment Variables
+Helio sells two self-serve plans through Stripe Checkout and manages them through the Stripe Customer Portal. The backend calls Stripe's REST API directly with `httpx`; there is no Stripe SDK to install.
 
-Copy the following variables into your `.env` file. Obtain values from the [Stripe Dashboard](https://dashboard.stripe.com).
+Plans and prices live in [`app/plans.py`](app/plans.py). Change a price there, not in the frontend — the marketing page reads the same catalog from `GET /api/plans`.
 
-| Variable | Description | How to Obtain |
+---
+
+## 1. Create the products
+
+In the [Stripe Dashboard](https://dashboard.stripe.com):
+
+1. **Products → Add product** → *Helio Starter* → recurring price **$15/month** → save.
+2. **Products → Add product** → *Helio Professional* → recurring price **$49/month** → save.
+3. Copy each price ID (`price_...`, not `prod_...`).
+
+Optional annual prices are supported by the catalog (`price_yearly`), but the current checkout flow creates monthly subscriptions.
+
+## 2. Environment variables
+
+Add these to `.env` (or your host's secret store):
+
+| Variable | Required | Description |
 |---|---|---|
-| `NEXT_PUBLIC_HELIO_PRICE_ID` | The Stripe Price ID for the Helio offering. Use the price ID for your free tier product. | In Stripe Dashboard: Products → Select product → Prices → Copy the Price ID |
-| `STRIPE_SECRET_KEY` | Your Stripe secret key for API access. | Dashboard → Developers → API keys → Secret key |
-| `STRIPE_WEBHOOK_SECRET` | Signing secret for verifying webhook events. | Dashboard → Developers → Webhooks → Add endpoint → Copy signing secret |
-| `STRIPE_PRICE_FREE` | Stripe Price ID for the Free plan. | Dashboard → Products → Add product → Add price → Copy the Price ID for the free tier |
-| `STRIPE_PRICE_PRO` | Stripe Price ID for the Pro plan. | Dashboard → Products → Add product → Add price → Copy the Price ID for the pro tier |
-| `STRIPE_MODE` | Operating mode: `local` | `test` | `live` |
-| | - `local`: Uses stub behavior, no real Stripe API calls | |
-| | - `test`: Uses Stripe test mode (recommended for development) | |
-| | - `live`: Uses Stripe live mode (production) | |
-| | Default: `local` | |
+| `STRIPE_SECRET_KEY` | yes | Developers → API keys → Secret key (`sk_live_...` or `sk_test_...`) |
+| `STRIPE_WEBHOOK_SECRET` | yes | Developers → Webhooks → your endpoint → Signing secret (`whsec_...`) |
+| `STRIPE_PRICE_STARTER` | yes | Price ID for the $15/month plan |
+| `STRIPE_PRICE_PROFESSIONAL` | yes | Price ID for the $49/month plan |
+| `STRIPE_MODE` | yes | `test` or `live` in production; `local` only for development |
+| `HELIO_APP_URL` | recommended | Public origin, e.g. `https://helio-brain.onrender.com`, used for success/cancel/portal redirects |
+| `HELIO_ALLOW_LOCAL_BILLING` | no | Must stay `0` in production. `1` plus `STRIPE_MODE=local` grants a plan without Stripe — a development shortcut only |
 
-**Important**: You must add all the above env vars before real payments will work. The backend safely handles missing config (see below).
+`STRIPE_PRICE_PRO` is still read as a fallback for deployments configured before the catalog was split. New deployments should use `STRIPE_PRICE_PROFESSIONAL`.
 
-## 2. Setting STRIPE_MODE
-
-- Start with `STRIPE_MODE=test` during development
-- Set `STRIPE_MODE=live` when you're ready to accept real payments
-- Keep `STRIPE_MODE=local` for local development without any Stripe API calls
-
-## 3. Obtaining Stripe Price IDs
-
-1. Create a product in the Stripe Dashboard: **Products → Add product**
-2. Add prices for each tier: **Products → Select product → Prices → Add price**
-   - Create a "Free" price (e.g., $0/month trial)
-   - Create a "Pro" price (e.g., $9.99/month)
-3. Copy the Price ID for each from the price detail page
-4. Set `STRIPE_PRICE_FREE` and `STRIPE_PRICE_PRO` to the respective IDs
-
-## 4. Configuring Webhooks
-
-1. In the Stripe Dashboard: **Developers → Webhooks → Add endpoint**
-2. Set the endpoint URL to `http://localhost:8000/api/stripe/webhook` (or your deployed URL)
-3. Select these events:
-   - `checkout.session.completed`
-   - `payment_intent.succeeded`
-4. Copy the generated `STRIPE_WEBHOOK_SECRET` value
-5. Add it to your `.env` file
-
-## 5. Running the Backend
+Check the deployment's view of this configuration at any time:
 
 ```bash
-# Install dependencies
-pip install fastapi uvicorn
-
-# Start the server
-STRIPE_SECRET_KEY=sk_test_...
-STRIPE_WEBHOOK_SECRET=whsec_...
-STRIPE_MODE=test
-STRIPE_PRICE_FREE=price_free_id
-STRIPE_PRICE_PRO=price_pro_id
-NEXT_PUBLIC_HELIO_PRICE_ID=price_helio_id
-uvicorn app.main:app --reload
+curl -s https://your-host/api/billing/setup | jq
 ```
 
-## 6. Verifying the Integration
+It reports `configured`, `mode`, `local_billing` and the names of any missing variables — never their values.
 
-### When Stripe env vars are empty:
-- `GET /api/billing/me` returns `{"active": false, "plan": null, "error": "Stripe not configured"}`
-- `POST /api/billing/checkout` returns 402 with message: "Stripe not configured. Set required env vars: ..."
-- `POST /api/stripe/webhook` returns a valid JSON response without crashing
+## 3. Register the webhook
 
-### When Stripe env vars are properly set (test mode):
-- `GET /api/billing/me` returns `{"active": true, "plan": "pro"}`
-- `POST /api/billing/checkout` returns a checkout URL and expiry
-- `POST /api/stripe/webhook` processes events (stub: always returns success)
+In **Developers → Webhooks → Add endpoint**:
 
-## 7. Important Security Notes
+- URL: `https://<your-host>/api/stripe/webhook`
+- Events:
+  - `checkout.session.completed`
+  - `checkout.session.async_payment_succeeded`
+  - `customer.subscription.created`
+  - `customer.subscription.updated`
+  - `customer.subscription.deleted`
+  - `invoice.paid`
+  - `invoice.payment_failed`
 
-- **Never commit real Stripe keys to version control**. The `.env.example` file shows empty values for this reason.
-- The backend uses `os.getenv()` with empty string defaults, so it never crashes when vars are missing.
-- Error responses never leak secret keys - they only reference env var names that are missing.
-- Real Stripe signature verification must be added to the webhook endpoint before deploying to production (see the stub code in `app/billing.py`).
+Copy the signing secret into `STRIPE_WEBHOOK_SECRET`.
+
+The handler verifies `Stripe-Signature` against the **raw request body** (parsing and re-serialising JSON would break the HMAC), rejects timestamps older than 300 seconds, and records each event ID so a Stripe retry cannot apply twice.
+
+## 4. Enable the Customer Portal
+
+**Settings → Billing → Customer portal**: allow customers to update payment methods, switch between the Starter and Professional prices, and cancel. The account console's **Manage billing** button creates a portal session for the account's Stripe customer.
+
+## 5. Local development
+
+You do not need Stripe to exercise the SaaS layer. Two options:
+
+### Option A — local billing mode
+
+```bash
+STRIPE_MODE=local
+HELIO_ALLOW_LOCAL_BILLING=1
+```
+
+`POST /api/billing/checkout` then upgrades the account immediately for 30 days. This is intentionally gated behind two variables, and the UI labels it **Local billing mode**. Leaving it enabled on a public deployment gives away paid plans.
+
+### Option B — Stripe test mode + CLI
+
+```bash
+stripe login
+stripe listen --forward-to localhost:8080/api/stripe/webhook
+```
+
+Use the `whsec_...` printed by `stripe listen` as `STRIPE_WEBHOOK_SECRET`, set `STRIPE_MODE=test`, and pay with test card `4242 4242 4242 4242`.
+
+## 6. What the webhook changes
+
+| Event | Effect |
+|---|---|
+| `checkout.session.completed` | Sets the account's plan and Stripe customer/subscription IDs |
+| `customer.subscription.updated` | Updates plan, status, period end and cancel-at-period-end |
+| `customer.subscription.deleted` | Marks the subscription canceled; quotas fall back to Free |
+| `invoice.paid` | Keeps the subscription active |
+| `invoice.payment_failed` | Marks it `past_due`; quotas fall back to Free until payment succeeds |
+
+A subscription that is not `active` or `trialing` is enforced as the Free plan. The account page still shows the raw Stripe status so the cause is visible.
+
+## 7. Quotas and metering
+
+- Signed-in questions are counted per calendar month in SQLite and checked before the SSE stream starts. Over-limit requests get `429` with `error: "quota_exceeded"`, `used`, `limit` and an `upgrade_url`.
+- Only successful answers are charged.
+- Anonymous visitors get `ANON_DAILY_LIMIT` questions per IP per day (default 100). Set `HELIO_REQUIRE_AUTH=1` to remove anonymous access entirely.
+- API keys are available on Professional and above; creating one requires a browser session, not another API key.
+
+## 8. Production checklist
+
+- [ ] `STRIPE_MODE=live` and live secret/price IDs
+- [ ] `HELIO_ALLOW_LOCAL_BILLING=0`
+- [ ] `HELIO_APP_URL` set to the public HTTPS origin
+- [ ] `HELIO_DB_PATH` on a persistent volume
+- [ ] Webhook endpoint registered with the seven events above
+- [ ] `/api/billing/setup` reports `configured: true` and `missing: []`
+- [ ] One API replica (SQLite is single-writer)

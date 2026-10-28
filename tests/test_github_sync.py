@@ -66,7 +66,17 @@ def test_sync_state_returns_same_shape(clean_db, monkeypatch):
     monkeypatch.setattr(gh, "GITHUB_TOKEN", "dummy")
     monkeypatch.setattr(gh, "GITHUB_OWNER", "BhushanVidhate-27")
     monkeypatch.setattr(gh, "GITHUB_REPO", "graph-hacks-company-brain")
+    # Mock list_repo_items so sync_state can persist without hitting GitHub API.
+    monkeypatch.setattr(gh, "list_repo_items", lambda state: {
+        "owner": "BhushanVidhate-27",
+        "repo": "graph-hacks-company-brain",
+        "configured": True,
+        "items": [SAMPLE_ITEM],
+        "error": None,
+    })
     result = gh.sync_state("open")
     assert result["configured"] is True
     assert isinstance(result["items"], list)
-    assert gh.list_items("BhushanVidhate-27", "graph-hacks-company-brain", "open")
+    rows = gh.list_items("BhushanVidhate-27", "graph-hacks-company-brain", "open")
+    assert len(rows) == 1
+    assert rows[0]["id"] == SAMPLE_ITEM["id"]

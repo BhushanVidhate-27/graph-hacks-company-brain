@@ -17,7 +17,10 @@ Design notes
 
 from __future__ import annotations
 
+import json
 import os
+import sqlite3
+from pathlib import Path
 from typing import Any
 
 try:  # Optional dependency - used only when the integration is enabled.
@@ -118,13 +121,17 @@ def list_repo_items(state: str = "open") -> dict[str, Any]:
     for pull in repo.get_pulls(state=state):
         items.append(_serialise_issue(pull, is_pull=True))
 
-import json
-import sqlite3
-from pathlib import Path
-
-__all__.append("init_db")
-__all__.append("sync_state")
-__all__.append("list_items")
+__all__ = [
+    "GITHUB_TOKEN",
+    "GITHUB_OWNER",
+    "GITHUB_REPO",
+    "github_client",
+    "list_repo_items",
+    "repo_config",
+    "init_db",
+    "sync_state",
+    "list_items",
+]
 
 _DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 _DB_PATH = _DATA_DIR / "github_items.db"

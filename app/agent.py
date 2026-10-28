@@ -1178,9 +1178,9 @@ def extract_stale(tool_name: str, rows: list[dict[str, Any]]) -> list[dict[str, 
 
     if tool_name == "provenance":
         # Only a decision the graph marks superseded is stale.  Do NOT test the
-        # row's `superseded_by` key: in app/graph.py that holds the decision this
-        # one supersedes (the naming is inverted), so it is truthy on the CURRENT
-        # decision -- D-19 -- and would badge the active answer as out of date.
+        # row's `supersedes` key: in app/graph.py that holds the decision this
+        # one replaces, so it is truthy on the CURRENT decision -- D-19 --
+        # and would badge the active answer as out of date.
         return [
             {
                 "type": "Decision",

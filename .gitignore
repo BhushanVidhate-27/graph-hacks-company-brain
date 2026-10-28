@@ -3,6 +3,12 @@ __pycache__/
 *.py[cod]
 *.egg-info/
 
+# SQLite state for the SaaS layer. The graph data CSVs in data/ are fixtures
+# and stay tracked; the commercial database does not.
+data/helio.db
+data/helio.db-wal
+data/helio.db-shm
+
 # Virtual environments
 .venv/
 venv/
