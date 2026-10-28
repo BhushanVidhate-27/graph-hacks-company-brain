@@ -31,7 +31,7 @@ export const ProductShowcaseSection: React.FC<ProductShowcaseSectionProps> = ({ 
 
             <div>
               <div className="flex items-center justify-between font-mono text-xs text-[#5c5c56] mb-4">
-                <span className="text-[#e15c46] font-bold">[01] CYPHER AGENT</span>
+                <span className="text-[#e15c46] font-bold">[01] ASK HELIO</span>
                 <span>NATURAL LANGUAGE → GRAPH</span>
               </div>
 
@@ -46,7 +46,7 @@ export const ProductShowcaseSection: React.FC<ProductShowcaseSectionProps> = ({ 
 
               <p className="font-mono text-sm text-[#5c5c56] leading-relaxed mb-6">
                 Ask complex organizational questions in plain English. Helio maps your intent into Cypher queries,
-                traverses graph edges, and returns verified paths with zero hallucination.
+                traverses graph edges, and returns the path behind every answer.
               </p>
 
               <div className="space-y-2.5 font-mono text-xs text-[#282828] mb-8 bg-[#ecece4] p-4 cad-border">

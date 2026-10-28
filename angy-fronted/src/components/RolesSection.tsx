@@ -6,7 +6,7 @@ export const RolesSection: React.FC = () => {
   const roles = [
     {
       title: 'INCIDENT COMMANDERS',
-      desc: 'Trace blast radius and find the active on-call engineer in 3 seconds flat during outages.',
+      desc: 'Trace blast radius and find the active on-call engineer in seconds during outages.',
       num: '[01]'
     },
     {

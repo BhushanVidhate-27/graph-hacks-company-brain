@@ -42,7 +42,7 @@ export const ProblemsSection: React.FC = () => {
           </h2>
           <p className="mt-4 text-sm md:text-base font-mono text-[#5c5c56]">
             A hallucinated ownership chain looks exactly like a correct one because both are plausible prose.
-            Helio replaces probabilistic guessing with deterministic Cypher traversals over real organizational edges.
+            Helio replaces probabilistic guessing with deterministic graph traversals over real organizational edges.
           </p>
         </div>
       </Reveal>

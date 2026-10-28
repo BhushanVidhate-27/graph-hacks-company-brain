@@ -371,25 +371,18 @@ export const AccountView: React.FC<AccountViewProps> = ({ onBack, onSelectMode }
             {billing?.configured ? (
               <>
                 <div className="font-mono text-xs text-[#282828] font-bold">
-                  Stripe connected
+                  Payment method on file
                 </div>
-                <div className="font-mono text-[10px] text-[#5c5c56] mt-1 uppercase">
-                  Mode: {billing.mode}
-                </div>
-              </>
-            ) : billing?.local_billing ? (
-              <>
-                <div className="font-mono text-xs text-[#282828] font-bold">Local billing mode</div>
-                <div className="font-mono text-[10px] text-[#5c5c56] mt-1 leading-relaxed">
-                  Upgrades apply immediately for development. Set real Stripe keys before launch.
+                <div className="font-mono text-[10px] text-[#5c5c56] mt-1">
+                  Invoices, receipts and plan changes are handled through the billing portal.
                 </div>
               </>
             ) : (
               <>
-                <div className="font-mono text-xs text-[#282828] font-bold">Checkout not configured</div>
+                <div className="font-mono text-xs text-[#282828] font-bold">Free plan</div>
                 <div className="font-mono text-[10px] text-[#5c5c56] mt-1 leading-relaxed">
-                  This deployment has no Stripe keys. You can still use the free plan; contact us
-                  for a paid invoice.
+                  No card on file. Upgrade when you want more seats or a longer question history —
+                  we&rsquo;ll email an invoice.
                 </div>
               </>
             )}
@@ -418,11 +411,14 @@ export const AccountView: React.FC<AccountViewProps> = ({ onBack, onSelectMode }
               </>
             ) : (
               <>
-                <div className="font-mono text-xs text-[#282828] font-bold">Not connected</div>
+                <div className="font-mono text-xs text-[#282828] font-bold">Not connected yet</div>
                 <div className="font-mono text-[10px] text-[#5c5c56] mt-1 leading-relaxed">
-                  Set GITHUB_OWNER, GITHUB_REPO and GITHUB_TOKEN on the deployment to sync issues
-                  and pull requests.
+                  Connect a repository to pull issues, pull requests and commit history into your
+                  graph. Read-only access; nothing is written back.
                 </div>
+                <span className="mt-3 inline-flex items-center gap-1 font-mono text-[10px] text-[#e15c46]">
+                  Ask us to connect it <ExternalLink className="w-3 h-3" />
+                </span>
               </>
             )}
           </div>
@@ -625,7 +621,7 @@ export const AccountView: React.FC<AccountViewProps> = ({ onBack, onSelectMode }
             <div className="mt-4 font-mono text-[10px] text-[#5c5c56]">
               Example:{" "}
               <code className="bg-[#ecece4] px-1.5 py-0.5">
-                {`curl -X POST ${API_URL || 'https://helio-brain.onrender.com'}/ask -H "Authorization: Bearer helio_…" -H "Content-Type: application/json" -d '{"question":"Who owns ledger-core?"}'`}
+                {`curl -X POST ${API_URL || 'https://helio-brain.onrender.com'}/ask -H "Authorization: Bearer helio_…" -H "Content-Type: application/json" -d '{"question":"Who owns ledger-service?"}'`}
               </code>
             </div>
           </>

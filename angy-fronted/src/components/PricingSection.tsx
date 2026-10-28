@@ -3,7 +3,7 @@ import { motion } from 'motion/react';
 import { HeronButton } from './HeronButton';
 import { CadCrosshair } from './CadCrosshair';
 import { Reveal } from './motion/Reveal';
-import { Check, Sparkles, AlertTriangle, ShieldCheck } from 'lucide-react';
+import { Check, Sparkles, ShieldCheck } from 'lucide-react';
 import { useAuth } from '../lib/auth';
 import {
   ApiError,
@@ -192,6 +192,13 @@ export const PricingSection: React.FC<PricingSectionProps> = ({ onSelectMode }) 
       return;
     }
 
+    if (billing && !checkoutConfigured) {
+      setNotice('Paid plans are invoiced by email right now — opening your mail app.');
+      window.location.href =
+        `mailto:contact.helio.brain@gmail.com?subject=Helio%20${encodeURIComponent(target.name)}%20plan`;
+      return;
+    }
+
     setBusy(target.id);
     try {
       const result = await checkout(target.id);
@@ -240,17 +247,10 @@ export const PricingSection: React.FC<PricingSectionProps> = ({ onSelectMode }) 
         </div>
 
         {billing && !checkoutConfigured && (
-          <div className="mt-4 max-w-2xl mx-auto cad-border border-[#e15c46]/40 bg-[#e15c46]/5 px-4 py-2 font-mono text-[10px] text-[#5c5c56] flex items-center justify-center gap-2">
-            <AlertTriangle className="w-3.5 h-3.5 text-[#e15c46] flex-shrink-0" />
-            Checkout is not configured on this deployment. Start free, or email us for a manual
-            invoice.
-          </div>
-        )}
-
-        {billing?.local_billing && (
           <div className="mt-4 max-w-2xl mx-auto cad-border border-[#282828]/20 bg-[#f4f4ec] px-4 py-2 font-mono text-[10px] text-[#5c5c56] flex items-center justify-center gap-2">
             <ShieldCheck className="w-3.5 h-3.5 text-[#e15c46] flex-shrink-0" />
-            Local billing mode: upgrades apply instantly for development.
+            Paid plans are invoiced by email for now — upgrade in one click and we&rsquo;ll follow up
+            with the invoice.
           </div>
         )}
 
@@ -409,8 +409,8 @@ export const PricingSection: React.FC<PricingSectionProps> = ({ onSelectMode }) 
       <div className="mt-10 grid grid-cols-1 md:grid-cols-3 gap-4">
         {[
           {
-            title: 'No per-seat surprise',
-            body: 'Every plan includes seats. You pay for the questions your team actually asks, not for inviting a reviewer to read a trail.',
+            title: 'Seats are included',
+            body: 'Each plan includes its seat allowance — 1, 3 or 10. You pay for the questions your team asks, not for inviting a reviewer to read a trail.',
           },
           {
             title: 'Open-source core',

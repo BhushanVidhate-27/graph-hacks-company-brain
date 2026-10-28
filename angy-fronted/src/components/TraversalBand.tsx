@@ -36,26 +36,26 @@ interface BandEdge {
 }
 
 const NODES: BandNode[] = [
-  { id: 'payments', name: 'payments-gateway', x: 24, y: 115, delay: 0.05, root: true },
-  { id: 'checkout', name: 'checkout-api', x: 250, y: 30, delay: 0.54 },
-  { id: 'ledger', name: 'ledger-service', x: 250, y: 80, delay: 0.59, route: true },
-  { id: 'core', name: 'ledger-core', x: 250, y: 130, delay: 0.64 },
-  { id: 'fraud', name: 'fraud-engine', x: 250, y: 180, delay: 0.69 },
-  { id: 'subscription', name: 'subscription-worker', x: 520, y: 30, delay: 1.1 },
-  { id: 'notification', name: 'notification-worker', x: 520, y: 95, delay: 1.18, route: true },
-  { id: 'dispute', name: 'dispute-service', x: 520, y: 165, delay: 1.26 },
-  { id: 'reconciliation', name: 'reconciliation-worker', x: 760, y: 95, delay: 1.7, route: true },
+  { id: 'payments', name: 'payments-gateway', x: 24, y: 90, delay: 0.05, root: true },
+  { id: 'checkout', name: 'checkout-api', x: 250, y: 90, delay: 0.54, route: true },
+  { id: 'dispute', name: 'dispute-service', x: 250, y: 18, delay: 0.48 },
+  { id: 'mobile', name: 'mobile-bff', x: 250, y: 54, delay: 0.6 },
+  { id: 'config', name: 'config-service', x: 250, y: 126, delay: 0.66 },
+  { id: 'notifications', name: 'notifications', x: 250, y: 162, delay: 0.72 },
+  { id: 'webhook', name: 'webhook-relay', x: 250, y: 198, delay: 0.78 },
+  { id: 'fraud', name: 'fraud-scoring', x: 520, y: 90, delay: 1.24, route: true },
+  { id: 'recommendation', name: 'recommendation', x: 760, y: 90, delay: 1.78, route: true },
 ];
 
 const EDGES: BandEdge[] = [
-  { from: 'payments', to: 'checkout', bias: 0.28, delay: 0.12 },
-  { from: 'payments', to: 'ledger', bias: 0.44, delay: 0.2, route: true },
-  { from: 'payments', to: 'core', bias: 0.6, delay: 0.28 },
-  { from: 'payments', to: 'fraud', bias: 0.76, delay: 0.36 },
-  { from: 'checkout', to: 'subscription', bias: 0.5, delay: 0.68 },
-  { from: 'ledger', to: 'notification', bias: 0.45, delay: 0.76, route: true },
-  { from: 'ledger', to: 'dispute', bias: 0.62, delay: 0.84 },
-  { from: 'notification', to: 'reconciliation', bias: 0.5, delay: 1.3, route: true },
+  { from: 'payments', to: 'dispute', bias: 0.32, delay: 0.12 },
+  { from: 'payments', to: 'mobile', bias: 0.36, delay: 0.18 },
+  { from: 'payments', to: 'checkout', bias: 0.4, delay: 0.24, route: true },
+  { from: 'payments', to: 'config', bias: 0.46, delay: 0.3 },
+  { from: 'payments', to: 'notifications', bias: 0.5, delay: 0.36 },
+  { from: 'payments', to: 'webhook', bias: 0.54, delay: 0.42 },
+  { from: 'checkout', to: 'fraud', bias: 0.5, delay: 0.9, route: true },
+  { from: 'fraud', to: 'recommendation', bias: 0.5, delay: 1.5, route: true },
 ];
 
 const chipWidth = (name: string) => Math.round(name.length * 6.1 + 20);
@@ -93,6 +93,7 @@ export const TraversalBand: React.FC = () => {
             <span className="text-[10px] md:text-[11px] font-bold uppercase tracking-wide text-[#282828]">
               One query · eight services · three hops
             </span>
+            <span className="text-[9px] uppercase tracking-widest text-[#8a8a80] border border-[#282828]/20 px-1.5 py-0.5">Sample data</span>
           </div>
 
           <div className="flex items-center gap-3 text-[10px] text-[#5c5c56]">
@@ -117,7 +118,7 @@ export const TraversalBand: React.FC = () => {
             <svg
               viewBox="0 0 1000 220"
               role="img"
-              aria-label="Dependency traversal from payments-gateway: eight downstream services across three hops, with the route to reconciliation-worker highlighted."
+              aria-label="Dependency traversal from payments-gateway: eight downstream services across three hops, with the route to recommendation highlighted."
               className="block w-full h-auto"
             >
               {/* Hop guides */}
@@ -228,7 +229,7 @@ export const TraversalBand: React.FC = () => {
             <span className="w-2 h-2 mt-1 bg-[#e15c46] shrink-0" />
             <span className="text-[#5c5c56] shrink-0">PATH:</span>
             <span className="font-bold text-[#282828] leading-relaxed break-words">
-              payments-gateway → ledger-service → notification-worker → reconciliation-worker
+              payments-gateway → checkout-api → fraud-scoring → recommendation
             </span>
           </div>
 
@@ -237,7 +238,7 @@ export const TraversalBand: React.FC = () => {
             <span className="text-[#282828]/20">·</span>
             <span>3 HOPS</span>
             <span className="text-[#282828]/20">·</span>
-            <span className="font-bold text-[#282828]">0 INVENTED</span>
+            <span className="font-bold text-[#282828]">EVERY LINK SHOWN</span>
           </div>
         </div>
       </div>

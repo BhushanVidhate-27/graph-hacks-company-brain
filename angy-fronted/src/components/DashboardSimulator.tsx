@@ -18,7 +18,7 @@ export const DashboardSimulator: React.FC = () => {
       tier: 'Tier 1',
       sla: '99.99%',
       onCall: 'Ravi Menon',
-      blastRadius: 4,
+      blastRadius: 8,
       staleness: 'Fresh (2026-09-28)',
       status: 'healthy',
       trapNote: 'Priya Sharma (14 commits) departed. Ravi Menon active.'
@@ -58,17 +58,17 @@ export const DashboardSimulator: React.FC = () => {
     },
     {
       name: 'dispute-service',
-      team: 'Risk',
+      team: 'Payments',
       tier: 'Tier 2',
       sla: 'EMPTY (Missing)',
       onCall: 'Aisha Rao',
       blastRadius: 1,
       staleness: 'Expiring (valid_to 2026-06-30)',
       status: 'warning',
-      trapNote: 'SLA property missing in CSV schema.'
+      trapNote: 'No SLA recorded in the graph.'
     },
     {
-      name: 'fraud-engine',
+      name: 'fraud-scoring',
       team: 'Risk',
       tier: 'Tier 1',
       sla: '99.9%',
@@ -98,6 +98,7 @@ export const DashboardSimulator: React.FC = () => {
           <div className="flex items-center gap-2 text-[#e15c46] font-mono text-xs font-bold uppercase tracking-widest mb-1">
             <Database className="w-4 h-4" />
             <span>KNOWLEDGE GRAPH // CONSOLE</span>
+            <span className="px-1.5 py-0.5 border border-white/25 text-[9px] tracking-widest text-white/60 normal-case">Sample data</span>
           </div>
           <h1 className="text-2xl md:text-3xl font-mono font-bold uppercase tracking-tight">
             Helio Company Brain Topology
@@ -123,21 +124,21 @@ export const DashboardSimulator: React.FC = () => {
           <CadCrosshair position="tr" />
           <div className="font-mono text-xs text-[#5c5c56] uppercase mb-1">Total Graph Nodes</div>
           <div className="font-mono text-3xl font-bold text-[#282828]">
-            <AnimatedNumber value={2400} />+
+            <AnimatedNumber value={185} />
           </div>
           <div className="font-mono text-[10px] text-emerald-700 font-bold mt-2 flex items-center gap-1">
-            <span>● 120 Persons · 20 Services · 5 Teams</span>
+            <span>● 120 People · 20 Services · 5 Teams · 40 Decisions</span>
           </div>
         </div>
 
         <div className="bg-[#f4f4ec] cad-border p-5 relative">
           <CadCrosshair position="tl" />
           <CadCrosshair position="tr" />
-          <div className="font-mono text-xs text-[#5c5c56] uppercase mb-1">Answer Accuracy</div>
+          <div className="font-mono text-xs text-[#5c5c56] uppercase mb-1">Answers With A Path</div>
           <div className="font-mono text-3xl font-bold text-[#e15c46]">
             <AnimatedNumber value={100} />%
           </div>
-          <div className="font-mono text-[10px] text-[#5c5c56] mt-2">Grounded in verified graph edges</div>
+          <div className="font-mono text-[10px] text-[#5c5c56] mt-2">Each answer lists the edges it used</div>
         </div>
 
         <div className="bg-[#f4f4ec] cad-border p-5 relative">

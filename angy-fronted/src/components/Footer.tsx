@@ -22,7 +22,7 @@ export const Footer: React.FC<FooterProps> = ({ onSelectMode }) => {
             <p className="font-mono text-xs text-[#5c5c56] max-w-sm leading-relaxed">
               Helio is an organizational knowledge graph engine.
               Answering who knows what, what breaks if it dies, and where decisions were made —
-              with complete Cypher provenance and zero hallucination.
+              with the path behind every answer.
             </p>
 
             <div className="bg-[#ecece4] cad-border p-4 text-[11px] font-mono text-[#5c5c56] space-y-2">

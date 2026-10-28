@@ -21,12 +21,12 @@ export const ViolationInspector: React.FC = () => {
       tier: 'Tier 1 (Critical)',
       owningTeam: 'Platform Team',
       onCall: 'Ravi Menon (Active)',
-      blastRadius: ['checkout-api', 'ledger-service', 'fraud-engine', 'subscription-worker'],
+      blastRadius: ['checkout-api', 'dispute-service', 'mobile-bff', 'config-service', 'notifications', 'webhook-relay', 'fraud-scoring', 'recommendation'],
       hopDepth: 3,
       status: 'healthy',
       cypherQuery: "MATCH (s:Service {name: 'payments-gateway'})-[:HAS_DEPENDENT*1..3]->(downstream)\nMATCH (s)-[:OWNED_BY]->(t:Team)<-[:ON_CALL]-(m:Person)\nRETURN s, downstream, t, m",
-      summary: "Priya Sharma has 14 commits (departed April 2026, stale). Ravi Menon committed recently (2026-09-28). Ask Ravi Menon. 4 downstream services will fail if this goes down.",
-      groundTruthFact: "Fact 01 & Fact 08: Volume trap vs recency resolved.",
+      summary: "Priya Sharma has 14 commits (departed April 2026, stale). Ravi Menon committed recently (2026-09-28). Ask Ravi Menon. 8 downstream services fail across 3 hops if this goes down.",
+      groundTruthFact: "Volume alone misleads; recency and ownership resolve it.",
       x: 35,
       y: 42
     },
@@ -42,7 +42,7 @@ export const ViolationInspector: React.FC = () => {
       status: 'orphan',
       cypherQuery: "MATCH (s:Service {name: 'config-service'})\nOPTIONAL MATCH (s)-[:OWNED_BY]->(t:Team)\nRETURN s.name, t.name // Returns NULL for t",
       summary: "The graph contains no OWNED_BY edge for config-service. Helio explicitly reports no owner exists, refusing to hallucinate an owner.",
-      groundTruthFact: "Fact 04: The failure test. Confident honest negative.",
+      groundTruthFact: "The absence is verified, not guessed.",
       x: 72,
       y: 28
     },
@@ -58,7 +58,7 @@ export const ViolationInspector: React.FC = () => {
       status: 'superseded',
       cypherQuery: "MATCH (d:Decision {id: 'D-19'})-[:SUPERSEDES]->(old:Document)\nRETURN d.summary, old.name, d.status",
       summary: "March docs claimed single-provider Stripe. Decision D-19 (2026-05-06) established dual-provider: Adyen primary, Stripe fallback. Helio surfaces this superseding path.",
-      groundTruthFact: "Fact 09: Contradiction resolution via SUPERSEDES edge.",
+      groundTruthFact: "The newer decision supersedes the March document.",
       x: 52,
       y: 75
     },
@@ -74,7 +74,7 @@ export const ViolationInspector: React.FC = () => {
       status: 'healthy',
       cypherQuery: "MATCH (t:Team {name: 'Ledger'})<-[:ON_CALL]-(m:Person:Member)\nWHERE m.on_call_week = date()\nRETURN m.name // Diego Alvarez, NOT Ravi or Priya",
       summary: "Ravi Menon and Diego Alvarez are both on rotation. Diego is on call this week. Priya Sharma is on no rotation at all.",
-      groundTruthFact: "Fact 11: Rotation membership vs active weekly on-call.",
+      groundTruthFact: "Rotation member and active on-call are different facts.",
       x: 22,
       y: 65
     }
@@ -105,6 +105,9 @@ export const ViolationInspector: React.FC = () => {
             <h2 className="text-3xl md:text-5xl font-mono font-bold tracking-tight text-[#282828] uppercase">
               Click & drag to contrast<br />flat search vs. graph traversal
             </h2>
+            <div className="mt-3 font-mono text-[10px] uppercase tracking-widest text-[#8a8a80]">
+              Sample data · payments-gateway
+            </div>
           </div>
 
           <div className="flex items-center gap-4 text-xs font-mono text-[#5c5c56]">

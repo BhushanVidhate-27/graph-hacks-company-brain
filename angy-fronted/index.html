@@ -5,7 +5,37 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Helio — The Company Brain for Engineering Teams</title>
-    <meta name="description" content="Ask who knows about payments-gateway, what breaks if it goes down, where was that decided, and how current is that answer — in one traversal, with the graph path shown." />
+    <meta name="description" content="Helio connects repos, on-call schedules and decision records into one graph, so every answer about ownership, blast radius and history comes with the path that proves it." />
+    <link rel="canonical" href="https://helio-brain.onrender.com/" />
+    <meta name="theme-color" content="#ecece4" />
+    <meta name="robots" content="index, follow" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Helio" />
+    <meta property="og:url" content="https://helio-brain.onrender.com/" />
+    <meta property="og:title" content="Helio — Know who owns it. Know what breaks." />
+    <meta property="og:description" content="One graph for ownership, dependencies and decisions. Every answer shows the path that proves it — and says so when the graph has no answer." />
+    <meta property="og:image" content="https://helio-brain.onrender.com/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Helio — Know who owns it. Know what breaks." />
+    <meta name="twitter:description" content="One graph for ownership, dependencies and decisions, with a verifiable path behind every answer." />
+    <meta name="twitter:image" content="https://helio-brain.onrender.com/og-image.png" />
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "Helio",
+        "applicationCategory": "BusinessApplication",
+        "operatingSystem": "Web",
+        "description": "An organizational knowledge graph for engineering teams: ownership, blast radius and decision history with a verifiable path behind every answer.",
+        "url": "https://helio-brain.onrender.com/",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+      }
+    </script>
     <!-- Google Fonts: Space Mono & Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -33,6 +63,19 @@
     </svg>
 
     <div id="root"></div>
+    <noscript>
+      <div style="max-width: 640px; margin: 80px auto; padding: 0 24px; font-family: 'Space Mono', monospace; color: #282828;">
+        <h1 style="font-size: 40px; line-height: 1.05;">Know who owns it. Know what breaks. Know who to page.</h1>
+        <p style="font-size: 15px; line-height: 1.7; color: #5c5c56;">
+          Helio connects your repos, on-call schedules and decision records into one graph.
+          Every answer about ownership, blast radius and history comes with the path that proves it —
+          and when the graph has no answer, Helio says so instead of guessing.
+        </p>
+        <p style="font-size: 15px;">
+          <a href="mailto:contact.helio.brain@gmail.com?subject=Helio%20walkthrough" style="color: #e15c46;">Book a walkthrough</a>
+        </p>
+      </div>
+    </noscript>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

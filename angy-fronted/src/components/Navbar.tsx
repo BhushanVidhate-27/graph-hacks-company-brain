@@ -82,7 +82,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentMode, onSelectMode, onNav
                 >
                   <Terminal className="w-4 h-4 text-[#e15c46] mt-0.5 flex-shrink-0" />
                   <div>
-                    <div className="font-bold text-[12px]">HELIO CYPHER AGENT</div>
+                    <div className="font-bold text-[12px]">HELIO AGENT</div>
                     <div className="text-[10px] text-[#5c5c56] group-hover:text-white/70">Natural language graph traversal</div>
                   </div>
                 </button>
@@ -235,7 +235,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentMode, onSelectMode, onNav
             }}
             className="text-left py-2 text-[#e15c46] font-bold"
           >
-            HELIO CYPHER AGENT
+            HELIO AGENT
           </button>
           <button
             onClick={() => {

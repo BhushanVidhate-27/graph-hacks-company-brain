@@ -22,7 +22,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onSelectMode, onNaviga
         <div className="lg:col-span-8">
           <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-mono font-bold tracking-tighter text-[#282828] uppercase leading-[0.95]">
             <TextReveal
-              text={['Know what breaks.', 'Before it dies.', 'In one traversal.']}
+              text={['Know who owns it.', 'Know what breaks.', 'Know who to page.']}
               lineClassNames={['', '', 'text-[#e15c46]']}
               stagger={0.07}
               delay={0.1}
@@ -33,37 +33,33 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onSelectMode, onNaviga
 
           <Reveal delay={0.35} y={14}>
             <div className="mt-8 max-w-2xl text-[14px] md:text-[16px] font-mono text-[#5c5c56] leading-relaxed">
-              Existing enterprise search answers <span className="text-[#282828] font-bold">"where is the doc about X."</span> Helio
-              answers <span className="text-[#282828] font-bold">who knows about X, what breaks if it goes down, where was that decided, and how current is that answer</span> —
-              in one deterministic Cypher traversal, with the complete path shown. Text search is used only at the leaves.
+              Helio connects your repositories, on-call rotations and decision records into one graph.
+              Ask who really knows a system, what fails downstream, or why it was built that way —
+              and get an answer with <span className="text-[#282828] font-bold">the path that proves it</span>.
+              When the graph has no answer, Helio says so instead of guessing.
             </div>
           </Reveal>
 
           <Reveal delay={0.45} y={14}>
-            <div className="mt-8 flex flex-wrap gap-4 items-center">
+            <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-4">
               <HeronButton 
                 variant="brand" 
                 size="lg" 
                 onClick={() => onSelectMode('chat-widget')}
               >
-                Ask Helio Agent
+                Ask Helio a question
               </HeronButton>
 
-              <HeronButton 
-                variant="outline" 
-                size="lg" 
+              <button
                 onClick={() => onNavigateSection('inspector-section')}
+                className="font-mono text-[11px] uppercase tracking-wider text-[#e15c46] hover:underline flex items-center gap-1.5"
               >
-                Inspect Blast Radius
-              </HeronButton>
-
-              <HeronButton 
-                variant="dark" 
-                size="lg" 
-                onClick={() => onSelectMode('dashboard')}
-              >
-                Graph Console
-              </HeronButton>
+                See a live blast radius
+                <ArrowDown className="w-3.5 h-3.5" />
+              </button>
+            </div>
+            <div className="mt-4 font-mono text-[10px] text-[#8a8a80]">
+              Demo data · no signup to look around
             </div>
           </Reveal>
         </div>
@@ -96,7 +92,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onSelectMode, onNaviga
               <div className="flex items-start gap-3">
                 <ShieldCheck className="w-4 h-4 text-[#e15c46] flex-shrink-0 mt-0.5" />
                 <div>
-                  <div className="font-bold text-[#282828]">SUPERSEDES PROVENANCE</div>
+                  <div className="font-bold text-[#282828]">DECISION PROVENANCE</div>
                   <div className="text-[11px] text-[#5c5c56]">Follows decision edges so newer decisions override stale docs, with the full chain shown.</div>
                 </div>
               </div>

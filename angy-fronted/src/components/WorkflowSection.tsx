@@ -29,7 +29,7 @@ export const WorkflowSection: React.FC = () => {
     {
       num: '04',
       title: 'DETERMINISTIC HONESTY',
-      subtitle: 'Explicit negatives with zero hallucination',
+      subtitle: 'Explicit negatives, stated plainly',
       desc: 'When an edge does not exist, Helio returns a confident negative instead of inventing one.',
       icon: CheckCircle2
     }

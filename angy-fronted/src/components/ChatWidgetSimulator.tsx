@@ -58,7 +58,7 @@ const GROUND_TRUTH_CASES: GroundTruthCase[] = [
     category: 'ownership',
     categoryLabel: 'Ownership',
     question: "Who owns payments-gateway today?",
-    answer: "The Platform team owns payments-gateway. Decision D-21 (2026-04-15, authored by Elena Vasquez) reassigned ownership to Ravi Menon. Priya Sharma owned it previously until that handover.",
+    answer: "The Platform team owns payments-gateway. Decision D-21 (2026-04-15, authored by Elena Vasquez) named Ravi Menon as its accountable owner. Priya Sharma held that role previously.",
     cypher: "MATCH (s:Service {name: 'payments-gateway'})-[:OWNED_BY]->(t:Team)\nOPTIONAL MATCH (d:Decision {id: 'D-21'})\nRETURN s.name, t.name, d.summary, d.author, d.date",
     path: ["payments-gateway", "OWNED_BY", "Platform", "REASSIGNED_BY", "Decision D-21", "ASSIGNEE", "Ravi Menon"],
     trail: [
@@ -72,12 +72,12 @@ const GROUND_TRUTH_CASES: GroundTruthCase[] = [
     id: 2,
     category: 'ownership',
     categoryLabel: 'Ownership',
-    question: "Who owns ledger-core?",
-    answer: "The Ledger team owns ledger-core, led by Ana Duarte. Ana has worked extensively across both payments and ledger core architecture.",
-    cypher: "MATCH (s:Service {name: 'ledger-core'})-[:OWNED_BY]->(t:Team)<-[:LEADS]-(p:Person)\nRETURN s.name, t.name, p.name",
-    path: ["ledger-core", "OWNED_BY", "Ledger Team", "LEADS", "Ana Duarte"],
+    question: "Who owns ledger-service?",
+    answer: "The Ledger team owns ledger-service, led by Ana Duarte. Ana has worked extensively across both payments and ledger architecture.",
+    cypher: "MATCH (s:Service {name: 'ledger-service'})-[:OWNED_BY]->(t:Team)<-[:LEADS]-(p:Person)\nRETURN s.name, t.name, p.name",
+    path: ["ledger-service", "OWNED_BY", "Ledger Team", "LEADS", "Ana Duarte"],
     trail: [
-      { type: "Team", name: "Ledger", detail: "owns ledger-core", via_edge: "OWNED_BY" },
+      { type: "Team", name: "Ledger", detail: "owns ledger-service", via_edge: "OWNED_BY" },
       { type: "Person", name: "Ana Duarte", detail: "Team Lead, Ledger", via_edge: "LEADS" }
     ],
     stale: []
@@ -161,12 +161,12 @@ const GROUND_TRUTH_CASES: GroundTruthCase[] = [
     category: 'expertise',
     categoryLabel: 'Expertise vs Recency',
     question: "Who has the most commits on payments-gateway?",
-    answer: "Priya Sharma has the most historical commits (14 commits), but her last contribution was on 2026-04-15 and is flagged as stale (>90 days). In contrast, Ravi Menon has 5 commits with recent activity on 2026-09-01 and holds active ownership.",
+    answer: "Priya Sharma has the most historical commits (14 commits), but her last contribution was on 2026-04-15 and is flagged as stale (>90 days). In contrast, Ravi Menon has 5 commits with recent activity on 2026-09-28 and holds active ownership.",
     cypher: "MATCH (p:Person)-[c:CONTRIBUTED_TO]->(s:Service {name: 'payments-gateway'})\nRETURN p.name, c.commits, c.latest\nORDER BY c.commits DESC",
     path: ["payments-gateway", "MOST_COMMITS (14)", "Priya Sharma (Stale 2026-04-15)", "RECENCY (5)", "Ravi Menon (Active)"],
     trail: [
       { type: "Person", name: "Priya Sharma", detail: "14 commits [STALE, last touch 2026-04-15]", date: "2026-04-15", via_edge: "CONTRIBUTED_TO" },
-      { type: "Person", name: "Ravi Menon", detail: "5 commits [FRESH, active touch 2026-09-01]", date: "2026-09-01", via_edge: "CONTRIBUTED_TO" }
+      { type: "Person", name: "Ravi Menon", detail: "5 commits [FRESH, active touch 2026-09-28]", date: "2026-09-28", via_edge: "CONTRIBUTED_TO" }
     ],
     stale: [
       { type: "Person", name: "Priya Sharma", reason: "Contribution history is older than 90 days (last active 2026-04-15)", last_verified_at: "2026-04-15" }
@@ -190,9 +190,9 @@ const GROUND_TRUTH_CASES: GroundTruthCase[] = [
     category: 'expertise',
     categoryLabel: 'Expertise vs Recency',
     question: "Who has worked on both payments and ledger?",
-    answer: "Ana Duarte. She holds cross-domain expertise across both systems: she contributed to early payments-gateway architecture and is currently the Team Lead for ledger-core.",
-    cypher: "MATCH (p:Person)-[:CONTRIBUTED_TO]->(s1:Service {name: 'payments-gateway'})\nMATCH (p)-[:CONTRIBUTED_TO]->(s2:Service {name: 'ledger-core'})\nRETURN p.name, count(p)",
-    path: ["payments-gateway", "CONTRIBUTED_TO", "Ana Duarte", "CONTRIBUTED_TO", "ledger-core"],
+    answer: "Ana Duarte. She holds cross-domain expertise across both systems: she contributed to early payments-gateway architecture and is currently the Team Lead for ledger-service.",
+    cypher: "MATCH (p:Person)-[:CONTRIBUTED_TO]->(s1:Service {name: 'payments-gateway'})\nMATCH (p)-[:CONTRIBUTED_TO]->(s2:Service {name: 'ledger-service'})\nRETURN p.name, count(p)",
+    path: ["payments-gateway", "CONTRIBUTED_TO", "Ana Duarte", "CONTRIBUTED_TO", "ledger-service"],
     trail: [
       { type: "Person", name: "Ana Duarte", detail: "Cross-system contributor (Payments & Ledger)", via_edge: "CROSS_DOMAIN" }
     ],
@@ -695,7 +695,8 @@ export const ChatWidgetSimulator: React.FC = () => {
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
             <span className={`w-2.5 h-2.5 rounded-full ${backendStatus === 'connected' ? 'bg-emerald-400 animate-pulse' : backendStatus === 'checking' ? 'bg-amber-400 animate-spin' : 'bg-rose-400'}`} />
-            <span className="font-bold tracking-wider text-sm">HELIO CYPHER AGENT</span>
+            <span className="font-bold tracking-wider text-sm">HELIO AGENT</span>
+            <span className="px-1.5 py-0.5 bg-[#1c1c1b] border border-white/20 text-[9px] uppercase tracking-widest text-white/60">Sample data</span>
           </div>
 
           <div className="hidden sm:flex items-center gap-1.5 px-2 py-0.5 bg-[#1c1c1b] cad-border text-[10px] text-white/80">
@@ -717,7 +718,7 @@ export const ChatWidgetSimulator: React.FC = () => {
               title="Queries the live graph backend"
             >
               <Activity className="w-3 h-3" />
-              <span>LIVE CLOUD API</span>
+              <span>LIVE GRAPH</span>
               {backendPing !== null && (
                 <span className="text-[9px] opacity-75">({backendPing}ms)</span>
               )}
@@ -731,7 +732,7 @@ export const ChatWidgetSimulator: React.FC = () => {
               title="Deterministic instant offline verification engine"
             >
               <Zap className="w-3 h-3" />
-              <span>OFFLINE VERIFIER</span>
+              <span>SAMPLE ANSWERS</span>
             </button>
           </div>
 
@@ -865,7 +866,7 @@ export const ChatWidgetSimulator: React.FC = () => {
                         <Network className="w-3.5 h-3.5 text-[#e15c46]" />
                         <span>PROVENANCE TRAIL ({m.trail.length} ENTITIES):</span>
                       </div>
-                      <span className="text-[9px] text-[#5c5c56]">Contract: soham.md §3</span>
+                      <span className="text-[9px] text-[#5c5c56]">Contract: answer + trail</span>
                     </div>
 
                     <div className="flex flex-wrap items-center gap-1.5">
