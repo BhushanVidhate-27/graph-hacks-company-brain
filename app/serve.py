@@ -152,6 +152,10 @@ async def canonical_urls_and_headers(request: Request, call_next):
         response.headers["Cache-Control"] = "no-cache"
     elif path in ("/sitemap.xml", "/robots.txt", "/site.webmanifest"):
         response.headers["Cache-Control"] = "public, max-age=3600"
+    elif path == "/graphorb.js":
+        # Not content-hashed, so it must be revalidated. That keeps a returning
+        # visitor's orb in step with the rest of a new build.
+        response.headers["Cache-Control"] = "no-cache"
 
     return response
 

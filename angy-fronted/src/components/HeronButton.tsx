@@ -11,6 +11,10 @@ interface HeronButtonProps {
   onClick?: () => void;
   className?: string;
   type?: 'button' | 'submit' | 'reset';
+  /** Explanation shown by GraphOrb when this button is the focused element. */
+  graphorbTitle?: string;
+  graphorbDescription?: string;
+  graphorbAction?: string;
 }
 
 export const HeronButton: React.FC<HeronButtonProps> = ({
@@ -22,6 +26,9 @@ export const HeronButton: React.FC<HeronButtonProps> = ({
   onClick,
   className = '',
   type = 'button',
+  graphorbTitle,
+  graphorbDescription,
+  graphorbAction,
 }) => {
   const getVariantStyles = () => {
     switch (variant) {
@@ -53,6 +60,9 @@ export const HeronButton: React.FC<HeronButtonProps> = ({
     <button
       type={type}
       onClick={onClick}
+      data-graphorb-title={graphorbTitle}
+      data-graphorb-description={graphorbDescription}
+      data-graphorb-action={graphorbAction}
       className={`group relative inline-flex items-center justify-center border font-mono font-bold uppercase tracking-wider transition-colors duration-300 select-none overflow-hidden ${getVariantStyles()} ${getSizeStyles()} ${className}`}
     >
       {subLabel ? (

@@ -3,6 +3,10 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 import { MODE_FOR_PATH } from './lib/appRoutes';
 import './index.css';
+// The companion lives at the application root, not inside a page. The module
+// guards itself with a window flag, so the standalone /graphorb.js copy that
+// the prerendered marketing pages load cannot create a second orb here.
+import './graphorb/entry';
 
 const normalizePath = (pathname: string) => {
   if (pathname === '/') return '/';

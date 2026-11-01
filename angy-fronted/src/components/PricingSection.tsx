@@ -275,6 +275,8 @@ export const PricingSection: React.FC<PricingSectionProps> = ({ onSelectMode }) 
           return (
             <Reveal key={plan.id} delay={index * 0.07} className="h-full">
               <div
+                data-graphorb-title={`${plan.name} plan`}
+                data-graphorb-description={`${plan.tagline} Includes ${plan.credits}.`}
                 className={`h-full cad-border p-6 flex flex-col justify-between relative transition-all duration-300 hover:-translate-y-1 ${
                   plan.highlighted
                     ? 'bg-[#282828] text-white shadow-2xl scale-[1.02]'

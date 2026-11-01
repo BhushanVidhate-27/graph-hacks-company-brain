@@ -56,7 +56,12 @@ export const Navbar: React.FC<NavbarProps> = ({ currentMode, onSelectMode, onNav
             onMouseEnter={() => setProductDropdownOpen(true)}
             onMouseLeave={() => setProductDropdownOpen(false)}
           >
-            <button className="flex items-center gap-1.5 hover:text-[#e15c46] transition-colors py-1 whitespace-nowrap">
+            <button
+              data-graphorb-title="Explore the product"
+              data-graphorb-description="Opens a menu with the full website, the Helio agent, the graph console and a device preview."
+              data-graphorb-action="Open the menu"
+              className="flex items-center gap-1.5 hover:text-[#e15c46] transition-colors py-1 whitespace-nowrap"
+            >
               <span>EXPLORE</span>
               <ChevronDown className="w-3.5 h-3.5" />
             </button>

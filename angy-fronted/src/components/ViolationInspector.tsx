@@ -618,6 +618,9 @@ export const ViolationInspector: React.FC = () => {
                     tabIndex={selected ? 0 : -1}
                     onClick={() => setActiveId(item.id)}
                     onKeyDown={(event) => onTabKeyDown(event, index)}
+                    data-graphorb-title={`${item.index} · ${item.tab}`}
+                    data-graphorb-description={`Shows the graph answer for “${item.query}” on the demo company, with the ranked flat-search hits beside it.`}
+                    data-graphorb-action="Show this case"
                     className={`relative flex flex-1 items-center gap-2 border-r border-[#282828]/20 px-2.5 py-3 text-left transition-colors last:border-r-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-4px] focus-visible:outline-[#c2452d] md:gap-2.5 md:px-4 ${
                       selected
                         ? 'bg-[#282828] text-white'

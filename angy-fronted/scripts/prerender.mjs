@@ -28,6 +28,19 @@ const ROOT_PATTERN = '<div id="root"></div>';
 const SCRIPT_PATTERN = /<script type="module"[^>]*><\/script>/;
 const STYLE_PATTERN = /<link rel="stylesheet"[^>]*>/;
 
+// The companion is a separate, dependency-free module so marketing pages can
+// have it without loading the application bundle. Building it is a required
+// step, not an optional one: silently shipping pages with no orb would look
+// like a CSS bug rather than a build error.
+const GRAPHORB_TAG = '<script type="module" src="/graphorb.js"></script>';
+try {
+  await fs.access(path.join(dist, 'graphorb.js'));
+} catch {
+  throw new Error(
+    'dist/graphorb.js is missing. Run `vite build --config vite.graphorb.config.ts` before prerendering.',
+  );
+}
+
 if (!HEAD_PATTERN.test(template)) {
   throw new Error('index.html is missing the seo-head markers');
 }
@@ -56,6 +69,9 @@ const writePage = async (filePath, head, body, { interactive = false } = {}) => 
     if (interactive) headAssets.push(script[0]);
     html = html.replace(script[0], '');
   }
+  // Every page, interactive or static, gets the companion. It is one small
+  // module with no dependencies and it mounts itself once.
+  headAssets.push(GRAPHORB_TAG);
   // Marketing pages are complete before JavaScript runs: the header uses a
   // native <details> menu, prices and FAQ answers are in the HTML, and every
   // action is a link. Leaving the app bundle out means no parse or hydration

@@ -45,14 +45,20 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onSelectMode, onNaviga
             <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-4">
               <HeronButton 
                 variant="brand" 
-                size="lg" 
+                size="lg"
                 onClick={() => onSelectMode('chat-widget')}
+                graphorbTitle="Ask Helio a question"
+                graphorbDescription="Opens the Helio agent, where a question is answered from the demo company graph with the full trail attached."
+                graphorbAction="Open the agent"
               >
                 Ask Helio a question
               </HeronButton>
 
               <button
                 onClick={() => onNavigateSection('inspector-section')}
+                data-graphorb-title="See what search misses"
+                data-graphorb-description="Scrolls to the side-by-side comparison of flat search results and the typed graph answer to the same question."
+                data-graphorb-action="Jump to the comparison"
                 className="font-mono text-[11px] uppercase tracking-wider text-[#e15c46] hover:underline flex items-center gap-1.5"
               >
                 See what search misses
@@ -67,7 +73,11 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onSelectMode, onNaviga
 
         {/* Right 4 Cols: Technical Metadata HUD Card */}
         <Reveal className="lg:col-span-4" delay={0.3} y={22} priority>
-          <div className="bg-[#f4f4ec] cad-border p-6 relative transition-transform duration-300 hover:-translate-y-1">
+          <div
+            data-graphorb-title="What the graph can answer"
+            data-graphorb-description="Four question types the demo graph answers: blast radius, expertise, decision provenance and honest negatives. This card outlines them; the comparison below shows real answers."
+            className="bg-[#f4f4ec] cad-border p-6 relative transition-transform duration-300 hover:-translate-y-1"
+          >
             <CadCrosshair position="tl" />
             <CadCrosshair position="tr" />
             <CadCrosshair position="bl" />
