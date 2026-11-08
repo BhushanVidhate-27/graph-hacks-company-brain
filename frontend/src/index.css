@@ -393,3 +393,16 @@ section[id] {
 @media (prefers-reduced-motion: reduce) {
   .footer-luxe-link { transition: none; }
 }
+
+/* Integration marquee — slow horizontal drift, pauses behind reduced motion */
+.footer-luxe-marquee {
+  animation: helio-marquee 32s linear infinite;
+}
+
+@keyframes helio-marquee {
+  to { transform: translateX(-50%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .footer-luxe-marquee { animation: none; }
+}
