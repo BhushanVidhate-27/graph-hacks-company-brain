@@ -435,7 +435,9 @@ def _failure_frame(exc: Exception) -> dict[str, Any]:
 
 
 def stream_answer(
-    question: str, on_success: Callable[[], None] | None = None
+    question: str,
+    on_success: Callable[[], None] | None = None,
+    account_id: str | None = None,
 ) -> Iterator[str]:
     """Yield the trail first, then the answer.
 
@@ -445,7 +447,15 @@ def stream_answer(
 
     ``on_success`` runs only after the lookup produced a real result, so a failed
     question is not charged against a paid plan's monthly quota.
+
+    ``account_id`` binds the lookup to that account's own FalkorDB graph
+    (anonymous callers get the shared demo graph). The binding is set
+    server-side from the authenticated identity and reset afterwards, so a
+    reused thread can never leak one tenant's graph into the next request.
     """
+    from app import graph as graph_service
+
+    token = graph_service.set_current_account(account_id)
     try:
         result = answer_question(question)
     except Exception as exc:  # noqa: BLE001 - the failure must reach the client
@@ -455,6 +465,8 @@ def stream_answer(
         yield _sse(_failure_frame(exc))
         yield "data: [DONE]\n\n"
         return
+    finally:
+        graph_service.reset_current_account(token)
 
     if on_success is not None:
         try:
@@ -580,7 +592,11 @@ def ask(req: Ask, request: Request) -> Any:
         usage_service.record(identity, question=req.question)
 
     return StreamingResponse(
-        stream_answer(req.question, on_success=_meter),
+        stream_answer(
+            req.question,
+            on_success=_meter,
+            account_id=identity.account["id"] if identity is not None else None,
+        ),
         media_type="text/event-stream",
         headers={
             # Proxies buffer a naive stream into one lump: it works on

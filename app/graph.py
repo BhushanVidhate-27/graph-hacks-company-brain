@@ -25,6 +25,7 @@ never interpolated into the query string.
 
 from __future__ import annotations
 
+import contextvars
 import os
 import re
 from typing import Any
@@ -34,7 +35,47 @@ from falkordb import FalkorDB
 
 load_dotenv()
 
+# The demo graph. Signed-in accounts never read this — they get their own
+# graph (see graph_name_for). Kept for the anonymous landing-page demo and
+# for scripts/load.py, which seeds the demo data.
 GRAPH = os.getenv("FALKORDB_GRAPH", "helio")
+
+# Tenant binding for the in-flight request. Set server-side by the /ask
+# route from the authenticated identity — never from model output — so the
+# agent loop cannot be prompt-injected into another workspace's graph.
+# ContextVar (not a global) keeps concurrent requests on shared threads
+# isolated from each other.
+_CURRENT_ACCOUNT: contextvars.ContextVar[str | None] = contextvars.ContextVar(
+    "helio_current_account", default=None
+)
+
+
+def set_current_account(account_id: str | None):
+    """Bind this request to an account's graph. Returns a reset token."""
+    return _CURRENT_ACCOUNT.set(account_id)
+
+
+def reset_current_account(token) -> None:
+    """Unbind after the request. Always pair with set_current_account."""
+    _CURRENT_ACCOUNT.reset(token)
+
+
+def get_current_account() -> str | None:
+    return _CURRENT_ACCOUNT.get()
+
+
+def graph_name_for(account_id: str | None) -> str:
+    """One FalkorDB graph per account; anonymous callers see the demo graph.
+
+    Account IDs are DB-generated (`acct_<hex>`); sanitising anyway keeps a
+    stray character out of the graph namespace. A tenant graph that does not
+    exist yet simply answers with no rows — an honest negative, never a
+    neighbouring tenant's data.
+    """
+    if not account_id:
+        return GRAPH
+    safe = re.sub(r"[^A-Za-z0-9_]", "_", str(account_id))
+    return f"{GRAPH}_{safe}"
 HOST = os.getenv("FALKORDB_HOST", "localhost")
 PORT = int(os.getenv("FALKORDB_PORT", "6379"))
 USERNAME = os.getenv("FALKORDB_USERNAME", "")
@@ -46,7 +87,9 @@ STALE_DAYS = 90
 
 
 def _graph():
-    """Connect to FalkorDB — local Docker or Cloud.
+    """Connect to the current tenant's FalkorDB graph (demo if anonymous).
+
+    Connect to FalkorDB — local Docker or Cloud.
 
     Cloud needs three things local does not, and missing any one of them fails
     with a bare connection error rather than anything that names the cause:
@@ -67,7 +110,7 @@ def _graph():
         kwargs["username"] = USERNAME
     if PASSWORD:
         kwargs["password"] = PASSWORD
-    return FalkorDB(**kwargs).select_graph(GRAPH)
+    return FalkorDB(**kwargs).select_graph(graph_name_for(get_current_account()))
 
 
 def db_health() -> bool:

@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
 """
-scripts/load.py — load data/*.csv into FalkorDB.
+scripts/load.py — load data/*.csv into FalkorDB (DEMO graph only).
+
+This seeds the anonymous demo graph named FALKORDB_GRAPH (default "helio").
+Tenant graphs (helio_<account_id>) are never created or wiped here — they
+start empty and are populated per-account. Do not point this at a tenant
+graph: it deletes the named graph before loading.
 
 VERIFIED FalkorDB constraints (do not rediscover these):
   - g.query(cypher, params).result_set   <- .result_set is REQUIRED, query() is not
