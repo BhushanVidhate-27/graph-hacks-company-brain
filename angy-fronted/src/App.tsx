@@ -103,7 +103,15 @@ const AppShell: React.FC<AppShellProps> = ({
     const checkout = params.get('checkout');
     const billing = params.get('billing');
 
-    if (checkout || billing) {
+    if (checkout) {
+      try {
+        sessionStorage.setItem('helio_checkout', checkout);
+      } catch {
+        /* ignore */
+      }
+      void refresh();
+      setCurrentMode('dashboard');
+    } else if (billing) {
       void refresh();
       setCurrentMode('account');
     } else if (authParam) {

@@ -107,6 +107,12 @@ export const AccountView: React.FC<AccountViewProps> = ({ onBack, onSelectMode }
     setBillingError(null);
     setBillingMessage(null);
     try {
+      if (target.id === "free") {
+        // Downgrading/canceling a paid plan is handled through the billing portal
+        // (or by contacting us when portal/local billing doesn't apply).
+        await portal();
+        return;
+      }
       const result = await checkout(target.id);
       if (result.upgraded) {
         setBillingMessage(result.message || `You are now on the ${target.name} plan.`);
@@ -120,7 +126,9 @@ export const AccountView: React.FC<AccountViewProps> = ({ onBack, onSelectMode }
           ? err.message
           : err instanceof Error
             ? err.message
-            : "Could not start checkout.";
+            : target.id === "free"
+              ? "Could not open billing management. To move to Free, manage/cancel your subscription in the billing portal or contact contact.helio.brain@gmail.com."
+              : "Could not start checkout.";
       setBillingError(message);
     } finally {
       setBillingBusy(null);

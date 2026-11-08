@@ -141,11 +141,8 @@ export class GraphOrb implements GraphOrbController {
 
     const squash = make('span', 'graphorb-squash', this.orb);
     this.art = make('span', 'graphorb-art', squash);
-    for (let i = 0; i < 8; i += 1) {
-      const frame = make('span', 'graphorb-frame', this.art);
-      frame.style.setProperty('--i', String(i));
-      if (i === 0) frame.setAttribute('data-first', 'true');
-    }
+    const spider = make('span', 'graphorb-spider', this.art);
+    spider.setAttribute('aria-hidden', 'true');
 
     this.orbit = make('span', 'graphorb-orbit', squash);
     this.orbit.setAttribute('aria-hidden', 'true');
@@ -154,7 +151,6 @@ export class GraphOrb implements GraphOrbController {
       node.style.setProperty('--a', String(angle));
     });
 
-    make('span', 'graphorb-scan', squash).setAttribute('aria-hidden', 'true');
     make('span', 'graphorb-ripple', squash).setAttribute('aria-hidden', 'true');
     make('span', 'graphorb-halo', squash).setAttribute('aria-hidden', 'true');
 

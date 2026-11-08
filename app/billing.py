@@ -59,10 +59,13 @@ def local_billing_enabled() -> bool:
 
 
 def setup_details() -> dict[str, Any]:
+    days = plans.trial_days()
     return {
         "configured": is_configured(),
         "mode": stripe_mode(),
         "local_billing": local_billing_enabled(),
+        "trial_days": days,
+        "trial_enabled": days > 0,
         "required_env": [
             "STRIPE_SECRET_KEY",
             "STRIPE_WEBHOOK_SECRET",
@@ -124,26 +127,33 @@ def _stripe_request(
 # --------------------------------------------------------------------------- #
 
 
-def _local_upgrade(account_id: str, plan_id: str) -> dict[str, Any]:
-    period_end = (datetime.now(timezone.utc) + timedelta(days=30)).isoformat(
+def _local_upgrade(account_id: str, plan_id: str, *, trial: bool = False) -> dict[str, Any]:
+    days = plans.trial_days() if trial else 30
+    status = "trialing" if (trial and days > 0) else "active"
+    period_end = (datetime.now(timezone.utc) + timedelta(days=max(days, 1))).isoformat(
         timespec="seconds"
     )
     store.upsert_subscription(
         account_id,
         plan=plan_id,
-        status="active",
+        status=status,
         current_period_end=period_end,
         cancel_at_period_end=False,
     )
+    plan_name = plans.get_plan(plan_id)["name"]
+    if status == "trialing":
+        msg = f"Local billing enabled: {plan_name} trial started for {days} days (no card required in local mode)."
+    else:
+        msg = f"Local billing enabled: the account is now on the {plan_name} plan for 30 days."
     return {
         "ok": True,
         "mode": "local",
         "upgraded": True,
         "plan": plan_id,
-        "message": (
-            f"Local billing enabled: the account is now on the "
-            f"{plans.get_plan(plan_id)['name']} plan for 30 days."
-        ),
+        "status": status,
+        "trial": status == "trialing",
+        "trial_days": days if status == "trialing" else 0,
+        "message": msg,
     }
 
 
@@ -154,8 +164,9 @@ def build_checkout(
     user: dict[str, Any],
     success_url: str,
     cancel_url: str,
+    trial: bool = False,
 ) -> dict[str, Any]:
-    """Create a Stripe Checkout Session for a paid plan."""
+    """Create a Stripe Checkout Session for a paid plan, optionally with trial."""
 
     plan = plans.get_plan(plan_id)
     if not plans.is_paid(plan["id"]):
@@ -165,8 +176,11 @@ def build_checkout(
             "message": "The free plan does not require checkout.",
         }
 
+    days = plans.trial_days()
+    use_trial = bool(trial and days > 0)
+
     if local_billing_enabled():
-        return _local_upgrade(account["id"], plan["id"])
+        return _local_upgrade(account["id"], plan["id"], trial=use_trial)
 
     if not is_configured():
         return {
@@ -199,6 +213,9 @@ def build_checkout(
         ("allow_promotion_codes", "true"),
         ("billing_address_collection", "auto"),
     ]
+    if use_trial:
+        data.append(("subscription_data[trial_period_days]", str(days)))
+        data.append(("subscription_data[metadata][trial]", "true"))
     customer_id = account.get("stripe_customer_id")
     if customer_id:
         data.append(("customer", customer_id))
@@ -215,7 +232,9 @@ def build_checkout(
         "plan": plan["id"],
         "url": body.get("url"),
         "session_id": body.get("id"),
-        "message": "Checkout session created.",
+        "trial": use_trial,
+        "trial_days": days if use_trial else 0,
+        "message": f"Checkout session created ({days}-day trial)." if use_trial else "Checkout session created.",
     }
 
 

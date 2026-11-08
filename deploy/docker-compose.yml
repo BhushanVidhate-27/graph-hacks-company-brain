@@ -33,6 +33,24 @@ services:
       retries: 12
       start_period: 10s
 
+  postgres:
+    image: postgres:16-alpine
+    container_name: helio-postgres
+    environment:
+      POSTGRES_DB: helio
+      POSTGRES_USER: helio
+      POSTGRES_PASSWORD: helio
+    ports:
+      - "5432:5432"
+    volumes:
+      - helio-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U helio -d helio"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 5s
+
   # One-shot. Generates data/ then loads it, then exits. Not a long-running
   # service — `docker compose up` runs it to completion and the api waits.
   seed:
@@ -64,12 +82,14 @@ services:
     depends_on:
       falkordb:
         condition: service_healthy
+      postgres:
+        condition: service_healthy
       seed:
         condition: service_completed_successfully
     env_file:
       - ../.env
     environment:
-      # Override .env so the container talks to the compose service by name,
+      # Override .env so the container talks to the compose services by name,
       # not to whatever host the developer happens to have in their .env.
       # Username and password MUST be blanked explicitly: env_file loads the
       # developer's .env, and a developer who also points at FalkorDB Cloud will
@@ -81,12 +101,15 @@ services:
       FALKORDB_PASSWORD: ""
       FALKORDB_SSL: "false"
       FALKORDB_GRAPH: helio
+      # App/commercial state: Postgres by default in compose (multi-writer).
+      # Override DATABASE_URL in .env to use an external DB; set it empty and
+      # keep HELIO_DB_PATH on helio-state volume for SQLite fallback.
+      DATABASE_URL: ${DATABASE_URL:-postgresql://helio:helio@postgres:5432/helio}
       # Frontend and API are served from the SAME origin here, so CORS never
       # applies. Do not set USE_MOCK=1 — that answers from a JSON fixture and
       # never touches the graph, which looks identical to working.
       USE_MOCK: "0"
-      # Commercial state (accounts, sessions, API keys, usage) on a named
-      # volume. Without this every `docker compose up` is a fresh install.
+      # SQLite fallback path (used only when DATABASE_URL is empty).
       HELIO_DB_PATH: /srv/state/helio.db
       # The public demo stays open with a per-IP daily guard. Set to 1 to make
       # an account mandatory for every question.
@@ -104,3 +127,5 @@ services:
 volumes:
   helio-state:
     name: helio-state
+  helio-postgres:
+    name: helio-postgres

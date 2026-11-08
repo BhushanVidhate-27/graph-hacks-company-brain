@@ -1,14 +1,18 @@
-"""app/store.py - SQLite persistence for the Helio SaaS layer.
+"""app/store.py - durable commercial state for Helio.
 
-The reasoning engine does not need a database: FalkorDB holds the company graph
-and the agent reads it. This module stores the *commercial* state around that
-engine - accounts, users, sessions, API keys, subscriptions and usage.
+Backed by Postgres when DATABASE_URL is set, otherwise SQLite (HELIO_DB_PATH,
+default data/helio.db). Schema/migrations are handled by app.db.
 
-Why SQLite: it is in the standard library, it is a single file, and it is enough
-for a single-instance MVP. It is deliberately isolated behind this module so a
-move to Postgres is a rewrite of one file, not of the API. The production note in
-README.md is explicit: SQLite is single-writer and is not suitable for multiple
-API replicas.
+Stores (all per account):
+    - accounts / users / sessions
+    - api keys (hashed)
+    - subscriptions (the Stripe mirror / plan state)
+    - usage events (metering)
+    - webhook event ids (idempotency)
+    - integrations / import runs (data source connections)
+
+Everything is plain SQL with small helpers, no ORM, so the data model stays
+obvious and cheap to run.
 """
 
 from __future__ import annotations
@@ -16,102 +20,24 @@ from __future__ import annotations
 import hashlib
 import json
 import os
-import re
 import secrets
-import sqlite3
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
-DEFAULT_DB_PATH = Path(__file__).resolve().parent.parent / "data" / "helio.db"
+from app import db, plans
 
-# One schema check per resolved path per process. Tests monkeypatch
-# HELIO_DB_PATH, so a module-level boolean would miss the second database.
-_SCHEMA_READY: set[str] = set()
-
-SCHEMA = """
-CREATE TABLE IF NOT EXISTS accounts (
-    id TEXT PRIMARY KEY,
-    name TEXT NOT NULL,
-    slug TEXT NOT NULL UNIQUE,
-    created_at TEXT NOT NULL,
-    stripe_customer_id TEXT
-);
-
-CREATE TABLE IF NOT EXISTS users (
-    id TEXT PRIMARY KEY,
-    account_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
-    email TEXT NOT NULL UNIQUE,
-    name TEXT NOT NULL,
-    password_hash TEXT NOT NULL,
-    role TEXT NOT NULL DEFAULT 'owner',
-    created_at TEXT NOT NULL,
-    last_login_at TEXT
-);
-
-CREATE TABLE IF NOT EXISTS sessions (
-    token_hash TEXT PRIMARY KEY,
-    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    created_at TEXT NOT NULL,
-    expires_at TEXT NOT NULL,
-    last_seen_at TEXT
-);
-
-CREATE TABLE IF NOT EXISTS api_keys (
-    id TEXT PRIMARY KEY,
-    account_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
-    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    name TEXT NOT NULL,
-    prefix TEXT NOT NULL,
-    key_hash TEXT NOT NULL UNIQUE,
-    created_at TEXT NOT NULL,
-    last_used_at TEXT,
-    revoked_at TEXT
-);
-
-CREATE TABLE IF NOT EXISTS subscriptions (
-    account_id TEXT PRIMARY KEY REFERENCES accounts(id) ON DELETE CASCADE,
-    plan TEXT NOT NULL DEFAULT 'free',
-    status TEXT NOT NULL DEFAULT 'active',
-    stripe_customer_id TEXT,
-    stripe_subscription_id TEXT,
-    current_period_end TEXT,
-    cancel_at_period_end INTEGER NOT NULL DEFAULT 0,
-    updated_at TEXT NOT NULL
-);
-
-CREATE TABLE IF NOT EXISTS usage_events (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    account_id TEXT NOT NULL,
-    user_id TEXT,
-    kind TEXT NOT NULL DEFAULT 'question',
-    created_at TEXT NOT NULL,
-    meta TEXT
-);
-
-CREATE INDEX IF NOT EXISTS idx_usage_account_time
-    ON usage_events(account_id, created_at);
-
-CREATE TABLE IF NOT EXISTS webhook_events (
-    id TEXT PRIMARY KEY,
-    type TEXT NOT NULL,
-    created_at TEXT NOT NULL
-);
-"""
+DEFAULT_DB_PATH = Path(__file__).resolve().parents[1] / "data" / "helio.db"
+SESSION_COOKIE = "helio_session"
 
 
 # --------------------------------------------------------------------------- #
-# Small helpers
+# Helpers
 # --------------------------------------------------------------------------- #
 
 
 def db_path() -> Path:
-    """Resolve the database path at call time.
-
-    Resolving at import time makes tests share one database and makes a
-    container's volume mount impossible to change without rebuilding the image.
-    """
-
+    """SQLite file path (fallback backend). For Postgres, see db.database_url()."""
     return Path(os.getenv("HELIO_DB_PATH", str(DEFAULT_DB_PATH)))
 
 
@@ -120,7 +46,7 @@ def now_iso() -> str:
 
 
 def new_id(prefix: str) -> str:
-    return f"{prefix}_{secrets.token_hex(8)}"
+    return f"{prefix}_{secrets.token_hex(12)}"
 
 
 def _hash_token(token: str) -> str:
@@ -128,41 +54,33 @@ def _hash_token(token: str) -> str:
 
 
 def _slugify(value: str) -> str:
-    slug = re.sub(r"[^a-z0-9]+", "-", value.lower()).strip("-")
-    return slug[:48] or "workspace"
+    raw = "".join(ch.lower() if ch.isalnum() else "-" for ch in (value or ""))
+    while "--" in raw:
+        raw = raw.replace("--", "-")
+    return raw.strip("-")[:48] or "workspace"
 
 
-def connect() -> sqlite3.Connection:
-    path = db_path()
-    path.parent.mkdir(parents=True, exist_ok=True)
-    conn = sqlite3.connect(path, timeout=10)
-    conn.row_factory = sqlite3.Row
-    conn.execute("PRAGMA foreign_keys = ON")
-    conn.execute("PRAGMA journal_mode = WAL")
-    key = str(path.resolve())
-    if key not in _SCHEMA_READY:
-        conn.executescript(SCHEMA)
-        _SCHEMA_READY.add(key)
-    return conn
+def connect(*, migrate: bool = True):
+    return db.connect(migrate=migrate)
 
 
-def row_to_dict(row: sqlite3.Row | None) -> dict[str, Any] | None:
-    return dict(row) if row is not None else None
+def row_to_dict(row: Any) -> dict[str, Any] | None:
+    if row is None:
+        return None
+    if isinstance(row, dict):
+        return dict(row)
+    return dict(row)
 
 
-# --------------------------------------------------------------------------- #
-# Accounts and users
-# --------------------------------------------------------------------------- #
-
-
-def _unique_slug(conn: sqlite3.Connection, name: str) -> str:
+def _unique_slug(conn: Any, name: str) -> str:
     base = _slugify(name)
-    candidate = base
-    suffix = 2
-    while conn.execute("SELECT 1 FROM accounts WHERE slug = ?", (candidate,)).fetchone():
-        candidate = f"{base}-{suffix}"
-        suffix += 1
-    return candidate
+    slug = base
+    n = 2
+    while conn.execute("SELECT 1 FROM accounts WHERE slug = ?", (slug,)).fetchone():
+        slug = f"{base}-{n}"
+        n += 1
+    return slug
+
 
 
 def create_account_with_owner(
@@ -438,12 +356,45 @@ def _free_subscription(account_id: str) -> dict[str, Any]:
     }
 
 
+def _is_instant_past(value: str | None) -> bool:
+    if not value:
+        return False
+    try:
+        instant = datetime.fromisoformat(value)
+    except ValueError:
+        return False
+    if instant.tzinfo is None:
+        instant = instant.replace(tzinfo=timezone.utc)
+    return instant <= datetime.now(timezone.utc)
+
+
 def get_subscription(account_id: str) -> dict[str, Any]:
     with connect() as conn:
         row = conn.execute(
             "SELECT * FROM subscriptions WHERE account_id = ?", (account_id,)
         ).fetchone()
-    return dict(row) if row else _free_subscription(account_id)
+    if row is None:
+        return _free_subscription(account_id)
+    sub = dict(row)
+    # Lazy trial expiry: a trialing subscription whose period has passed
+    # falls back to free/active until Stripe/webhook state changes it.
+    if sub.get("status") == "trialing" and _is_instant_past(sub.get("current_period_end")):
+        now = now_iso()
+        with connect() as conn:
+            conn.execute(
+                """
+                UPDATE subscriptions
+                SET plan = 'free', status = 'active', current_period_end = NULL,
+                    cancel_at_period_end = 0, updated_at = ?
+                WHERE account_id = ?
+                """,
+                (now, account_id),
+            )
+            fresh = conn.execute(
+                "SELECT * FROM subscriptions WHERE account_id = ?", (account_id,)
+            ).fetchone()
+        return dict(fresh) if fresh else _free_subscription(account_id)
+    return sub
 
 
 def get_subscription_by_customer(customer_id: str) -> dict[str, Any] | None:
@@ -492,7 +443,7 @@ def upsert_subscription(
         "current_period_end": current_period_end
         if current_period_end is not None
         else existing.get("current_period_end"),
-        "cancel_at_period_end": int(
+        "cancel_at_period_end": bool(
             cancel_at_period_end
             if cancel_at_period_end is not None
             else bool(existing.get("cancel_at_period_end"))
@@ -615,3 +566,384 @@ def mark_webhook(event_id: str, event_type: str) -> None:
             "INSERT OR IGNORE INTO webhook_events (id, type, created_at) VALUES (?, ?, ?)",
             (event_id, event_type, now_iso()),
         )
+
+
+# --------------------------------------------------------------------------- #
+# Integrations and data imports
+# --------------------------------------------------------------------------- #
+
+
+def _parse_json(value: str | None, default: Any) -> Any:
+    if not value:
+        return default
+    try:
+        return json.loads(value)
+    except (TypeError, ValueError):
+        return default
+
+
+def list_integrations(account_id: str) -> list[dict[str, Any]]:
+    with connect() as conn:
+        rows = conn.execute(
+            """
+            SELECT id, account_id, provider, name, status, config, last_sync_at,
+                   last_error, created_at, updated_at
+            FROM integrations
+            WHERE account_id = ?
+            ORDER BY created_at DESC
+            """,
+            (account_id,),
+        ).fetchall()
+    items = []
+    for row in rows:
+        item = dict(row)
+        item["config"] = _parse_json(item.get("config"), {})
+        items.append(item)
+    return items
+
+
+def get_integration(account_id: str, integration_id: str) -> dict[str, Any] | None:
+    with connect() as conn:
+        row = conn.execute(
+            """
+            SELECT id, account_id, provider, name, status, config, last_sync_at,
+                   last_error, created_at, updated_at
+            FROM integrations
+            WHERE account_id = ? AND id = ?
+            """,
+            (account_id, integration_id),
+        ).fetchone()
+    if row is None:
+        return None
+    item = dict(row)
+    item["config"] = _parse_json(item.get("config"), {})
+    return item
+
+
+def upsert_integration(
+    account_id: str,
+    *,
+    integration_id: str | None = None,
+    provider: str,
+    name: str,
+    status: str = "disconnected",
+    config: dict[str, Any] | None = None,
+    last_sync_at: str | None = None,
+    last_error: str | None = None,
+) -> dict[str, Any]:
+    now = now_iso()
+    config = config or {}
+    with connect() as conn:
+        if integration_id:
+            existing = conn.execute(
+                "SELECT id, config FROM integrations WHERE account_id = ? AND id = ?",
+                (account_id, integration_id),
+            ).fetchone()
+            if existing is None:
+                integration_id = None
+            else:
+                merged_config = _parse_json(existing["config"], {})
+                merged_config.update(config)
+                config = merged_config
+        if not integration_id:
+            integration_id = new_id("int")
+            conn.execute(
+                """
+                INSERT INTO integrations
+                    (id, account_id, provider, name, status, config, last_sync_at,
+                     last_error, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    integration_id,
+                    account_id,
+                    provider,
+                    name.strip()[:80] or provider,
+                    status,
+                    json.dumps(config),
+                    last_sync_at,
+                    last_error,
+                    now,
+                    now,
+                ),
+            )
+        else:
+            conn.execute(
+                """
+                UPDATE integrations
+                SET provider = ?, name = ?, status = ?, config = ?,
+                    last_sync_at = COALESCE(?, last_sync_at),
+                    last_error = ?, updated_at = ?
+                WHERE account_id = ? AND id = ?
+                """,
+                (
+                    provider,
+                    name.strip()[:80] or provider,
+                    status,
+                    json.dumps(config),
+                    last_sync_at,
+                    last_error,
+                    now,
+                    account_id,
+                    integration_id,
+                ),
+            )
+    return get_integration(account_id, integration_id) or {}
+
+
+def delete_integration(account_id: str, integration_id: str) -> bool:
+    with connect() as conn:
+        cur = conn.execute(
+            "DELETE FROM integrations WHERE account_id = ? AND id = ?",
+            (account_id, integration_id),
+        )
+        return cur.rowcount > 0
+
+
+def create_import_run(
+    account_id: str,
+    *,
+    integration_id: str | None,
+    provider: str,
+    kind: str = "import",
+    status: str = "queued",
+    summary: dict[str, Any] | None = None,
+    error: str | None = None,
+) -> dict[str, Any]:
+    run_id = new_id("run")
+    created = now_iso()
+    finished = created if status in {"completed", "failed", "skipped"} else None
+    with connect() as conn:
+        conn.execute(
+            """
+            INSERT INTO import_runs
+                (id, account_id, integration_id, provider, kind, status, summary,
+                 error, created_at, finished_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                run_id,
+                account_id,
+                integration_id,
+                provider,
+                kind,
+                status,
+                json.dumps(summary or {}),
+                error,
+                created,
+                finished,
+            ),
+        )
+    return get_import_run(account_id, run_id) or {}
+
+
+def finish_import_run(
+    account_id: str,
+    run_id: str,
+    *,
+    status: str,
+    summary: dict[str, Any] | None = None,
+    error: str | None = None,
+) -> dict[str, Any] | None:
+    with connect() as conn:
+        conn.execute(
+            """
+            UPDATE import_runs
+            SET status = ?, summary = ?, error = ?, finished_at = ?
+            WHERE account_id = ? AND id = ?
+            """,
+            (status, json.dumps(summary or {}), error, now_iso(), account_id, run_id),
+        )
+    return get_import_run(account_id, run_id)
+
+
+def get_import_run(account_id: str, run_id: str) -> dict[str, Any] | None:
+    with connect() as conn:
+        row = conn.execute(
+            """
+            SELECT id, account_id, integration_id, provider, kind, status, summary,
+                   error, created_at, finished_at
+            FROM import_runs
+            WHERE account_id = ? AND id = ?
+            """,
+            (account_id, run_id),
+        ).fetchone()
+    if row is None:
+        return None
+    item = dict(row)
+    item["summary"] = _parse_json(item.get("summary"), {})
+    return item
+
+
+def list_import_runs(account_id: str, limit: int = 20) -> list[dict[str, Any]]:
+    with connect() as conn:
+        rows = conn.execute(
+            """
+            SELECT id, account_id, integration_id, provider, kind, status, summary,
+                   error, created_at, finished_at
+            FROM import_runs
+            WHERE account_id = ?
+            ORDER BY created_at DESC
+            LIMIT ?
+            """,
+            (account_id, max(1, min(limit, 100))),
+        ).fetchall()
+    items = []
+    for row in rows:
+        item = dict(row)
+        item["summary"] = _parse_json(item.get("summary"), {})
+        items.append(item)
+    return items
+
+
+# --------------------------------------------------------------------------- #
+# Onboarding progress (zero -> activated)
+# --------------------------------------------------------------------------- #
+
+ONBOARDING_STEP_DEFS = [
+    {"id": "account_created", "title": "Create your workspace", "description": "Your Helio account and workspace are ready."},
+    {"id": "plan_activated", "title": "Confirm your plan", "description": "Start a trial or activate a paid plan to unlock the right limits."},
+    {"id": "source_connected", "title": "Connect a data source", "description": "Add GitHub, Slack, or another source so Helio has real context."},
+    {"id": "import_completed", "title": "Run your first import", "description": "Import data from a connected source into your workspace."},
+    {"id": "first_question", "title": "Ask your first question", "description": "Use the agent to ask who owns something, what breaks, or what changed."},
+]
+
+
+def _has_any_question(account_id: str) -> bool:
+    with connect() as conn:
+        row = conn.execute(
+            "SELECT 1 FROM usage_events WHERE account_id = ? AND kind = 'question' LIMIT 1",
+            (account_id,),
+        ).fetchone()
+        return row is not None
+
+
+def _has_completed_import(account_id: str) -> bool:
+    with connect() as conn:
+        row = conn.execute(
+            "SELECT 1 FROM import_runs WHERE account_id = ? AND status = 'completed' LIMIT 1",
+            (account_id,),
+        ).fetchone()
+        return row is not None
+
+
+def _has_connected_source(account_id: str) -> bool:
+    with connect() as conn:
+        row = conn.execute(
+            "SELECT 1 FROM integrations WHERE account_id = ? LIMIT 1",
+            (account_id,),
+        ).fetchone()
+        return row is not None
+
+
+def get_onboarding(account_id: str) -> dict[str, Any]:
+    with connect() as conn:
+        row = conn.execute(
+            "SELECT account_id, steps, dismissed, completed_at, updated_at FROM onboarding_progress WHERE account_id = ?",
+            (account_id,),
+        ).fetchone()
+    stored = _parse_json((row or {}).get("steps"), {}) if row else {}
+    dismissed = bool((row or {}).get("dismissed")) if row else False
+
+    sub = get_subscription(account_id) or {}
+    plan_id = sub.get("plan") or "free"
+    sub_status = sub.get("status") or "active"
+    plan_activated = plan_id != "free" or sub_status in {"active", "trialing"} and bool(stored.get("plan_confirmed"))
+
+    computed = {
+        "account_created": True,
+        "plan_activated": bool(plan_activated),
+        "source_connected": _has_connected_source(account_id),
+        "import_completed": _has_completed_import(account_id),
+        "first_question": _has_any_question(account_id),
+    }
+    # explicit overrides (allow marking done, never force-false computed truths except plan_confirmed)
+    merged: dict[str, bool] = {}
+    for step in ONBOARDING_STEP_DEFS:
+        sid = step["id"]
+        explicit = stored.get(sid)
+        if sid == "plan_activated":
+            merged[sid] = bool(computed[sid] or explicit)
+        else:
+            merged[sid] = bool(computed[sid] or explicit)
+
+    steps = []
+    done = 0
+    for step in ONBOARDING_STEP_DEFS:
+        ok = bool(merged.get(step["id"]))
+        if ok:
+            done += 1
+        steps.append({**step, "done": ok})
+    total = len(steps)
+    completed = done >= total
+
+    # persist lightweight snapshot if missing/completed state changed
+    now = now_iso()
+    completed_at = (row or {}).get("completed_at") if row else None
+    if completed and not completed_at:
+        completed_at = now
+    if not completed:
+        completed_at = None
+    with connect() as conn:
+        conn.execute(
+            """
+            INSERT INTO onboarding_progress (account_id, steps, dismissed, completed_at, updated_at)
+            VALUES (?, ?, ?, ?, ?)
+            ON CONFLICT(account_id) DO UPDATE SET
+                steps = excluded.steps,
+                dismissed = onboarding_progress.dismissed,
+                completed_at = excluded.completed_at,
+                updated_at = excluded.updated_at
+            """,
+            (account_id, json.dumps(merged), bool(dismissed), completed_at, now),
+        )
+
+    return {
+        "account_id": account_id,
+        "steps": steps,
+        "done_count": done,
+        "total_count": total,
+        "completed": completed,
+        "dismissed": dismissed,
+        "completed_at": completed_at,
+        "updated_at": now,
+    }
+
+
+def update_onboarding(
+    account_id: str,
+    *,
+    steps: dict[str, Any] | None = None,
+    dismissed: bool | None = None,
+    mark_complete: bool = False,
+) -> dict[str, Any]:
+    current = get_onboarding(account_id)
+    # load stored raw
+    with connect() as conn:
+        row = conn.execute(
+            "SELECT steps, dismissed FROM onboarding_progress WHERE account_id = ?",
+            (account_id,),
+        ).fetchone()
+    stored = _parse_json((row or {}).get("steps"), {}) if row else {}
+    if steps:
+        for k, v in steps.items():
+            if k in {s["id"] for s in ONBOARDING_STEP_DEFS} or k == "plan_confirmed":
+                stored[k] = bool(v)
+    if mark_complete:
+        for sdef in ONBOARDING_STEP_DEFS:
+            stored[sdef["id"]] = True
+    new_dismissed = current["dismissed"] if dismissed is None else bool(dismissed)
+    now = now_iso()
+    with connect() as conn:
+        conn.execute(
+            """
+            INSERT INTO onboarding_progress (account_id, steps, dismissed, completed_at, updated_at)
+            VALUES (?, ?, ?, ?, ?)
+            ON CONFLICT(account_id) DO UPDATE SET
+                steps = excluded.steps,
+                dismissed = excluded.dismissed,
+                updated_at = excluded.updated_at
+            """,
+            (account_id, json.dumps(stored), new_dismissed, None, now),
+        )
+    return get_onboarding(account_id)

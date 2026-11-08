@@ -41,6 +41,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app import auth as auth_service
 from app import billing as billing_service
 from app import github as github_service
+from app import integrations as integrations_service
 from app import plans as plan_service
 from app import store
 from app import usage as usage_service
@@ -141,10 +142,28 @@ class CheckoutRequest(BaseModel):
     plan: str = Field(min_length=2, max_length=40)
     success_url: str | None = Field(default=None, max_length=500)
     cancel_url: str | None = Field(default=None, max_length=500)
+    trial: bool = Field(default=False)
 
 
 class ApiKeyRequest(BaseModel):
     name: str = Field(default="Default key", min_length=1, max_length=80)
+
+
+class IntegrationRequest(BaseModel):
+    provider: str = Field(min_length=2, max_length=40)
+    name: str | None = Field(default=None, max_length=80)
+    config: dict[str, Any] = Field(default_factory=dict)
+    status: str | None = Field(default=None, max_length=40)
+
+
+class IntegrationImportRequest(BaseModel):
+    payload: dict[str, Any] = Field(default_factory=dict)
+
+
+class OnboardingUpdateRequest(BaseModel):
+    steps: dict[str, bool] = Field(default_factory=dict)
+    dismissed: bool | None = None
+    mark_complete: bool = False
 
 
 _EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
@@ -658,6 +677,133 @@ def revoke_key(key_id: str, request: Request):
 
 
 
+# --------------------------------------------------------------------------- #
+# Integrations & data imports (GitHub, Slack, and other sources)
+# --------------------------------------------------------------------------- #
+
+
+@app.get("/api/integrations/providers")
+def integration_providers(request: Request):
+    auth_service.resolve_identity(request)  # allow public read of catalog; no secrets
+    return {"providers": integrations_service.list_providers()}
+
+
+@app.get("/api/integrations")
+def list_integrations(request: Request):
+    identity = auth_service.require_identity(request)
+    items = [integrations_service.public_integration(i) for i in store.list_integrations(identity.account["id"])]
+    return {"integrations": items, "runs": store.list_import_runs(identity.account["id"], limit=10)}
+
+
+@app.post("/api/integrations")
+def create_integration(req: IntegrationRequest, request: Request):
+    identity = auth_service.require_identity(request)
+    auth_service.require_session(identity)
+    try:
+        item = integrations_service.save_connection(
+            identity.account["id"],
+            integration_id=None,
+            provider=req.provider.lower().strip(),
+            name=req.name,
+            config=req.config,
+            status=req.status or "configured",
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    return {"ok": True, "integration": item}
+
+
+@app.patch("/api/integrations/{integration_id}")
+def update_integration(integration_id: str, req: IntegrationRequest, request: Request):
+    identity = auth_service.require_identity(request)
+    auth_service.require_session(identity)
+    existing = store.get_integration(identity.account["id"], integration_id)
+    if existing is None:
+        raise HTTPException(status_code=404, detail="Integration not found.")
+    try:
+        item = integrations_service.save_connection(
+            identity.account["id"],
+            integration_id=integration_id,
+            provider=req.provider.lower().strip() or existing["provider"],
+            name=req.name or existing.get("name"),
+            config=req.config,
+            status=req.status or existing.get("status"),
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    return {"ok": True, "integration": item}
+
+
+@app.delete("/api/integrations/{integration_id}")
+def delete_integration(integration_id: str, request: Request):
+    identity = auth_service.require_identity(request)
+    auth_service.require_session(identity)
+    if not store.delete_integration(identity.account["id"], integration_id):
+        raise HTTPException(status_code=404, detail="Integration not found.")
+    return {"ok": True}
+
+
+@app.post("/api/integrations/{integration_id}/test")
+def test_integration(integration_id: str, request: Request):
+    identity = auth_service.require_identity(request)
+    auth_service.require_session(identity)
+    existing = store.get_integration(identity.account["id"], integration_id)
+    if existing is None:
+        raise HTTPException(status_code=404, detail="Integration not found.")
+    result = integrations_service.test_connection(existing)
+    store.upsert_integration(
+        identity.account["id"],
+        integration_id=integration_id,
+        provider=existing["provider"],
+        name=existing["name"],
+        status=result.get("status") or ("connected" if result.get("ok") else "error"),
+        config=existing.get("config") or {},
+        last_error=None if result.get("ok") else result.get("message"),
+    )
+    return {"ok": bool(result.get("ok")), "result": result, "integration": integrations_service.public_integration(store.get_integration(identity.account["id"], integration_id))}
+
+
+@app.post("/api/integrations/{integration_id}/import")
+def import_integration(integration_id: str, req: IntegrationImportRequest, request: Request):
+    identity = auth_service.require_identity(request)
+    auth_service.require_session(identity)
+    existing = store.get_integration(identity.account["id"], integration_id)
+    if existing is None:
+        raise HTTPException(status_code=404, detail="Integration not found.")
+    run = integrations_service.run_import(identity.account["id"], existing, payload=req.payload)
+    return {"ok": run.get("status") == "completed", "run": run, "integration": integrations_service.public_integration(store.get_integration(identity.account["id"], integration_id))}
+
+
+@app.get("/api/integrations/runs")
+def list_import_runs(request: Request, limit: int = 20):
+    identity = auth_service.require_identity(request)
+    return {"runs": store.list_import_runs(identity.account["id"], limit=limit)}
+
+
+# --------------------------------------------------------------------------- #
+# Onboarding (zero -> activated)
+# --------------------------------------------------------------------------- #
+
+
+@app.get("/api/onboarding")
+def get_onboarding(request: Request):
+    identity = auth_service.require_identity(request)
+    return {"ok": True, "onboarding": store.get_onboarding(identity.account["id"])}
+
+
+@app.post("/api/onboarding")
+def update_onboarding(req: OnboardingUpdateRequest, request: Request):
+    identity = auth_service.require_identity(request)
+    auth_service.require_session(identity)
+    onboarding = store.update_onboarding(
+        identity.account["id"],
+        steps=req.steps,
+        dismissed=req.dismissed,
+        mark_complete=req.mark_complete,
+    )
+    return {"ok": True, "onboarding": onboarding}
+
+
 @app.get("/api/repo/settings")
 def repo_settings():
     """Return the configured GitHub repository for the current process."""
@@ -742,6 +888,7 @@ def billing_checkout(req: CheckoutRequest, request: Request):
         user=identity.user,
         success_url=req.success_url or f"{base}/?checkout=success",
         cancel_url=req.cancel_url or f"{base}/?checkout=cancelled",
+        trial=req.trial,
     )
     if not result.get("ok"):
         status = 503 if result.get("error") == "billing_not_configured" else 400

@@ -172,7 +172,7 @@ export const PricingSection: React.FC<PricingSectionProps> = ({ onSelectMode }) 
   const currentPlanId = me?.authenticated ? me?.plan?.id : undefined;
   const checkoutConfigured = Boolean(billing?.configured || billing?.local_billing);
 
-  const handleSelect = async (target: Plan) => {
+  const handleSelect = async (target: Plan, trial = false) => {
     setError(null);
     setNotice(null);
 
@@ -201,7 +201,7 @@ export const PricingSection: React.FC<PricingSectionProps> = ({ onSelectMode }) 
 
     setBusy(target.id);
     try {
-      const result = await checkout(target.id);
+      const result = await checkout(target.id, trial);
       if (result.upgraded) {
         setNotice(result.message || `You are now on the ${target.name} plan.`);
       } else if (result.url) {
@@ -401,6 +401,15 @@ export const PricingSection: React.FC<PricingSectionProps> = ({ onSelectMode }) 
                       ? 'Talk to us'
                       : plan.cta}
               </HeronButton>
+              {!isCurrent && plan.id !== 'free' && plan.id !== 'enterprise' && billing?.trial_enabled && (plan.trial_days || billing.trial_days || 0) > 0 && (
+                <button
+                  onClick={() => void handleSelect(plan, true)}
+                  disabled={isBusy}
+                  className={`mt-2 w-full font-mono text-[10px] uppercase font-bold underline underline-offset-2 disabled:opacity-50 ${plan.highlighted ? 'text-white/80 hover:text-white' : 'text-[#e15c46] hover:text-[#282828]'}`}
+                >
+                  or start {plan.trial_days || billing.trial_days}-day free trial{me?.authenticated ? '' : ' (sign up first)'}
+                </button>
+              )}
               </div>
             </Reveal>
           );

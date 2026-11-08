@@ -33,7 +33,7 @@ interface AuthContextValue {
     account_name?: string;
   }) => Promise<MeResponse>;
   logout: () => Promise<void>;
-  checkout: (plan: PlanId) => Promise<CheckoutResponse>;
+  checkout: (plan: PlanId, trial?: boolean) => Promise<CheckoutResponse>;
   portal: () => Promise<void>;
   createKey: (name: string) => Promise<{ key: string; record: ApiKeyRecord }>;
   revokeKey: (id: string) => Promise<void>;
@@ -122,8 +122,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children, onOpenAuth
   }, [refresh]);
 
   const checkout = useCallback(
-    async (plan: PlanId) => {
-      const result = await api.billing.checkout(plan);
+    async (plan: PlanId, trial = false) => {
+      const result = await api.billing.checkout(plan, trial);
       if (result.url) {
         window.location.assign(result.url);
       } else if (result.upgraded) {

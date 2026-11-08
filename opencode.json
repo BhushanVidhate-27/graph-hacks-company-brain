@@ -12,6 +12,15 @@
           "-y",
           "@osaidrajput9/gsap-mcp"
         ]
+      },
+      "krea": {
+        "type": "remote",
+        "url": "https://api.krea.ai/mcp",
+        "timeout": {
+          "startup": 30000,
+          "catalog": 60000,
+          "execution": 180000
+        }
       }
     }
   }

@@ -106,6 +106,7 @@ export interface Plan {
   highlighted: boolean;
   limits: PlanLimits;
   features: string[];
+  trial_days?: number;
 }
 
 export interface User {
@@ -151,6 +152,8 @@ export interface BillingSetup {
   configured: boolean;
   mode: string;
   local_billing: boolean;
+  trial_days?: number;
+  trial_enabled?: boolean;
   required_env: string[];
   missing: string[];
 }
@@ -180,10 +183,66 @@ export interface CheckoutResponse {
   mode?: string;
   upgraded?: boolean;
   plan?: string;
+  status?: string;
+  trial?: boolean;
+  trial_days?: number;
   url?: string;
   session_id?: string;
   message?: string;
   error?: string;
+}
+
+export interface IntegrationProvider {
+  id: string;
+  name: string;
+  category: string;
+  description: string;
+  fields: { key: string; label: string; secret: boolean; required: boolean }[];
+  modes: string[];
+}
+
+export interface Integration {
+  id: string;
+  account_id: string;
+  provider: string;
+  name: string;
+  status: string;
+  config: Record<string, any>;
+  last_sync_at?: string | null;
+  last_error?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ImportRun {
+  id: string;
+  account_id: string;
+  integration_id?: string | null;
+  provider: string;
+  kind: string;
+  status: string;
+  summary: Record<string, any>;
+  error?: string | null;
+  created_at: string;
+  finished_at?: string | null;
+}
+
+export interface OnboardingStep {
+  id: string;
+  title: string;
+  description: string;
+  done: boolean;
+}
+
+export interface Onboarding {
+  account_id: string;
+  steps: OnboardingStep[];
+  done_count: number;
+  total_count: number;
+  completed: boolean;
+  dismissed: boolean;
+  completed_at?: string | null;
+  updated_at?: string;
 }
 
 // --------------------------------------------------------------------------- //
@@ -218,10 +277,10 @@ export const api = {
 
   billing: {
     me: () => request<MeResponse>("/api/billing/me"),
-    checkout: (plan: PlanId) =>
+    checkout: (plan: PlanId, trial = false) =>
       request<CheckoutResponse>("/api/billing/checkout", {
         method: "POST",
-        body: JSON.stringify({ plan }),
+        body: JSON.stringify({ plan, trial }),
       }),
     portal: () =>
       request<{ ok: boolean; url?: string; message?: string }>("/api/billing/portal", {
@@ -244,6 +303,40 @@ export const api = {
 
   usage: () =>
     request<{ plan: string; usage: Usage }>("/api/usage"),
+
+  integrations: {
+    providers: () => request<{ providers: IntegrationProvider[] }>("/api/integrations/providers"),
+    list: () => request<{ integrations: Integration[]; runs: ImportRun[] }>("/api/integrations"),
+    create: (data: { provider: string; name?: string; config?: Record<string, any> }) =>
+      request<{ ok: boolean; integration: Integration }>("/api/integrations", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    update: (id: string, data: { provider: string; name?: string; config?: Record<string, any>; status?: string }) =>
+      request<{ ok: boolean; integration: Integration }>(`/api/integrations/${encodeURIComponent(id)}`, {
+        method: "PATCH",
+        body: JSON.stringify(data),
+      }),
+    remove: (id: string) =>
+      request<{ ok: boolean }>(`/api/integrations/${encodeURIComponent(id)}`, { method: "DELETE" }),
+    test: (id: string) =>
+      request<{ ok: boolean; result: any; integration: Integration }>(`/api/integrations/${encodeURIComponent(id)}/test`, { method: "POST" }),
+    runImport: (id: string, payload?: Record<string, any>) =>
+      request<{ ok: boolean; run: ImportRun; integration: Integration }>(`/api/integrations/${encodeURIComponent(id)}/import`, {
+        method: "POST",
+        body: JSON.stringify({ payload: payload || {} }),
+      }),
+    runs: (limit = 20) => request<{ runs: ImportRun[] }>(`/api/integrations/runs?limit=${limit}`),
+  },
+
+  onboarding: {
+    get: () => request<{ ok: boolean; onboarding: Onboarding }>("/api/onboarding"),
+    update: (data: { steps?: Record<string, boolean>; dismissed?: boolean; mark_complete?: boolean }) =>
+      request<{ ok: boolean; onboarding: Onboarding }>("/api/onboarding", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+  },
 };
 
 export function formatPrice(plan: Plan): string {

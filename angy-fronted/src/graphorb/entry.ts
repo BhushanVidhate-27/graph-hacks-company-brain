@@ -31,7 +31,11 @@ declare global {
   }
 }
 
-if (!window.__graphorbMounted) {
+// TEMPORARILY DISABLED: spider cursor removed at owner request to focus on
+// onboarding + integrations. Re-enable with VITE_GRAPHORB=1 (or remove this guard).
+const GRAPHORB_ENABLED = (import.meta as any).env?.VITE_GRAPHORB === '1';
+
+if (GRAPHORB_ENABLED && !window.__graphorbMounted) {
   window.__graphorbMounted = true;
   const controller: GraphOrbController = mountGraphOrb();
 

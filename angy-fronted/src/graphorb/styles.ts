@@ -73,27 +73,13 @@ export const ORB_CSS = `
   width: var(--orb-art);
   height: var(--orb-art);
   margin: calc(var(--orb-art) / -2) 0 0 calc(var(--orb-art) / -2);
-  border-radius: 50%;
+  overflow: visible;
 }
 
-.graphorb-frame {
+.graphorb-spider {
   position: absolute;
-  inset: 0;
-  background-image: url('/images/graphorb/orb-sheet-v1.png');
-  background-repeat: no-repeat;
-  background-size: calc(var(--orb-art) * 8) var(--orb-art);
-  background-position: calc(var(--i) * var(--orb-art) * -1) 0;
-  opacity: 0;
-  animation: graphorb-frame 8s linear infinite;
-  animation-delay: calc(8s / -8 * var(--i));
-}
-
-@keyframes graphorb-frame {
-  0% { opacity: 0; }
-  2% { opacity: 1; }
-  12% { opacity: 1; }
-  14% { opacity: 0; }
-  100% { opacity: 0; }
+  inset: -2px;
+  background: url('/images/graphorb/spider-lineart.svg') center 44% / contain no-repeat;
 }
 
 .graphorb-orbit {
@@ -123,19 +109,6 @@ export const ORB_CSS = `
   to { transform: rotate(360deg); }
 }
 
-.graphorb-scan {
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  opacity: 0;
-  background: conic-gradient(
-    from 0deg,
-    rgba(225, 92, 70, 0) 0deg,
-    rgba(225, 92, 70, 0.38) 40deg,
-    rgba(225, 92, 70, 0) 80deg
-  );
-}
-
 .graphorb-ripple {
   position: absolute;
   inset: 0;
@@ -159,7 +132,6 @@ export const ORB_CSS = `
 .graphorb-root[data-state="click"] .graphorb-ripple { animation: graphorb-ripple 520ms ease-out; }
 .graphorb-root[data-state="thinking"] { --spin: 2.4s; }
 .graphorb-root[data-state="searching"] { --spin: 2.8s; }
-.graphorb-root[data-state="searching"] .graphorb-scan { opacity: 1; animation: graphorb-scan 1.1s linear infinite; }
 .graphorb-root[data-state="listening"] .graphorb-squash { animation: graphorb-pulse 1.9s ease-in-out infinite; }
 .graphorb-root[data-state="success"] .graphorb-halo { opacity: 1; border-color: rgba(16, 185, 129, 0.85); box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.12); }
 .graphorb-root[data-state="error"] .graphorb-squash { animation: graphorb-shake 420ms cubic-bezier(0.36, 0.07, 0.19, 0.97); }
@@ -170,10 +142,6 @@ export const ORB_CSS = `
 @keyframes graphorb-ripple {
   from { transform: scale(0.72); opacity: 0.85; }
   to { transform: scale(1.9); opacity: 0; }
-}
-
-@keyframes graphorb-scan {
-  to { transform: rotate(360deg); }
 }
 
 @keyframes graphorb-pulse {
@@ -320,16 +288,13 @@ export const ORB_CSS = `
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .graphorb-frame,
+  .graphorb-spider,
   .graphorb-orbit,
-  .graphorb-scan,
   .graphorb-ripple,
   .graphorb-root[data-state="listening"] .graphorb-squash,
   .graphorb-root[data-state="error"] .graphorb-squash {
     animation: none !important;
   }
-  .graphorb-frame { opacity: 0; }
-  .graphorb-frame[data-first="true"] { opacity: 1; }
   .graphorb-squash,
   .graphorb-popup,
   .graphorb-focus {

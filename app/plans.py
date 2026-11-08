@@ -153,10 +153,26 @@ def get_plan(plan_id: str | None) -> dict[str, Any]:
     return PLANS.get((plan_id or "free").lower(), PLANS["free"])
 
 
+def trial_days() -> int:
+    """Default trial length for paid plans. HELIO_TRIAL_DAYS=0 disables trials."""
+
+    try:
+        days = int(os.getenv("HELIO_TRIAL_DAYS", "14"))
+    except ValueError:
+        days = 14
+    return max(0, days)
+
+
 def public_plans() -> list[dict[str, Any]]:
     """Return the catalog in the shape the frontend renders."""
 
-    return [PLANS[key] for key in ("free", "starter", "professional", "enterprise")]
+    days = trial_days()
+    out = []
+    for key in ("free", "starter", "professional", "enterprise"):
+        plan = dict(PLANS[key])
+        plan["trial_days"] = days if key in PAID_PLANS else 0
+        out.append(plan)
+    return out
 
 
 def limit_for(plan_id: str | None, key: str) -> Any:
