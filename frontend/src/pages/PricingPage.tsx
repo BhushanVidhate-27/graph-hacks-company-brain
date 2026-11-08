@@ -1,5 +1,6 @@
 import React from 'react';
 import { PricingSection } from '../components/PricingSection';
+import { MapleFall } from '../components/MapleFall';
 import {
   CtaBand,
   CtaLink,
@@ -39,16 +40,19 @@ const PRICING_FAQS = [
 
 export const PricingPage: React.FC = () => (
   <MarketingShell>
-    <PageHero
-      eyebrow="Pricing"
-      title="Start free. Pay when the graph earns it."
-      lede="Every plan includes the provenance trail, staleness flags and honest negatives. Prices are monthly in USD; annual billing saves roughly 17%."
-    >
-      <CtaLink href="/agent">Ask Helio</CtaLink>
-      <CtaLink href="/how-it-works" variant="outline">See how it works</CtaLink>
-    </PageHero>
+    <div className="relative overflow-hidden">
+      <MapleFall />
+      <PageHero
+        eyebrow="Pricing"
+        title="Start free. Pay when the graph earns it."
+        lede="Every plan includes the provenance trail, staleness flags and honest negatives. Prices are monthly in USD; annual billing saves roughly 17%."
+      >
+        <CtaLink href="/agent">Ask Helio</CtaLink>
+        <CtaLink href="/how-it-works" variant="outline">See how it works</CtaLink>
+      </PageHero>
 
-    <PricingSection onSelectMode={() => { window.location.href = '/account'; }} />
+      <PricingSection onSelectMode={() => { window.location.href = '/account'; }} />
+    </div>
 
     <Section eyebrow="What is included" title="The same evidence on every plan">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">

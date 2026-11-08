@@ -3,7 +3,7 @@ import { motion } from 'motion/react';
 import { HeronButton } from './HeronButton';
 import { CadCrosshair } from './CadCrosshair';
 import { Reveal } from './motion/Reveal';
-import { MapleFall } from './MapleFall';
+
 import { Check, Sparkles, ShieldCheck } from 'lucide-react';
 import { useAuth } from '../lib/auth';
 import {
@@ -238,7 +238,7 @@ export const PricingSection: React.FC<PricingSectionProps> = ({ onSelectMode }) 
       id="pricing-section"
       className="relative w-full py-16 md:py-24 px-4 md:px-8 max-w-7xl mx-auto select-none overflow-hidden"
     >
-      <MapleFall />
+
       {/* Header */}
       <Reveal priority>
         <div className="text-center max-w-3xl mx-auto mb-12">
