@@ -9,6 +9,7 @@ import { RolesSection } from './components/RolesSection';
 import { PricingSection } from './components/PricingSection';
 import { FAQSection } from './components/FAQSection';
 import { Footer } from './components/Footer';
+import { ArchitectureStrip } from './components/ArchitectureStrip';
 import { CodeSnippet, DemoQuestion, DeploymentStrip, IntegrationMarquee, ProofStrip } from './components/LandingExtras';
 import { DeviceViewportFrame } from './components/DeviceViewportFrame';
 import { TraversalBand } from './components/TraversalBand';
@@ -198,6 +199,7 @@ const AppShell: React.FC<AppShellProps> = ({
       <LearnStrip />
 
       <DeploymentStrip />
+      <ArchitectureStrip />
       <ProofStrip />
 
       <Footer onSelectMode={transitionTo} />
