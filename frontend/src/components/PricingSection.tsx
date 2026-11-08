@@ -285,7 +285,7 @@ export const PricingSection: React.FC<PricingSectionProps> = ({ onSelectMode }) 
           const isCurrent = plan.id === currentPlanId;
           const isBusy = busy === plan.id;
           return (
-            <Reveal key={plan.id} delay={index * 0.07} className="h-full">
+            <Reveal key={plan.id} className="h-full" priority>
               <div
                 data-graphorb-title={`${plan.name} plan`}
                 data-graphorb-description={`${plan.tagline} Includes ${plan.credits}.`}
