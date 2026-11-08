@@ -81,17 +81,18 @@
 }
 
 :root {
-  --cl-bg: #ecece4;
-  --cl-primary: #282828;
+  --cl-bg: #0e0e11;
+  --cl-primary: #f2f2f0;
   --cl-brand: #e15c46;
-  --cl-border: rgba(40, 40, 40, 0.25);
+  --cl-border: rgba(255, 255, 255, 0.12);
 }
 
 body {
   background-color: var(--cl-bg);
-  background-image: url('/bg.svg');
-  background-repeat: repeat;
-  background-size: 320px auto;
+  background-image:
+    radial-gradient(1100px 500px at 70% -10%, rgba(225, 92, 70, 0.08), transparent 65%),
+    radial-gradient(800px 460px at 10% 0%, rgba(255, 255, 255, 0.045), transparent 60%);
+  background-repeat: no-repeat;
   color: var(--cl-primary);
   font-family: 'Space Mono', monospace;
   overflow-x: hidden;
@@ -125,7 +126,56 @@ section[id] {
 
 .cad-border-dashed {
   border-style: dashed;
-  border-color: rgba(40, 40, 40, 0.35);
+  border-color: rgba(255, 255, 255, 0.24);
+}
+
+/* Dark surface remap: components authored on cream (#ecece4/#f4f4ec + ink
+   text) read dark without rewriting every section. Tailwind arbitrary values
+   are plain class names, so these post-cascade utilities win on specificity
+   via the extra ancestor. Footer (`.footer-luxe`) is already dark-native. */
+.bg-\[\#ecece4\],
+.bg-\[\#f4f4ec\] {
+  background-color: #141417 !important;
+}
+
+.bg-\[\#ecece4\]\/95 {
+  background-color: rgba(14, 14, 17, 0.92) !important;
+}
+
+.text-\[\#282828\] {
+  color: #f2f2f0 !important;
+}
+
+.text-\[\#5c5c56\] {
+  color: rgba(255, 255, 255, 0.62) !important;
+}
+
+.text-\[\#8a8a80\] {
+  color: rgba(255, 255, 255, 0.62) !important;
+}
+
+.border-\[\#282828\],
+.border-\[\#282828\]\/20 {
+  border-color: rgba(255, 255, 255, 0.22) !important;
+}
+
+.border-\[\#282828\]\/15,
+.border-\[\#282828\]\/20 {
+  border-color: rgba(255, 255, 255, 0.14) !important;
+}
+
+/* Crosshair '+' markers stay visible on dark */
+.cad-plus::before,
+.cad-plus::after {
+  background-color: rgba(255, 255, 255, 0.55);
+}
+
+/* Grid decoration — dark variant */
+.cad-grid-pattern {
+  background-size: 24px 24px;
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.055) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.055) 1px, transparent 1px);
 }
 
 /* Answer comparison. The hatches mark two different kinds of failure: a

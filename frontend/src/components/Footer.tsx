@@ -113,7 +113,7 @@ export const Footer: React.FC<FooterProps> = ({ onSelectMode }) => {
 
         {/* Giant wordmark */}
         <div className="footer-luxe-wordmark-wrap mt-16 md:mt-20" aria-hidden="true">
-          <span className="footer-luxe-wordmark">HELIO</span>
+          <span className="footer-luxe-wordmark">helio</span>
         </div>
 
         {/* Newsletter band */}

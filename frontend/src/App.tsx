@@ -193,7 +193,7 @@ const AppShell: React.FC<AppShellProps> = ({
   );
 
   return (
-    <div className="min-h-screen bg-[#ecece4] text-[#282828] font-mono relative selection:bg-[#e15c46] selection:text-white pb-20">
+    <div className="min-h-screen bg-[#ecece4] text-[#282828] font-mono relative selection:bg-[#e15c46] selection:text-white">
 
       {/* Main Navbar */}
       <Navbar
