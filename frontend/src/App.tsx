@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Navbar } from './components/Navbar';
+import { HeroSection } from './components/HeroSection';
 import { ViolationInspector } from './components/ViolationInspector';
 import { ProblemsSection } from './components/ProblemsSection';
 import { ProductShowcaseSection } from './components/ProductShowcaseSection';
@@ -25,6 +26,9 @@ import { AuthProvider, useAuth } from './lib/auth';
 import { useSwipeNavigation } from './lib/useSwipeNavigation';
 import { MODE_FOR_PATH, PATH_FOR_MODE, TITLE_FOR_MODE } from './lib/appRoutes';
 import { ViewMode } from './types';
+
+// Flip to true to bring back the wordless particle-descent first screen.
+const SHOW_MYSTERY_HERO = false;
 
 // App screens are split out of the marketing bundle. The home page never
 // renders them, and a visitor who only reads the site should not download the
@@ -158,7 +162,11 @@ const AppShell: React.FC<AppShellProps> = ({
   // The full website content
   const renderWebsiteContent = () => (
     <div className="relative w-full">
-      <MysteryHero />
+      {SHOW_MYSTERY_HERO ? (
+        <MysteryHero />
+      ) : (
+        <HeroSection onSelectMode={transitionTo} onNavigateSection={scrollToSection} />
+      )}
 
       <DemoQuestion />
       <IntegrationMarquee />
