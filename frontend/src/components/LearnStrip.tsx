@@ -18,8 +18,7 @@ export const LearnStrip: React.FC = () => (
           The problems behind the product
         </h2>
         <p className="mt-4 font-mono text-sm text-[#5c5c56] leading-relaxed">
-          Guides to ownership, blast radius, on-call tracking and stale documentation.
-          They use the same synthetic company as the demo, so every example can be checked.
+          Guides to ownership, blast radius, on-call, and stale documentation.
         </p>
       </div>
     </Reveal>

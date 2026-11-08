@@ -24,7 +24,7 @@ const FAQS = [
   {
     question: 'Where is the graph stored?',
     answer:
-      'On the managed deployment, the graph runs alongside the API in the hosting environment. On a self-hosted deployment, it runs wherever you put the container and its volume. The public demo uses a synthetic graph and contains no customer records.',
+      'In managed deployments, the graph runs alongside the API in the hosting environment. In self-hosted deployments, it runs in your environment with your storage controls.',
   },
   {
     question: 'Are you SOC 2 or ISO 27001 certified?',
@@ -41,8 +41,8 @@ export const SecurityPage: React.FC = () => (
   <MarketingShell>
     <PageHero
       eyebrow="Security"
-      title="Read-only access. Answers bounded by the graph."
-      lede="Helio is built around a narrow idea: read the records you already keep, answer from the graph, and show the evidence. This page describes what the product does today, including the parts that are not finished."
+      title="Read-only access. Evidence-backed answers."
+      lede="Helio reads connected records, answers from the graph, and returns the evidence behind each response."
     >
       <CtaLink href={`mailto:${CONTACT_EMAIL}?subject=Helio%20security%20question`}>
         Ask a security question
@@ -58,9 +58,8 @@ export const SecurityPage: React.FC = () => (
           The token is supplied by the deployment, not by a visitor.
         </p>
         <p>
-          The graph itself holds service names, team names, people, dependency edges, on-call
-          rotations and decision records. The public demo uses a synthetic company of 185 nodes and
-          is labelled as sample data in the product.
+          The graph stores the relationships needed to answer questions: services, teams, people,
+          dependencies, on-call rotations, and decision records.
         </p>
       </Prose>
     </Section>
@@ -84,9 +83,7 @@ export const SecurityPage: React.FC = () => (
         <div className="cad-border bg-[#f4f4ec] p-6">
           <h3 className="font-mono text-sm font-bold uppercase text-[#282828]">Managed</h3>
           <p className="mt-3 font-mono text-xs text-[#5c5c56] leading-relaxed">
-            The marketing site and API share one HTTPS origin. Sessions use an HTTP-only cookie.
-            The graph runs in the same hosting environment as the API. The public demo is reachable
-            without an account.
+            The site and API run over HTTPS. Sessions use HTTP-only cookies. The graph runs in the same managed environment as the API.
           </p>
         </div>
         <div className="cad-border bg-[#f4f4ec] p-6">
@@ -120,8 +117,8 @@ export const SecurityPage: React.FC = () => (
     <FaqBlock items={FAQS} title="Security questions" id="security-faq" />
 
     <CtaBand
-      title="Need the details before a trial?"
-      body="Send the questionnaire. We will answer it against the current deployment rather than a marketing checklist."
+      title="Need security details?"
+      body="Contact us with your questionnaire and deployment requirements."
     />
   </MarketingShell>
 );

@@ -22,7 +22,7 @@ export const FAQ_ITEMS: FAQItem[] = [
     id: 'faq3',
     question: 'How is the volume-versus-recency trap resolved?',
     answer:
-      'The top committer has 14 commits on payments-gateway, the highest in the sample company. A naive ORDER BY count DESC returns that person even though they left in April 2026. Helio returns volume and recency as two separate signals: the current Platform on-call touched the service most recently on 2026-09-28; the former lead has the most commits, but the last touch was 2026-04-15 and is flagged stale.',
+      'Helio keeps volume and recency as separate signals. A person with the most historical commits is not returned as the current owner if a newer handover or more recent ownership signal exists. Stale activity is flagged with dates.',
   },
   {
     id: 'faq4',
@@ -34,7 +34,7 @@ export const FAQ_ITEMS: FAQItem[] = [
     id: 'faq5',
     question: 'What data does Helio need to answer questions?',
     answer:
-      'A useful graph needs services, the teams that own them, the people on those teams, on-call rotations, dependency edges between services, and decision records with dates. Git history, GitHub issues and pull requests add recency signals. The public demo uses a synthetic company of 185 nodes; it is labelled as sample data throughout the product.',
+      'Helio works best with services, owning teams, people, on-call rotations, dependency relationships, and decision records with dates. Source-control and issue metadata can add recency signals.',
   },
   {
     id: 'faq6',

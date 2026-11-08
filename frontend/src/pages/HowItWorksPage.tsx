@@ -12,13 +12,13 @@ import {
 const STEPS = [
   {
     number: '01',
-    title: 'Connect the records you already keep',
-    body: 'Helio reads services, owning teams, people, dependency edges, on-call rotations and decision records. GitHub issues, pull requests and commits add recency signals. The public demo uses a synthetic company of 185 nodes: 120 people, 20 services, 5 teams and 40 decisions.',
+    title: 'Connect your sources',
+    body: 'Helio ingests services, owning teams, people, dependency edges, on-call rotations, and decision records. GitHub metadata adds recency signals.',
   },
   {
     number: '02',
-    title: 'Turn the question into a traversal',
-    body: 'A question is mapped onto the edges that can answer it. Ownership follows OWNED_BY. Impact follows HAS_DEPENDENT. History follows SUPERSEDES. Paging follows ON_CALL. Text search is used only to find a leaf, never to invent a relationship.',
+    title: 'Resolve the question as a graph traversal',
+    body: 'Questions map to typed relationships: ownership (OWNED_BY), impact (HAS_DEPENDENT), history (SUPERSEDES), and paging (ON_CALL). Search is used to locate entities, not to invent relationships.',
   },
   {
     number: '03',
@@ -67,9 +67,9 @@ const FAQS = [
       'It depends on the sources you connect. Git activity and GitHub issues update on sync. On-call rotations and decision records update when those systems change or are re-imported. Every answer shows the dates it relied on so staleness is visible.',
   },
   {
-    question: 'Can we see it without connecting our data?',
+    question: 'Can we try Helio before connecting data?',
     answer:
-      'Yes. The public demo uses a synthetic company. Open the agent or the graph console and ask about payments-gateway, config-service or the Stripe/Adyen decision.',
+      'Yes. You can explore the product and ask questions in the console before connecting your own sources.',
   },
 ];
 
@@ -77,8 +77,8 @@ export const HowItWorksPage: React.FC = () => (
   <MarketingShell>
     <PageHero
       eyebrow="How it works"
-      title="A graph traversal, not a plausible paragraph."
-      lede="Helio loads the records your engineering organization already keeps into one property graph. A question becomes a bounded traversal over typed edges, and the answer returns with the path and dates it used."
+      title="Answers backed by graph evidence."
+      lede="Helio connects the systems your team already uses, resolves questions as graph traversals, and returns each answer with its path and dates."
     >
       <CtaLink href="/agent">Try the agent</CtaLink>
       <CtaLink href="/learn/knowledge-graph-vs-rag" variant="outline">Graph vs RAG</CtaLink>
@@ -102,14 +102,7 @@ export const HowItWorksPage: React.FC = () => (
       </div>
     </Section>
 
-    <Section eyebrow="Worked example" title="payments-gateway, three questions">
-      <Prose>
-        <p>
-          The sample company is small enough to check by hand. It is also shaped like the problems
-          that make text search fail: a departed top contributor, a three-hop dependency cascade, and
-          a decision that replaced an older document.
-        </p>
-      </Prose>
+    <Section eyebrow="Example" title="Three questions, one service">
       <div className="mt-8 space-y-4 max-w-3xl">
         {WORKED_EXAMPLE.map((item) => (
           <div key={item.question} className="cad-border bg-[#f4f4ec] p-5">
@@ -142,8 +135,8 @@ export const HowItWorksPage: React.FC = () => (
     <FaqBlock items={FAQS} title="How Helio works: common questions" id="how-it-works-faq" />
 
     <CtaBand
-      title="Ask a question you already know the answer to"
-      body="That is the fastest way to judge a company brain. Start with the demo, then open the trail and compare it with what your team believes."
+      title="Verify an answer you already know"
+      body="Ask a question, open the trail, and confirm the path and dates behind the result."
     />
   </MarketingShell>
 );

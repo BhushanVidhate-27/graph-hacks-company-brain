@@ -34,7 +34,7 @@ const BASE_ARTICLES: Article[] = [
         heading: 'Why the top committer is often the wrong answer',
         paragraphs: [
           'A commit count is a history of attention, not a statement of accountability. The person who wrote the most code may have changed teams, left the company, or handed the service over a year ago. A query ordered by commit count returns a confident, checkable-looking answer that is wrong.',
-          'The sample company makes the failure concrete. The former payments lead has 14 commits on payments-gateway, the highest count in the company, but left in April 2026. The current Platform on-call committed on 2026-09-28, and Decision D-21 named the Platform team the accountable owner. The right answer is the current owner, even though the volume signal points at the person who left.',
+          'For example, a former payments lead may have the highest commit count on payments-gateway but left months ago. If Decision D-21 named the Platform team as the accountable owner and that team has recent activity, the current owner is the right answer — even when volume points to the person who left.',
         ],
       },
       {
@@ -114,7 +114,7 @@ const BASE_ARTICLES: Article[] = [
         heading: 'Hop depth changes the response',
         paragraphs: [
           'A direct dependent fails immediately. A service two hops away may degrade or may absorb the failure with a queue. Three hops away is often a monitoring concern rather than an incident. Grouping by depth lets an on-call engineer decide where to look first instead of reading a flat list of 40 names.',
-          'In the sample company, payments-gateway has eight downstream services across three hops. The direct set includes checkout-api, dispute-service, mobile-bff, config-service, notifications and webhook-relay. fraud-scoring and recommendation appear at the next hops.',
+          'For example, a service such as payments-gateway may have downstream dependents across multiple hops — direct callers first, then indirect dependents. A useful analysis groups them by hop depth and identifies any unowned services in the path.',
         ],
       },
       {
@@ -266,7 +266,7 @@ const BASE_ARTICLES: Article[] = [
         heading: 'The escalation path is part of the answer',
         paragraphs: [
           'During an incident, the first name is not always enough. The answer should include the owning team, the active on-call, and the next escalation if the service is unowned or the rotation has a gap.',
-          'A missing on-call edge is as important as a missing owner. config-service has neither in the sample company. The answer states that plainly, which is more useful than a plausible name.',
+          'A missing on-call edge is as important as a missing owner. If a service has no rotation recorded, the answer should state that plainly rather than returning a plausible name.',
         ],
       },
     ],

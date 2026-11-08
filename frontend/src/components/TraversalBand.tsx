@@ -93,7 +93,6 @@ export const TraversalBand: React.FC = () => {
             <span className="text-[10px] md:text-[11px] font-bold uppercase tracking-wide text-[#282828]">
               One query · eight services · three hops
             </span>
-            <span className="text-[9px] uppercase tracking-widest text-[#8a8a80] border border-[#282828]/20 px-1.5 py-0.5">Sample data</span>
           </div>
 
           <div className="flex items-center gap-3 text-[10px] text-[#5c5c56]">

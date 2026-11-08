@@ -104,9 +104,8 @@ export const AnnouncementTicker: React.FC = () => (
       '50 free questions / month',
       'No card required',
       'Every answer shows its path',
-      '14-day free trial',
+      'Self-host or managed',
       'Cancel anytime',
-      'Open-source core',
     ]}
   />
 );

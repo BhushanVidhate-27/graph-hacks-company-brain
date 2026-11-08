@@ -46,7 +46,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onSelectMode, onNaviga
                 size="lg"
                 onClick={() => onSelectMode('chat-widget')}
                 graphorbTitle="Ask Helio a question"
-                graphorbDescription="Opens the Helio agent, where a question is answered from the demo company graph with the full trail attached."
+                graphorbDescription="Open the agent to ask a question and review the evidence trail behind the answer."
                 graphorbAction="Open the agent"
               >
                 Ask Helio a question
@@ -75,8 +75,8 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onSelectMode, onNaviga
         {/* Right 4 Cols: HUD (desktop only — mobile keeps headline + CTA) */}
         <Reveal className="lg:col-span-4 hidden lg:block" delay={0.3} y={22} priority>
           <div
-            data-graphorb-title="What the graph can answer"
-            data-graphorb-description="Four question types the demo graph answers: blast radius, expertise, decision provenance and honest negatives. This card outlines them; the comparison below shows real answers."
+            data-graphorb-title="What Helio can answer"
+            data-graphorb-description="Ownership, blast radius, decision history, and honest negatives — each with a verifiable evidence trail."
             className="bg-[#f4f4ec] cad-border p-6 relative transition-transform duration-300 hover:-translate-y-1"
           >
             <CadCrosshair position="tl" />

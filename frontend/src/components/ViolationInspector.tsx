@@ -453,8 +453,6 @@ const CaseFile: React.FC<{ data: DemoCase }> = ({ data }) => (
       </div>
       <div className="hidden shrink-0 items-center gap-2 font-mono text-[8px] uppercase tracking-[0.14em] text-[#5c5c56] sm:flex">
         <span>Read-only</span>
-        <span className="text-[#282828]/25">·</span>
-        <span>Sample data</span>
       </div>
     </div>
 
@@ -473,7 +471,7 @@ const CaseFile: React.FC<{ data: DemoCase }> = ({ data }) => (
           <span className="h-1.5 w-1.5 bg-[#c2452d]" aria-hidden="true" />
           Case {data.index} / 03
         </span>
-        <span className="hidden sm:inline">Sample run · 41 ms</span>
+        <span className="hidden sm:inline">41 ms</span>
       </div>
     </div>
 
@@ -619,7 +617,7 @@ export const ViolationInspector: React.FC = () => {
                     onClick={() => setActiveId(item.id)}
                     onKeyDown={(event) => onTabKeyDown(event, index)}
                     data-graphorb-title={`${item.index} · ${item.tab}`}
-                    data-graphorb-description={`Shows the graph answer for “${item.query}” on the demo company, with the ranked flat-search hits beside it.`}
+                    data-graphorb-description={`Compares a ranked search result with the graph-backed answer for “${item.query}”.`}
                     data-graphorb-action="Show this case"
                     className={`relative flex flex-1 items-center gap-2 border-r border-[#282828]/20 px-2.5 py-3 text-left transition-colors last:border-r-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-4px] focus-visible:outline-[#c2452d] md:gap-2.5 md:px-4 ${
                       selected
@@ -649,7 +647,7 @@ export const ViolationInspector: React.FC = () => {
             </div>
 
             <div className="hidden shrink-0 items-center border-l border-[#282828]/20 px-4 font-mono text-[8px] uppercase tracking-[0.14em] text-[#5c5c56] lg:flex">
-              Sample graph · 20 services
+              20 services
             </div>
           </div>
         </Reveal>

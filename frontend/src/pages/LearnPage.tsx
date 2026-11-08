@@ -17,7 +17,7 @@ const SUMMARIES: Record<string, string> = {
   '/learn/service-ownership-checklist':
     'The four non-negotiables, the monthly review and the failure modes that make an ownership record go stale.',
   '/learn/service-ownership-tools':
-    'The five capabilities that separate an ownership system from a spreadsheet, plus demo questions that expose weak tools.',
+    'The capabilities that separate an ownership system from a spreadsheet, and how to evaluate them.',
   '/learn/who-owns-this-service':
     'Why the top committer is often the wrong answer, and the four signals that produce an owner you can act on.',
   '/learn/blast-radius-analysis':
@@ -34,10 +34,10 @@ export const LearnPage: React.FC = () => (
   <MarketingShell>
     <PageHero
       eyebrow="Learn"
-      title="Guides for the questions search cannot answer."
-      lede="Practical notes on service ownership, blast radius, on-call tracking, stale documentation and the difference between a knowledge graph and RAG. Each guide uses the same synthetic company as the demo."
+      title="Guides for ownership, impact, and evidence."
+      lede="Practical guides on service ownership, blast radius, on-call, stale documentation, and knowledge graphs."
     >
-      <CtaLink href="/agent">Try the demo graph</CtaLink>
+      <CtaLink href="/agent">Open the console</CtaLink>
       <CtaLink href="/how-it-works" variant="outline">How Helio works</CtaLink>
     </PageHero>
 
@@ -67,8 +67,8 @@ export const LearnPage: React.FC = () => (
     </Section>
 
     <CtaBand
-      title="See the graph behind the guides"
-      body="The demo uses the same payments-gateway company described in these articles: 185 nodes, eight downstream services and one deliberately unowned service."
+      title="See it in the product"
+      body="Ask an ownership or impact question in the console and inspect the evidence trail behind the answer."
     />
   </MarketingShell>
 );
@@ -76,7 +76,7 @@ export const LearnPage: React.FC = () => (
 export const ArticlePage: React.FC<{ article: Article }> = ({ article }) => (
   <MarketingShell>
     <PageHero eyebrow={article.eyebrow} title={article.h1} lede={article.answer}>
-      <CtaLink href="/agent">Ask the demo</CtaLink>
+      <CtaLink href="/agent">Open the console</CtaLink>
       <CtaLink href="/pricing" variant="outline">See pricing</CtaLink>
     </PageHero>
 
@@ -146,8 +146,8 @@ export const ArticlePage: React.FC<{ article: Article }> = ({ article }) => (
     <FaqBlock items={article.faqs} title="Questions about this guide" id="article-faq" />
 
     <CtaBand
-      title="Check the example yourself"
-      body="Open the agent, ask about payments-gateway or config-service, and compare the trail with the worked example in this guide."
+      title="Try it in Helio"
+      body="Open the console, ask an ownership or impact question, and review the evidence trail."
     />
   </MarketingShell>
 );

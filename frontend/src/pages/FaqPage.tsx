@@ -15,9 +15,9 @@ export const FaqPage: React.FC = () => (
     <PageHero
       eyebrow="FAQ"
       title="Questions about ownership, impact and evidence."
-      lede="Short answers to the questions buyers ask before connecting a repository. If your question is not here, email us and we will answer it against the current product."
+      lede="Answers to common questions about Helio, pricing, security, and integrations."
     >
-      <CtaLink href="/agent">Try the demo</CtaLink>
+      <CtaLink href="/agent">Open the console</CtaLink>
       <CtaLink href="/security" variant="outline">Security details</CtaLink>
     </PageHero>
 
@@ -42,7 +42,7 @@ export const FaqPage: React.FC = () => (
 
     <CtaBand
       title="Still deciding?"
-      body="Ask the demo a question you can verify, then open the trail. That tells you more than another feature list."
+      body="Ask a question in the console and review the evidence trail behind the answer."
     />
   </MarketingShell>
 );

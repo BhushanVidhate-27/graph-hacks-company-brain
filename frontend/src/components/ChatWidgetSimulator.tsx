@@ -696,7 +696,7 @@ export const ChatWidgetSimulator: React.FC = () => {
           <div className="flex items-center gap-2">
             <span className={`w-2.5 h-2.5 rounded-full ${backendStatus === 'connected' ? 'bg-emerald-400 animate-pulse' : backendStatus === 'checking' ? 'bg-amber-400 animate-spin' : 'bg-rose-400'}`} />
             <span className="font-bold tracking-wider text-sm">HELIO AGENT</span>
-            <span className="px-1.5 py-0.5 bg-[#1c1c1b] border border-white/20 text-[9px] uppercase tracking-widest text-white/60">Sample data</span>
+            <span className="px-1.5 py-0.5 bg-[#1c1c1b] border border-white/20 text-[9px] uppercase tracking-widest text-white/60">Console</span>
           </div>
 
           <div className="hidden sm:flex items-center gap-1.5 px-2 py-0.5 bg-[#1c1c1b] cad-border text-[10px] text-white/80">
@@ -729,10 +729,10 @@ export const ChatWidgetSimulator: React.FC = () => {
               className={`px-2.5 py-1 flex items-center gap-1.5 transition-colors ${
                 executionMode === 'simulation' ? 'bg-[#e15c46] text-white font-bold' : 'text-white/60 hover:text-white'
               }`}
-              title="Deterministic instant offline verification engine"
+              title="Use built-in example answers"
             >
               <Zap className="w-3 h-3" />
-              <span>SAMPLE ANSWERS</span>
+              <span>EXAMPLES</span>
             </button>
           </div>
 

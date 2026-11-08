@@ -257,7 +257,7 @@ export const OWNERSHIP_ARTICLES: Article[] = [
       {
         heading: 'A text field is not an ownership system',
         paragraphs: [
-          'A wiki table with an "owner" column looks like an ownership system until someone changes teams. It has no dates, no relationships and no way to answer what breaks when the service fails. The first question in a demo should be "what happens when this field is wrong?"',
+          'A wiki table with an "owner" column looks like an ownership system until someone changes teams. It has no dates, no relationships, and no way to answer what breaks when the service fails. Ask: "what happens when this field is wrong?"',
           'An ownership system needs to represent the service, the team, the on-call rotation, the dependencies and the decisions as separate records that link to each other. That is what makes the answer checkable.',
         ],
       },

@@ -4,9 +4,9 @@ import { Reveal } from './motion/Reveal';
 import { TickerBar } from './TickerBar';
 
 const SOURCES = [
-  { tag: 'call transcript', label: 'Renewal call — Oct 12' },
+  { tag: 'call transcript', label: 'Customer call' },
   { tag: 'ticket', label: 'ENG-214' },
-  { tag: 'slack', label: '#acme-renewal' },
+  { tag: 'slack', label: '#renewal' },
 ];
 
 const INTEGRATIONS = ['GitHub', 'Slack', 'Jira', 'Linear', 'Notion', 'Webhook', 'CSV'];
@@ -71,12 +71,12 @@ export const DemoQuestion: React.FC = () => (
   <section className="relative w-full px-4 md:px-8 py-12 md:py-16 max-w-7xl mx-auto">
     <Reveal>
       <div className="border border-white/10 bg-white/[0.02] p-5 md:p-7">
-        <div className="font-mono text-[10px] uppercase tracking-widest text-[#f08a75] font-bold">Live demo</div>
+        <div className="font-mono text-[10px] uppercase tracking-widest text-[#f08a75] font-bold">Example</div>
         <div className="mt-3 font-mono text-xl md:text-2xl font-bold uppercase tracking-tight text-white">
-          What is blocking the Acme deal?
+          What is blocking the renewal?
         </div>
         <p className="mt-3 max-w-2xl font-mono text-xs md:text-sm text-white/60 leading-relaxed">
-          SSO — requested in the renewal call, still open with Engineering.
+          SSO — requested in a customer call, still open with Engineering.
         </p>
         <div className="mt-4 flex flex-wrap gap-2">
           {SOURCES.map((s) => (
@@ -88,7 +88,7 @@ export const DemoQuestion: React.FC = () => (
         </div>
         <div className="mt-5">
           <a href="/agent" className="inline-flex items-center gap-2 bg-[#e15c46] px-5 py-3 font-mono text-xs font-bold uppercase tracking-wider text-white hover:bg-[#c2452d] transition-colors">
-            Try it on your data <ArrowRight className="size-3.5" aria-hidden="true" />
+            Open the console <ArrowRight className="size-3.5" aria-hidden="true" />
           </a>
         </div>
       </div>

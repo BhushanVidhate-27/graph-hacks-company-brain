@@ -18,7 +18,7 @@ const SOURCES = [
   {
     name: 'Services and dependencies',
     status: 'Available',
-    body: 'Services, owning teams and HAS_DEPENDENT edges are loaded from structured records. The demo ships with a 20-service company so the graph can be evaluated before a real import.',
+    body: 'Import services, owning teams, and dependency relationships from structured records.',
   },
   {
     name: 'On-call rotations',
@@ -49,9 +49,9 @@ const FAQS = [
       'No. It reads issues, pull requests and commit metadata for the repository named in the deployment. It does not comment, merge, label or change issues.',
   },
   {
-    question: 'Can we import our own services and dependencies?',
+    question: 'Can we import services and dependencies?',
     answer:
-      'Yes. Services, teams, people, dependencies, on-call rotations and decisions are loaded as structured records. The loader is the same one used to build the demo company, so the shape is documented in the repository.',
+      'Yes. Services, teams, people, dependencies, on-call rotations, and decisions can be imported as structured records.',
   },
   {
     question: 'Is there a real-time PagerDuty sync?',
@@ -72,7 +72,7 @@ export const IntegrationsPage: React.FC = () => (
       title="Connect the records that answer the question."
       lede="Helio is not another place to write documentation. It reads the systems that already hold ownership, dependencies, on-call rotations and decisions, then joins them in one graph."
     >
-      <CtaLink href="/agent">See the demo graph</CtaLink>
+      <CtaLink href="/agent">Open the console</CtaLink>
       <CtaLink href="/how-it-works" variant="outline">How the graph works</CtaLink>
     </PageHero>
 

@@ -46,7 +46,7 @@ export const NotFoundPage: React.FC = () => (
     </section>
     <CtaBand
       title="Looking for the product?"
-      body="Start with the demo company. It needs no account and every answer shows its trail."
+      body="Open the console to ask questions and review the evidence trail behind each answer."
     />
   </MarketingShell>
 );

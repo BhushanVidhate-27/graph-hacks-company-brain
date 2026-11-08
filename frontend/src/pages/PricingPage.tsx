@@ -14,27 +14,27 @@ const PRICING_FAQS = [
   {
     question: 'What counts as a question?',
     answer:
-      'One answer from the Helio agent counts as one question. Asking a follow-up in the same thread counts as another answer. Browsing the graph console or reading the demo does not use the allowance.',
+      'Each agent answer counts as one question. Follow-ups count separately. Browsing the console does not use your allowance.',
   },
   {
-    question: 'What happens when we hit the monthly limit?',
+    question: 'What happens at the monthly limit?',
     answer:
-      'Questions pause until the next month or until you move to a larger plan. Helio does not charge an automatic overage fee. The account page shows usage against the limit.',
+      'Questions pause until the next billing cycle or an upgrade. No automatic overage charges. Usage is visible in your account.',
   },
   {
-    question: 'Are seats really included?',
+    question: 'Are seats included?',
     answer:
-      'Yes. Free includes one seat, Starter three, Professional ten, and Enterprise unlimited seats. A seat is a person who can sign in; there is no separate per-viewer charge for reading an answer trail.',
+      'Yes. Free includes 1 seat, Starter 3, Professional 10, and Enterprise unlimited.',
   },
   {
-    question: 'Can we cancel or change plans?',
+    question: 'Can I cancel or change plans?',
     answer:
-      'Yes. Plans are monthly and can be changed from the billing portal. Cancelling keeps the free plan available; the paid features stop at the end of the paid period.',
+      'Yes. Plans are monthly and can be changed from the billing portal. Paid features remain active until the end of the billing period after cancellation.',
   },
   {
-    question: 'Is there a self-hosted option?',
+    question: 'Can Helio be self-hosted?',
     answer:
-      'The repository includes a Docker setup for the graph, API and frontend, so the system can run inside your own network. Enterprise covers a dedicated graph instance and onboarding help.',
+      'Yes. Helio can run in your own environment with Docker. Enterprise includes a dedicated instance and onboarding support.',
   },
 ];
 
@@ -45,7 +45,7 @@ export const PricingPage: React.FC = () => (
       <PageHero
         eyebrow="Pricing"
         title="Start free. Pay when the graph earns it."
-        lede="Every plan includes the provenance trail, staleness flags and honest negatives. Prices are monthly in USD; annual billing saves roughly 17%."
+        lede="Every plan includes the provenance trail, staleness signals, and honest negatives. Billed monthly in USD; annual billing saves ~17%."
       >
         <CtaLink href="/agent">Ask Helio</CtaLink>
         <CtaLink href="/how-it-works" variant="outline">See how it works</CtaLink>
@@ -54,20 +54,20 @@ export const PricingPage: React.FC = () => (
       <PricingSection onSelectMode={() => { window.location.href = '/account'; }} />
     </div>
 
-    <Section eyebrow="What is included" title="The same evidence on every plan">
+    <Section eyebrow="Included" title="Evidence on every plan">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         {[
           {
-            title: 'The path, not just the answer',
-            body: 'Each response lists the nodes, edges and dates it used. If an edge is missing, the answer says so.',
+            title: 'The path behind every answer',
+            body: 'Responses include the nodes, edges, and dates used. Missing evidence is reported explicitly.',
           },
           {
-            title: 'Staleness is a first-class signal',
-            body: 'A commit from 2025 and a commit from last week are not treated as equal evidence. Old ownership is flagged, not hidden.',
+            title: 'Staleness signals',
+            body: 'Fresh activity and historical signals are kept separate. Outdated ownership and records are flagged.',
           },
           {
-            title: 'Seats are included',
-            body: 'Plans include 1, 3, 10 or unlimited seats. Reviewers can read a trail without buying another seat.',
+            title: 'Seats included',
+            body: 'Plans include 1, 3, 10, or unlimited seats.',
           },
         ].map((item) => (
           <div key={item.title} className="cad-border bg-[#f4f4ec] p-6">
@@ -81,8 +81,8 @@ export const PricingPage: React.FC = () => (
     <FaqBlock items={PRICING_FAQS} title="Pricing questions" id="pricing-faq" />
 
     <CtaBand
-      title="Try it on the sample company"
-      body="The public demo runs on a synthetic 185-node company. Ask an ownership question, then open the trail and check the answer yourself."
+      title="Try Helio before you pay"
+      body="Start free, ask an ownership or impact question, and inspect the trail behind the answer."
     />
   </MarketingShell>
 );
