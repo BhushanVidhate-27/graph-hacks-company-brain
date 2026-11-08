@@ -10,6 +10,67 @@ const SOURCES = [
 
 const INTEGRATIONS = ['GitHub', 'Slack', 'Jira', 'Linear', 'Notion', 'Webhook', 'CSV'];
 
+const SNIPPET = `# ask with provenance
+curl -X POST /ask \\
+  -H "Authorization: Bearer $HELIO_KEY" \\
+  -d '{"question":"Who owns payments?"}'
+
+# python
+import httpx
+r = httpx.post("/ask", json={"question": "Who owns payments?"})
+print(r.json()["trail"])`;
+
+export const CodeSnippet: React.FC = () => {
+  const [copied, setCopied] = React.useState(false);
+  return (
+    <section className="relative w-full px-4 md:px-8 py-12 md:py-16 max-w-7xl mx-auto">
+      <Reveal>
+        <div className="grid items-center gap-8 lg:grid-cols-2">
+          <div>
+            <div className="font-mono text-[10px] uppercase tracking-widest text-[#f08a75] font-bold">Developer</div>
+            <h2 className="mt-3 font-mono text-2xl md:text-3xl font-bold uppercase tracking-tight text-white">Try it in 30 seconds.</h2>
+            <p className="mt-3 font-mono text-xs md:text-sm text-white/55 leading-relaxed">One call. Every answer carries its path.</p>
+          </div>
+          <div className="border border-white/10 bg-[#121215]">
+            <div className="flex items-center justify-between border-b border-white/10 px-4 py-2.5">
+              <span className="font-mono text-[10px] uppercase tracking-widest text-white/45">helio · quickstart</span>
+              <button
+                onClick={() => { navigator.clipboard?.writeText(SNIPPET); setCopied(true); window.setTimeout(() => setCopied(false), 1400); }}
+                className="border border-white/15 px-3 py-1 font-mono text-[10px] uppercase text-white/70 hover:border-[#e15c46] hover:text-white"
+              >
+                {copied ? 'Copied' : 'Copy'}
+              </button>
+            </div>
+            <pre className="overflow-x-auto p-4 font-mono text-[11px] leading-relaxed text-white/75">{SNIPPET}</pre>
+          </div>
+        </div>
+      </Reveal>
+    </section>
+  );
+};
+
+export const ProofStrip: React.FC = () => {
+  const items = [
+    { stat: '100%', label: 'answers with a path' },
+    { stat: '50', label: 'free questions / mo' },
+    { stat: 'SOC 2', label: 'ready · self-host' },
+  ];
+  return (
+    <section className="w-full border-y border-white/10 bg-white/[0.015] px-4 md:px-8 py-8">
+      <div className="mx-auto grid max-w-7xl grid-cols-1 gap-4 sm:grid-cols-3">
+        {items.map((item, i) => (
+          <Reveal key={item.label} delay={i * 0.06}>
+            <div className="text-center sm:text-left">
+              <div className="font-mono text-2xl font-bold text-[#e15c46]">{item.stat}</div>
+              <div className="mt-1 font-mono text-[10px] uppercase tracking-widest text-white/45">{item.label}</div>
+            </div>
+          </Reveal>
+        ))}
+      </div>
+    </section>
+  );
+};
+
 export const DemoQuestion: React.FC = () => (
   <section className="relative w-full px-4 md:px-8 py-12 md:py-16 max-w-7xl mx-auto">
     <Reveal>

@@ -392,6 +392,18 @@ section[id] {
 
 @media (prefers-reduced-motion: reduce) {
   .footer-luxe-link { transition: none; }
+  .helio-dot { animation: none; }
+}
+
+/* Header logo dot — soft blink (helio brand pulse) */
+.helio-dot {
+  background: #e15c46;
+  animation: helio-blink 2.2s ease-in-out infinite;
+}
+
+@keyframes helio-blink {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.35; transform: scale(0.78); }
 }
 
 /* Integration marquee — slow horizontal drift, pauses behind reduced motion */

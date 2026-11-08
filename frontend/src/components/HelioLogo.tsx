@@ -7,37 +7,18 @@ interface HelioLogoProps {
 
 export const HelioLogo: React.FC<HelioLogoProps> = ({ className = '', showText = true }) => {
   return (
-    <div className={`flex items-center gap-3 select-none ${className}`}>
-      {/* Helio Graph Nexus / Node Geometric Mark */}
-      <div className="relative w-7 h-8 flex-shrink-0 flex items-center justify-center">
-        <svg width="28" height="32" viewBox="0 0 34 39" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path
-            d="M17 2L32 10.5V28.5L17 37L2 28.5V10.5L17 2Z"
-            stroke="#282828"
-            strokeWidth="2"
-            fill="none"
-          />
-          <path
-            d="M17 2V19.5M32 28.5L17 19.5M2 28.5L17 19.5"
-            stroke="#282828"
-            strokeWidth="1.5"
-          />
-          {/* Inner core pulse node */}
-          <circle cx="17" cy="19.5" r="3.5" fill="#e15c46" />
-          <circle cx="17" cy="2" r="2" fill="#282828" />
-          <circle cx="32" cy="10.5" r="2" fill="#282828" />
-          <circle cx="32" cy="28.5" r="2" fill="#282828" />
-          <circle cx="17" cy="37" r="2" fill="#282828" />
-          <circle cx="2" cy="28.5" r="2" fill="#282828" />
-          <circle cx="2" cy="10.5" r="2" fill="#282828" />
-        </svg>
-      </div>
-
-      {/* Helio Logotype */}
+    <div className={`flex items-center gap-2.5 select-none ${className}`}>
+      <img
+        src="/icons/helio-logo.png"
+        alt="helio logo"
+        className="h-8 w-8 shrink-0 object-contain"
+        width={32}
+        height={32}
+      />
       {showText && (
-        <div className="flex items-center gap-1.5 font-mono font-bold tracking-tight text-xl leading-none text-[#282828]">
-          <span>HELIO</span>
-          <span className="w-1.5 h-1.5 bg-[#e15c46] rounded-full inline-block" />
+        <div className="flex items-center gap-1 font-mono font-bold tracking-tight text-xl leading-none text-[#282828]">
+          <span className="lowercase">helio</span>
+          <span className="helio-dot w-1.5 h-1.5 rounded-full inline-block" aria-hidden="true" />
         </div>
       )}
     </div>

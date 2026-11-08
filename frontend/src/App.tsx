@@ -9,7 +9,7 @@ import { RolesSection } from './components/RolesSection';
 import { PricingSection } from './components/PricingSection';
 import { FAQSection } from './components/FAQSection';
 import { Footer } from './components/Footer';
-import { DemoQuestion, DeploymentStrip, IntegrationMarquee } from './components/LandingExtras';
+import { CodeSnippet, DemoQuestion, DeploymentStrip, IntegrationMarquee, ProofStrip } from './components/LandingExtras';
 import { DeviceViewportFrame } from './components/DeviceViewportFrame';
 import { TraversalBand } from './components/TraversalBand';
 import { LearnStrip } from './components/LearnStrip';
@@ -164,6 +164,7 @@ const AppShell: React.FC<AppShellProps> = ({
 
       <DemoQuestion />
       <IntegrationMarquee />
+      <CodeSnippet />
 
       <div className="cad-border-t border-[#282828]/15" />
       <TraversalBand />
@@ -193,6 +194,7 @@ const AppShell: React.FC<AppShellProps> = ({
       <LearnStrip />
 
       <DeploymentStrip />
+      <ProofStrip />
 
       <Footer onSelectMode={transitionTo} />
     </div>
