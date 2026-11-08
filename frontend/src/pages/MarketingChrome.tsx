@@ -115,8 +115,7 @@ export const SiteFooter: React.FC = () => (
         <div className="lg:col-span-4 space-y-5">
           <HelioLogo showText />
           <p className="font-mono text-xs text-[#5c5c56] max-w-sm leading-relaxed">
-            Helio is a company brain for engineering teams. It answers who owns what, what breaks
-            when a service fails, and where a decision was made — with the path behind every answer.
+            Company brain for engineering teams.
           </p>
           <div className="bg-[#ecece4] cad-border p-4 text-[11px] font-mono text-[#5c5c56] space-y-2">
             <div className="text-[#282828] font-bold">CONTACT</div>
@@ -190,6 +189,12 @@ export const MarketingShell: React.FC<{ children: React.ReactNode }> = ({ childr
   </AuthProvider>
 );
 
+const firstSentence = (s: string) => {
+  const normalized = s.replace(/\s+/g, ' ').trim();
+  const match = normalized.match(/^[^.!?]+[.!?]?/);
+  return match ? match[0] : normalized;
+};
+
 export const PageHero: React.FC<{
   eyebrow: string;
   title: string;
@@ -204,7 +209,7 @@ export const PageHero: React.FC<{
       {title}
     </h1>
     <p className="mt-6 max-w-3xl font-mono text-sm md:text-base text-[#5c5c56] leading-relaxed">
-      {lede}
+      {firstSentence(lede)}
     </p>
     {children ? <div className="mt-8 flex flex-wrap items-center gap-4">{children}</div> : null}
   </section>

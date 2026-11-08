@@ -34,10 +34,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onSelectMode, onNaviga
 
           <Reveal delay={0.35} y={14} priority>
             <div className="mt-8 max-w-2xl text-[14px] md:text-[16px] font-mono text-[#5c5c56] leading-relaxed">
-              Helio connects your repositories, on-call rotations and decision records into one graph.
-              Ask who really knows a system, what fails downstream, or why it was built that way —
-              and get an answer with <span className="text-[#282828] font-bold">the path that proves it</span>.
-              When the graph has no answer, Helio says so instead of guessing.
+              One graph. Every answer shows its path.
             </div>
           </Reveal>
 
@@ -65,9 +62,6 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onSelectMode, onNaviga
                 <ArrowDown className="w-3.5 h-3.5" />
               </button>
             </div>
-            <div className="mt-4 font-mono text-[10px] text-[#8a8a80]">
-              Demo data · no signup to look around
-            </div>
           </Reveal>
         </div>
 
@@ -87,32 +81,32 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onSelectMode, onNaviga
               <div className="flex items-start gap-3">
                 <Network className="w-4 h-4 text-[#e15c46] flex-shrink-0 mt-0.5" />
                 <div>
-                  <div className="font-bold text-[#282828]">BLAST RADIUS TRAVERSAL</div>
-                  <div className="text-[11px] text-[#5c5c56]">Walks dependency edges to find every downstream service, owning team and on-call engineer.</div>
+                  <div className="font-bold text-[#282828]">BLAST RADIUS</div>
+                  <div className="text-[11px] text-[#5c5c56]">Every downstream owner.</div>
                 </div>
               </div>
 
               <div className="flex items-start gap-3">
                 <GitBranch className="w-4 h-4 text-[#e15c46] flex-shrink-0 mt-0.5" />
                 <div>
-                  <div className="font-bold text-[#282828]">EXPERTISE VOLUME VS RECENCY</div>
-                  <div className="text-[11px] text-[#5c5c56]">Ranks who actually knows a system by contribution volume and recency — not job title.</div>
+                  <div className="font-bold text-[#282828]">EXPERTISE</div>
+                  <div className="text-[11px] text-[#5c5c56]">Who really knows it.</div>
                 </div>
               </div>
 
               <div className="flex items-start gap-3">
                 <ShieldCheck className="w-4 h-4 text-[#e15c46] flex-shrink-0 mt-0.5" />
                 <div>
-                  <div className="font-bold text-[#282828]">DECISION PROVENANCE</div>
-                  <div className="text-[11px] text-[#5c5c56]">Follows decision edges so newer decisions override stale docs, with the full chain shown.</div>
+                  <div className="font-bold text-[#282828]">DECISIONS</div>
+                  <div className="text-[11px] text-[#5c5c56]">Full chain, no stale docs.</div>
                 </div>
               </div>
 
               <div className="flex items-start gap-3">
                 <AlertOctagon className="w-4 h-4 text-[#e15c46] flex-shrink-0 mt-0.5" />
                 <div>
-                  <div className="font-bold text-[#282828]">HONEST NEGATIVES</div>
-                  <div className="text-[11px] text-[#5c5c56]">When the graph has no answer, Helio says so instead of inventing one.</div>
+                  <div className="font-bold text-[#282828]">HONEST “NO”</div>
+                  <div className="text-[11px] text-[#5c5c56]">No answer, no guessing.</div>
                 </div>
               </div>
             </div>

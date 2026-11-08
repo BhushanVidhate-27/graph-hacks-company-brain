@@ -150,9 +150,8 @@ export const Footer: React.FC<FooterProps> = ({ onSelectMode }) => {
                 Subscribe
               </button>
               <p id="footer-newsletter-note" className="text-[11px] leading-relaxed text-white/45 lg:max-w-xs">
-                By signing up you agree to our{' '}
-                <a href="/security" className="underline underline-offset-2 hover:text-white">Terms of Use</a>{' '}
-                and authorize Helio to provide occasional updates. You can opt out at any time.
+                Occasional updates. Unsubscribe anytime.{' '}
+                <a href="/security" className="underline underline-offset-2 hover:text-white">Terms</a>
               </p>
               <p id="footer-newsletter-error" role="alert" className="sr-only">
                 {status === 'error' || (touched && email && !EMAIL_RE.test(email)) ? 'Enter a valid email address.' : ''}
