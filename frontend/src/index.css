@@ -465,3 +465,34 @@ section[id] {
 @media (prefers-reduced-motion: reduce) {
   .maple-fall__leaf { animation: none; opacity: 0; }
 }
+
+/* Mystery landing hero */
+.mystery-hero {
+  position: relative;
+}
+
+.mystery-core {
+  filter: drop-shadow(0 0 70px rgba(225, 92, 70, 0.55));
+  animation: mystery-pulse 4.2s ease-in-out infinite;
+}
+
+@keyframes mystery-pulse {
+  0%, 100% { transform: scale(1); filter: drop-shadow(0 0 46px rgba(225, 92, 70, 0.4)); }
+  50% { transform: scale(1.05); filter: drop-shadow(0 0 90px rgba(225, 92, 70, 0.62)); }
+}
+
+.mystery-chevron {
+  animation: mystery-bob 1.7s ease-in-out infinite;
+}
+
+@keyframes mystery-bob {
+  0%, 100% { transform: translateY(-6px); opacity: 0.45; }
+  50% { transform: translateY(4px); opacity: 0.85; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mystery-core,
+  .mystery-chevron {
+    animation: none;
+  }
+}

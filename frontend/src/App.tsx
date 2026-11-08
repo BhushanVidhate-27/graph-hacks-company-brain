@@ -11,6 +11,7 @@ import { FAQSection } from './components/FAQSection';
 import { Footer } from './components/Footer';
 import { ArchitectureStrip } from './components/ArchitectureStrip';
 import { CodeSnippet, DemoQuestion, DeploymentStrip, IntegrationMarquee, ProofStrip } from './components/LandingExtras';
+import { MysteryHero } from './components/MysteryHero';
 import { DeviceViewportFrame } from './components/DeviceViewportFrame';
 import { TraversalBand } from './components/TraversalBand';
 import { LearnStrip } from './components/LearnStrip';
@@ -158,10 +159,7 @@ const AppShell: React.FC<AppShellProps> = ({
   // The full website content
   const renderWebsiteContent = () => (
     <div className="relative w-full">
-      <HeroSection
-        onSelectMode={transitionTo}
-        onNavigateSection={scrollToSection}
-      />
+      <MysteryHero />
 
       <DemoQuestion />
       <IntegrationMarquee />
