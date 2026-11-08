@@ -4,9 +4,10 @@ import { Plus, Minus } from 'lucide-react';
 import { FAQ_ITEMS } from '../content/faq';
 
 export const FAQSection: React.FC = () => {
-  // Closed by default: the answers open on click only. Scroll and hover must
-  // never change what is expanded.
+  // Hover + click to open: the answer unfolds on mouse-over (or focus/click
+  // on touch). Leaving the row closes it unless it was pinned by click.
   const [openId, setOpenId] = useState<string>('');
+  const [pinnedId, setPinnedId] = useState<string>('');
   const faqs = FAQ_ITEMS;
 
   return (
@@ -23,6 +24,9 @@ export const FAQSection: React.FC = () => {
           return (
             <div
               key={faq.id}
+              onMouseEnter={() => setOpenId(faq.id)}
+              onMouseLeave={() => { if (pinnedId !== faq.id) setOpenId(pinnedId); }}
+              onFocus={() => setOpenId(faq.id)}
               className={`cad-border relative ${isOpen ? 'bg-[#f4f4ec]' : 'bg-[#ecece4]'}`}
             >
               <CadCrosshair position="tl" />
@@ -32,7 +36,11 @@ export const FAQSection: React.FC = () => {
 
               <h3 className="m-0">
                 <button
-                  onClick={() => setOpenId(isOpen ? '' : faq.id)}
+                  onClick={() => {
+                    const next = isOpen ? '' : faq.id;
+                    setOpenId(next);
+                    setPinnedId(isOpen ? '' : faq.id);
+                  }}
                   aria-expanded={isOpen}
                   aria-controls={`${faq.id}-answer`}
                   className="w-full text-left p-6 flex items-center justify-between gap-4 font-mono select-none"
@@ -46,8 +54,8 @@ export const FAQSection: React.FC = () => {
                     </span>
                   </span>
 
-                  <span className={`w-7 h-7 flex items-center justify-center cad-border flex-shrink-0 ${
-                    isOpen ? 'bg-[#e15c46] text-white border-[#e15c46]' : 'bg-white text-[#282828]'
+                  <span className={`w-7 h-7 flex items-center justify-center border flex-shrink-0 bg-[#e15c46] text-white border-[#e15c46] transition-transform ${
+                    isOpen ? 'rotate-180' : ''
                   }`}>
                     {isOpen ? <Minus className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
                   </span>
