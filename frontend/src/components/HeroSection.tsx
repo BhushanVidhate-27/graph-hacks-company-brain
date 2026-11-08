@@ -61,6 +61,12 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onSelectMode, onNaviga
                 See what search misses
                 <ArrowDown className="w-3.5 h-3.5" />
               </button>
+              <button
+                onClick={() => onNavigateSection('pricing-section')}
+                className="border border-white/25 bg-transparent text-white font-mono text-[11px] uppercase tracking-wider px-4 py-2.5 hover:border-[#e15c46] hover:text-[#f08a75] transition-colors"
+              >
+                See pricing
+              </button>
             </div>
           </Reveal>
         </div>
