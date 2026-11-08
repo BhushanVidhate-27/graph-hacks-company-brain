@@ -1106,6 +1106,50 @@ def billing_portal(request: Request):
     return result
 
 
+
+
+@app.get("/api/razorpay/callback")
+def razorpay_callback(request: Request, razorpay_payment_link_id: str | None = None, razorpay_payment_id: str | None = None, razorpay_signature: str | None = None):
+    import hmac, hashlib
+
+    if not razorpay_payment_link_id or not razorpay_payment_id or not razorpay_signature:
+        return JSONResponse(status_code=400, content={"ok": False, "error": "missing_params", "message": "Missing Razorpay callback parameters."})
+    from app import razorpay as razorpay_service
+
+    if not razorpay_service.verify_callback_signature(razorpay_payment_id, razorpay_payment_link_id, razorpay_signature):
+        return JSONResponse(status_code=400, content={"ok": False, "error": "invalid_signature", "message": "Payment verification failed."})
+    activated = razorpay_service.activate_link(razorpay_payment_link_id)
+    if activated is None:
+        return JSONResponse(status_code=404, content={"ok": False, "error": "unknown_link", "message": "Payment link not found."})
+    from fastapi.responses import RedirectResponse
+
+    base = _app_base_url(request)
+    return RedirectResponse(url=f"{base}/?checkout=success", status_code=302)
+
+
+@app.post("/api/razorpay/webhook")
+async def razorpay_webhook(request: Request):
+    body = await request.body()
+    signature = request.headers.get("x-razorpay-signature")
+    from app import razorpay as razorpay_service
+
+    if not razorpay_service.verify_webhook_signature(body, signature):
+        return JSONResponse(status_code=400, content={"ok": False, "error": "invalid_signature"})
+    import json
+
+    try:
+        parsed = json.loads(body or b"{}")
+    except ValueError:
+        parsed = {}
+    event_id = ((parsed.get("payload") or {}).get("payment") or {}).get("entity", {}).get("id")
+    if event_id and store.webhook_seen(event_id):
+        return JSONResponse(status_code=200, content={"ok": True, "duplicate": True})
+    result = razorpay_service.handle_webhook(body, event_id=event_id)
+    if event_id:
+        store.mark_webhook(event_id, parsed.get("event", "razorpay"))
+    return JSONResponse(status_code=200, content=result)
+
+
 @app.post("/api/stripe/webhook")
 async def stripe_webhook(request: Request):
     """Stripe webhook. Verifies the Stripe-Signature header against

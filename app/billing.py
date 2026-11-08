@@ -50,7 +50,16 @@ def stripe_mode() -> str:
     return os.getenv("STRIPE_MODE", "local")
 
 
+def payment_provider() -> str:
+    """Which rail serves checkout: razorpay when keys exist, else stripe, else local."""
+    return (os.getenv("PAYMENT_PROVIDER", "") or ("razorpay" if os.getenv("RAZORPAY_KEY_ID") else "stripe")).lower()
+
+
 def is_configured() -> bool:
+    provider = payment_provider()
+    if provider == "razorpay":
+        from app import razorpay
+        return razorpay.is_configured()
     return plans.billing_configured()
 
 
@@ -59,9 +68,20 @@ def local_billing_enabled() -> bool:
 
 
 def setup_details() -> dict[str, Any]:
+    from app import razorpay as razorpay_service
+
+    provider = payment_provider()
+    razorpay = razorpay_service.setup_details()
+    if provider == "razorpay":
+        return {
+            **razorpay,
+            "local_billing": local_billing_enabled(),
+            "provider": "razorpay",
+        }
     days = plans.trial_days()
     return {
         "configured": is_configured(),
+        "provider": provider,
         "mode": stripe_mode(),
         "local_billing": local_billing_enabled(),
         "trial_days": days,
@@ -167,6 +187,19 @@ def build_checkout(
     trial: bool = False,
 ) -> dict[str, Any]:
     """Create a Stripe Checkout Session for a paid plan, optionally with trial."""
+
+    provider = payment_provider()
+    if provider == "razorpay":
+        from app import razorpay as razorpay_service
+
+        return razorpay_service.build_checkout(
+            plan_id=plan_id,
+            account=account,
+            user=user,
+            success_url=success_url,
+            cancel_url=cancel_url,
+            trial=trial,
+        )
 
     plan = plans.get_plan(plan_id)
     if not plans.is_paid(plan["id"]):
