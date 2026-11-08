@@ -164,10 +164,14 @@ const AppShell: React.FC<AppShellProps> = ({
 
       <DemoQuestion />
       <IntegrationMarquee />
-      <CodeSnippet />
+      <div className="hidden md:block">
+        <CodeSnippet />
+      </div>
 
-      <div className="cad-border-t border-[#282828]/15" />
-      <TraversalBand />
+      <div className="cad-border-t border-[#282828]/15 hidden md:block" />
+      <div className="hidden md:block">
+        <TraversalBand />
+      </div>
 
       <div className="cad-border-t border-[#282828]/15" />
       <ViolationInspector />

@@ -71,8 +71,8 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onSelectMode, onNaviga
           </Reveal>
         </div>
 
-        {/* Right 4 Cols: Technical Metadata HUD Card */}
-        <Reveal className="lg:col-span-4" delay={0.3} y={22} priority>
+        {/* Right 4 Cols: HUD (desktop only — mobile keeps headline + CTA) */}
+        <Reveal className="lg:col-span-4 hidden lg:block" delay={0.3} y={22} priority>
           <div
             data-graphorb-title="What the graph can answer"
             data-graphorb-description="Four question types the demo graph answers: blast radius, expertise, decision provenance and honest negatives. This card outlines them; the comparison below shows real answers."

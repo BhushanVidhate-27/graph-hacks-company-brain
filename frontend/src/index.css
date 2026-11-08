@@ -87,6 +87,28 @@
   --cl-primary: #fafafa;
   --cl-brand: #e15c46;
   --cl-border: rgba(255, 255, 255, 0.09);
+
+  /* Professional black scale (500 = current base #09090b) */
+  --black-100: #fafafa;
+  --black-200: #ececee;
+  --black-300: #c9c9cf;
+  --black-400: #8a8a93;
+  --black-500: #09090b;
+  --black-600: #060608;
+  --black-700: #040405;
+  --black-800: #020203;
+  --black-900: #010102;
+
+  /* Orange scale (500 = current brand #e15c46) */
+  --orange-100: #fde8e1;
+  --orange-200: #fbd0c4;
+  --orange-300: #f6b094;
+  --orange-400: #ee765c;
+  --orange-500: #e15c46;
+  --orange-600: #c2452d;
+  --orange-700: #9e3823;
+  --orange-800: #782c1b;
+  --orange-900: #4a1c12;
 }
 
 body {
@@ -137,11 +159,15 @@ section[id] {
    via the extra ancestor. Footer (`.footer-luxe`) is already dark-native. */
 .bg-\[\#ecece4\],
 .bg-\[\#f4f4ec\] {
-  background-color: #101013 !important;
+  background-color: var(--cl-surface) !important;
 }
 
 .bg-\[\#ecece4\]\/95 {
   background-color: rgba(9, 9, 11, 0.92) !important;
+}
+
+.bg-\[\#282828\] {
+  background-color: var(--cl-elevated);
 }
 
 .text-\[\#282828\] {
