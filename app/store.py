@@ -1003,8 +1003,11 @@ def review_proposal(account_id: str, pid: str, *, approve: bool, reviewer: str =
     now = now_iso()
     new_status = "approved" if approve else "rejected"
     with connect() as conn:
-        conn.execute("UPDATE proposals SET status = ?, reviewed_at = ?, reviewed_by = ? WHERE account_id = ? AND id = ?", (new_status, now, reviewer, account_id, pid))
-        if approve:
+        cur = conn.execute(
+            "UPDATE proposals SET status = ?, reviewed_at = ?, reviewed_by = ? WHERE account_id = ? AND id = ? AND status IN ('pending', 'conflict')",
+            (new_status, now, reviewer, account_id, pid),
+        )
+        if approve and cur.rowcount == 1:
             conn.execute(
                 "INSERT INTO facts (id, account_id, category, text, evidence, confidence, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
                 (new_id("fact"), account_id, prop["category"], prop["text"], json.dumps(prop.get("evidence") or {}), prop.get("confidence", 1.0), "verified", now),

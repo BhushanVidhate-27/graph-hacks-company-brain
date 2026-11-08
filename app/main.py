@@ -904,6 +904,8 @@ def mcp_route(req: McpRequest, request: Request):
     if req.method == "tools/call":
         name = req.params.get("name")
         args = req.params.get("arguments") or {}
+        if not isinstance(args, dict):
+            return {"jsonrpc": "2.0", "id": req.id, "error": {"code": -32602, "message": "Invalid params: 'arguments' must be an object."}}
         if name == "facts":
             return {"jsonrpc": "2.0", "id": req.id, "result": {"content": [{"type": "text", "text": json.dumps(store.list_facts(account_id, limit=20), default=str)}], "isError": False}}
         if name in ("blast_radius", "ownership"):
