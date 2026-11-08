@@ -392,10 +392,32 @@ export const DashboardSimulator: React.FC<Props> = ({ onSelectMode }) => {
             </div>
           ) : (
             <>
+              <div className="mb-4">
+                <span className="block font-mono text-[10px] uppercase tracking-wider text-[#5c5c56] mb-1.5">Quick connect</span>
+                <div className="grid grid-cols-2 gap-2">
+                  {['github', 'slack', 'linear', 'notion'].map((id) => {
+                    const p = (providers.length ? providers : [{ id: 'github', name: 'GitHub' }, { id: 'slack', name: 'Slack' }, { id: 'linear', name: 'Linear' }, { id: 'notion', name: 'Notion' }]).find((x: any) => x.id === id) || { id, name: id };
+                    const active = selectedProviderId === id;
+                    return (
+                      <button
+                        key={id}
+                        type="button"
+                        onClick={() => setSelectedProviderId(id)}
+                        className={`cad-border px-3 py-2.5 text-left font-mono text-xs uppercase flex items-center gap-2 transition-colors ${active ? 'bg-[#282828] text-white border-[#282828]' : 'bg-[#ecece4] text-[#282828] hover:border-[#e15c46]'}`}
+                      >
+                        <span className={active ? 'text-[#e15c46]' : 'text-[#e15c46]'}>{PROVIDER_ICONS[id] || <PlugZap className="w-4 h-4" />}</span>
+                        <span className="font-bold">{p.name}</span>
+                        {id === 'github' && !plan?.limits?.github_sync && <span className={`ml-auto text-[9px] ${active ? 'text-white/60' : 'text-[#5c5c56]'}`}>Starter+</span>}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
               <label className="block mb-3">
                 <span className="block font-mono text-[10px] uppercase tracking-wider text-[#5c5c56] mb-1.5">Provider</span>
                 <select value={selectedProviderId} onChange={(e) => setSelectedProviderId(e.target.value)} className="w-full bg-[#ecece4] cad-border px-3 py-2.5 font-mono text-sm text-[#282828] outline-none focus:border-[#e15c46]">
-                  {(providers.length ? providers : [{ id: 'github', name: 'GitHub' }, { id: 'slack', name: 'Slack' }, { id: 'webhook', name: 'Webhook / Custom API' }]).map((p: any) => (
+                  {(providers.length ? providers : [{ id: 'github', name: 'GitHub' }, { id: 'slack', name: 'Slack' }, { id: 'linear', name: 'Linear' }, { id: 'notion', name: 'Notion' }, { id: 'webhook', name: 'Webhook / Custom API' }]).map((p: any) => (
                     <option key={p.id} value={p.id}>{p.name}{p.category ? ` — ${p.category}` : ''}</option>
                   ))}
                 </select>
