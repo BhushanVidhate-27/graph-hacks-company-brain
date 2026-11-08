@@ -1049,3 +1049,27 @@ def list_audit(account_id: str, limit: int = 20) -> list[dict[str, Any]]:
     with connect() as conn:
         rows = conn.execute("SELECT id, account_id, actor, action, target, meta, created_at FROM audit_log WHERE account_id = ? ORDER BY created_at DESC LIMIT ?", (account_id, max(1, min(limit, 100)))).fetchall()
     return [dict(r) for r in rows]
+
+
+def list_brains(account_id: str) -> list[dict[str, Any]]:
+    with connect() as conn:
+        rows = conn.execute("SELECT id, account_id, kind, name, created_at FROM brains WHERE account_id = ? ORDER BY created_at DESC", (account_id,)).fetchall()
+    return [dict(r) for r in rows]
+
+
+def create_brain(account_id: str, kind: str, name: str) -> dict[str, Any]:
+    kind = (kind or "company").lower()
+    if kind not in {"personal", "company", "agent"}:
+        kind = "company"
+    bid = new_id("brain")
+    now = now_iso()
+    with connect() as conn:
+        conn.execute("INSERT INTO brains (id, account_id, kind, name, created_at) VALUES (?, ?, ?, ?, ?)", (bid, account_id, kind, (name or kind.title())[:80], now))
+    return {"id": bid, "account_id": account_id, "kind": kind, "name": name or kind.title(), "created_at": now}
+
+
+def get_or_create_company_brain(account_id: str) -> dict[str, Any]:
+    existing = [b for b in list_brains(account_id) if b["kind"] == "company"]
+    if existing:
+        return existing[0]
+    return create_brain(account_id, "company", "Company brain")

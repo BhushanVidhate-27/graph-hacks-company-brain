@@ -43,6 +43,7 @@ from app import billing as billing_service
 from app import github as github_service
 from app import guardrails as guard_service
 from app import integrations as integrations_service
+from app import knowledge as knowledge_service
 from app import plans as plan_service
 from app import store
 from app import usage as usage_service
@@ -176,6 +177,12 @@ class ProposalRequest(BaseModel):
 
 class ReviewRequest(BaseModel):
     approve: bool = True
+
+
+class KnowledgeUploadRequest(BaseModel):
+    filename: str = Field(min_length=1, max_length=200)
+    content_b64: str = Field(min_length=1)
+    content_type: str | None = Field(default=None, max_length=100)
 
 
 class InviteRequest(BaseModel):
@@ -826,6 +833,47 @@ def import_integration(integration_id: str, req: IntegrationImportRequest, reque
     return {"ok": run.get("status") == "completed", "run": run, "integration": integrations_service.public_integration(store.get_integration(identity.account["id"], integration_id))}
 
 
+@app.get("/api/brains")
+def list_brains_route(request: Request):
+    identity = auth_service.require_identity(request)
+    return {"brains": store.list_brains(identity.account["id"])}
+
+
+@app.post("/api/brains")
+def create_brain_route(request: Request):
+    identity = auth_service.require_identity(request)
+    auth_service.require_session(identity)
+    kind = "company"
+    brain = store.get_or_create_company_brain(identity.account["id"])
+    return {"ok": True, "brain": brain}
+
+
+@app.post("/api/brains/{kind}")
+def create_brain_kind_route(kind: str, request: Request):
+    identity = auth_service.require_identity(request)
+    auth_service.require_session(identity)
+    import json as _json
+
+    body = request  # use form? simpler: path-only create
+    brain = store.create_brain(identity.account["id"], kind, f"{kind.title()} brain")
+    store.audit(identity.account["id"], "brain.create", brain["id"], {"kind": brain["kind"]}, actor=identity.user.get("email", "owner"))
+    return {"ok": True, "brain": brain}
+
+
+class AgentConnectionRequest(BaseModel):
+    name: str = Field(min_length=1, max_length=80)
+    provider: str = Field(default="opencode", max_length=40)
+
+
+@app.post("/api/agents/connect")
+def connect_agent_route(req: AgentConnectionRequest, request: Request):
+    identity = auth_service.require_identity(request)
+    auth_service.require_session(identity)
+    key_record = store.create_api_key(identity.account["id"], identity.user["id"], req.name)
+    store.audit(identity.account["id"], "agent.connect", req.name, {"provider": req.provider}, actor=identity.user.get("email", "owner"))
+    return {"ok": True, "provider": req.provider, "name": req.name, "api_key": key_record[0], "prefix": key_record[1].get("prefix")}
+
+
 @app.get("/api/integrations/runs")
 def list_import_runs(request: Request, limit: int = 20):
     identity = auth_service.require_identity(request)
@@ -844,6 +892,24 @@ def create_proposal_route(req: ProposalRequest, request: Request):
     item = store.create_proposal(identity.account["id"], category=req.category, text=req.text, evidence=req.evidence, confidence=req.confidence)
     store.audit(identity.account["id"], "proposal.create", item.get("id", ""), {"category": req.category}, actor=identity.user.get("email", "owner"))
     return {"ok": True, "proposal": item}
+
+
+@app.post("/api/knowledge/upload")
+def upload_knowledge(req: KnowledgeUploadRequest, request: Request):
+    identity = auth_service.require_identity(request)
+    auth_service.require_session(identity)
+    import base64
+
+    try:
+        raw = base64.b64decode(req.content_b64, validate=True)
+    except Exception:  # noqa: BLE001
+        raise HTTPException(status_code=422, detail="content_b64 is not valid base64.")
+    try:
+        result = knowledge_service.ingest(identity.account["id"], req.filename, raw)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc))
+    store.audit(identity.account["id"], "knowledge.upload", req.filename, {"proposals": result["proposals"]}, actor=identity.user.get("email", "owner"))
+    return {"ok": True, **result}
 
 
 @app.get("/api/knowledge/proposals")

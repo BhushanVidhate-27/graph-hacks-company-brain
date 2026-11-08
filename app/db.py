@@ -312,6 +312,23 @@ CREATE TABLE IF NOT EXISTS onboarding_progress (
     updated_at TEXT NOT NULL
 );
 
+
+CREATE TABLE IF NOT EXISTS brains (
+    id TEXT PRIMARY KEY,
+    account_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+    kind TEXT NOT NULL,
+    name TEXT NOT NULL,
+    created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_brains_account ON brains(account_id);
+
+CREATE TABLE IF NOT EXISTS sync_cadence (
+    integration_id TEXT PRIMARY KEY REFERENCES integrations(id) ON DELETE CASCADE,
+    interval_hours REAL NOT NULL DEFAULT 6.0,
+    next_run_at TEXT,
+    enabled INTEGER NOT NULL DEFAULT 1,
+    updated_at TEXT NOT NULL
+);
 CREATE TABLE IF NOT EXISTS facts (
     id TEXT PRIMARY KEY,
     account_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
@@ -520,6 +537,24 @@ CREATE TABLE IF NOT EXISTS audit_log (
 );
 CREATE INDEX IF NOT EXISTS idx_audit_account ON audit_log(account_id, created_at);
 
+
+CREATE TABLE IF NOT EXISTS brains (
+    id TEXT PRIMARY KEY,
+    account_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+    kind TEXT NOT NULL,
+    name TEXT NOT NULL,
+    created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_brains_account ON brains(account_id);
+
+CREATE TABLE IF NOT EXISTS sync_cadence (
+    integration_id TEXT PRIMARY KEY REFERENCES integrations(id) ON DELETE CASCADE,
+    interval_hours REAL NOT NULL DEFAULT 6.0,
+    next_run_at TEXT,
+    enabled INTEGER NOT NULL DEFAULT 1,
+    updated_at TEXT NOT NULL
+);
+
 """
 
 MIGRATIONS_SQLITE = [
@@ -603,6 +638,23 @@ MIGRATIONS_SQLITE = [
     )""",
     "CREATE INDEX IF NOT EXISTS idx_audit_account ON audit_log(account_id, created_at)",
 
+
+    """CREATE TABLE IF NOT EXISTS brains (
+        id TEXT PRIMARY KEY,
+        account_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+        kind TEXT NOT NULL,
+        name TEXT NOT NULL,
+        created_at TEXT NOT NULL
+    )""",
+    "CREATE INDEX IF NOT EXISTS idx_brains_account ON brains(account_id)",
+    """CREATE TABLE IF NOT EXISTS sync_cadence (
+        integration_id TEXT PRIMARY KEY REFERENCES integrations(id) ON DELETE CASCADE,
+        interval_hours REAL NOT NULL DEFAULT 6.0,
+        next_run_at TEXT,
+        enabled INTEGER NOT NULL DEFAULT 1,
+        updated_at TEXT NOT NULL
+    )""",
+
 ]
 
 MIGRATIONS_POSTGRES = [
@@ -685,6 +737,23 @@ MIGRATIONS_POSTGRES = [
         created_at TEXT NOT NULL
     )""",
     "CREATE INDEX IF NOT EXISTS idx_audit_account ON audit_log(account_id, created_at)",
+
+
+    """CREATE TABLE IF NOT EXISTS brains (
+        id TEXT PRIMARY KEY,
+        account_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+        kind TEXT NOT NULL,
+        name TEXT NOT NULL,
+        created_at TEXT NOT NULL
+    )""",
+    "CREATE INDEX IF NOT EXISTS idx_brains_account ON brains(account_id)",
+    """CREATE TABLE IF NOT EXISTS sync_cadence (
+        integration_id TEXT PRIMARY KEY REFERENCES integrations(id) ON DELETE CASCADE,
+        interval_hours REAL NOT NULL DEFAULT 6.0,
+        next_run_at TEXT,
+        enabled INTEGER NOT NULL DEFAULT 1,
+        updated_at TEXT NOT NULL
+    )""",
 
 ]
 

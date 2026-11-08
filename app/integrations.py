@@ -94,6 +94,76 @@ PROVIDERS: dict[str, dict[str, Any]] = {
         ],
         "modes": ["test", "import"],
     },
+    "drive": {
+        "id": "drive",
+        "name": "Google Drive",
+        "category": "storage",
+        "description": "Import documents/presentations from Google Drive (PDF, DOCX, PPTX, MD, TXT, CSV).",
+        "fields": [
+            {"key": "access_token", "label": "Google OAuth access token", "secret": True, "required": False},
+            {"key": "folder_id", "label": "Folder ID", "secret": False, "required": False},
+        ],
+        "modes": ["test", "import"],
+    },
+    "salesforce": {
+        "id": "salesforce",
+        "name": "Salesforce",
+        "category": "crm",
+        "description": "Import accounts/contacts/opportunities from Salesforce.",
+        "fields": [
+            {"key": "instance_url", "label": "Instance URL (https://…)", "secret": False, "required": False},
+            {"key": "access_token", "label": "Access token", "secret": True, "required": False},
+        ],
+        "modes": ["test", "import"],
+    },
+    "postgres": {
+        "id": "postgres",
+        "name": "PostgreSQL",
+        "category": "database",
+        "description": "Import selected tables/rows from a Postgres database.",
+        "fields": [
+            {"key": "dsn", "label": "DSN (postgres://…)", "secret": True, "required": False},
+            {"key": "tables", "label": "Tables (comma-separated)", "secret": False, "required": False},
+        ],
+        "modes": ["test", "import"],
+    },
+    "s3": {
+        "id": "s3",
+        "name": "Amazon S3",
+        "category": "storage",
+        "description": "Import documents from S3 buckets.",
+        "fields": [
+            {"key": "bucket", "label": "Bucket", "secret": False, "required": False},
+            {"key": "access_key_id", "label": "AWS access key ID", "secret": True, "required": False},
+            {"key": "secret_access_key", "label": "AWS secret access key", "secret": True, "required": False},
+            {"key": "prefix", "label": "Prefix", "secret": False, "required": False},
+        ],
+        "modes": ["test", "import"],
+    },
+    "zendesk": {
+        "id": "zendesk",
+        "name": "Zendesk",
+        "category": "support",
+        "description": "Import tickets/help articles from Zendesk.",
+        "fields": [
+            {"key": "subdomain", "label": "Subdomain (.zendesk.com)", "secret": False, "required": False},
+            {"key": "email", "label": "Email", "secret": False, "required": False},
+            {"key": "api_token", "label": "API token", "secret": True, "required": False},
+        ],
+        "modes": ["test", "import"],
+    },
+    "teams": {
+        "id": "teams",
+        "name": "Microsoft Teams",
+        "category": "communication",
+        "description": "Import Teams channels/messages via Microsoft Graph.",
+        "fields": [
+            {"key": "access_token", "label": "Graph OAuth access token", "secret": True, "required": False},
+            {"key": "team_id", "label": "Team ID", "secret": False, "required": False},
+            {"key": "channel_id", "label": "Channel ID", "secret": False, "required": False},
+        ],
+        "modes": ["test", "import"],
+    },
     "csv": {
         "id": "csv",
         "name": "CSV / File import",
@@ -289,6 +359,45 @@ def test_connection(integration: dict[str, Any]) -> dict[str, Any]:
     if provider == "csv":
         return {"ok": True, "status": "configured", "message": "CSV/file import source registered. Upload or sync via your ingestion pipeline."}
 
+    if provider == "drive":
+        token = (cfg.get("access_token") or "").strip()
+        if not token:
+            return {"ok": False, "status": "needs_config", "message": "Set Google access token (OAuth)."}
+        ok, body, err = _http_json("GET", "https://www.googleapis.com/drive/v3/about?fields=user", headers={"Authorization": f"Bearer {token}"})
+        return {"ok": ok, "status": "connected" if ok else "error", "message": err or "Google Drive reachable.", "details": body}
+
+    if provider == "salesforce":
+        inst = (cfg.get("instance_url") or "").rstrip("/")
+        token = (cfg.get("access_token") or "").strip()
+        if not inst or not token:
+            return {"ok": False, "status": "needs_config", "message": "Set instance URL and access token."}
+        ok, body, err = _http_json("GET", f"{inst}/services/data/v58.0/limits", headers={"Authorization": f"Bearer {token}"})
+        return {"ok": ok, "status": "connected" if ok else "error", "message": err or "Salesforce reachable.", "details": body}
+
+    if provider == "postgres":
+        dsn = (cfg.get("dsn") or "").strip()
+        if not dsn:
+            return {"ok": False, "status": "needs_config", "message": "Set a Postgres DSN."}
+        return {"ok": True, "status": "configured", "message": "Postgres DSN saved. Use import to pull selected tables."}
+
+    if provider == "s3":
+        if not (cfg.get("bucket") and cfg.get("access_key_id") and cfg.get("secret_access_key")):
+            return {"ok": False, "status": "needs_config", "message": "Set bucket + access/secret key."}
+        return {"ok": True, "status": "configured", "message": "S3 credentials saved. Use import to list objects."}
+
+    if provider == "zendesk":
+        sub = (cfg.get("subdomain") or "").strip()
+        if not sub:
+            return {"ok": False, "status": "needs_config", "message": "Set Zendesk subdomain."}
+        return {"ok": True, "status": "configured", "message": "Zendesk subdomain saved. Use import to pull tickets/articles."}
+
+    if provider == "teams":
+        token = (cfg.get("access_token") or "").strip()
+        if not token:
+            return {"ok": False, "status": "needs_config", "message": "Set Microsoft Graph access token (OAuth)."}
+        ok, body, err = _http_json("GET", "https://graph.microsoft.com/v1.0/me", headers={"Authorization": f"Bearer {token}"})
+        return {"ok": ok, "status": "connected" if ok else "error", "message": err or "Microsoft Graph reachable.", "details": body}
+
     return {"ok": False, "status": "unsupported", "message": f"Provider {provider} has no test handler."}
 
 
@@ -355,7 +464,7 @@ def run_import(account_id: str, integration: dict[str, Any], *, payload: dict[st
             else:
                 raise RuntimeError("Configure a Slack bot token/webhook or pass messages[] payload.")
 
-        elif provider in {"jira", "linear", "notion", "webhook", "csv"}:
+        elif provider in {"jira", "linear", "notion", "webhook", "csv", "drive", "salesforce", "postgres", "s3", "zendesk", "teams"}:
             # Honest MVP: register/configure and accept import payload metadata.
             records = payload.get("records") if isinstance(payload.get("records"), list) else []
             summary = {
