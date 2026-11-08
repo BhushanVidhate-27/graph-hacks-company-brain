@@ -167,6 +167,29 @@ class OnboardingUpdateRequest(BaseModel):
     mark_complete: bool = False
 
 
+class ProposalRequest(BaseModel):
+    category: str = Field(default="general", max_length=40)
+    text: str = Field(min_length=1, max_length=4000)
+    evidence: dict[str, Any] = Field(default_factory=dict)
+    confidence: float = Field(default=0.5, ge=0, le=1)
+
+
+class ReviewRequest(BaseModel):
+    approve: bool = True
+
+
+class InviteRequest(BaseModel):
+    email: str = Field(min_length=3, max_length=120)
+    role: str = Field(default="reader", max_length=20)
+
+
+class McpRequest(BaseModel):
+    jsonrpc: str = "2.0"
+    id: Any = None
+    method: str = Field(min_length=1, max_length=40)
+    params: dict[str, Any] = Field(default_factory=dict)
+
+
 _EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
 
@@ -807,6 +830,86 @@ def import_integration(integration_id: str, req: IntegrationImportRequest, reque
 def list_import_runs(request: Request, limit: int = 20):
     identity = auth_service.require_identity(request)
     return {"runs": store.list_import_runs(identity.account["id"], limit=limit)}
+
+
+# --------------------------------------------------------------------------- #
+# Knowledge: facts / proposals / review / members / audit / MCP (B1, B3, B4, B6)
+# --------------------------------------------------------------------------- #
+
+
+@app.post("/api/knowledge/proposals")
+def create_proposal_route(req: ProposalRequest, request: Request):
+    identity = auth_service.require_identity(request)
+    auth_service.require_session(identity)
+    item = store.create_proposal(identity.account["id"], category=req.category, text=req.text, evidence=req.evidence, confidence=req.confidence)
+    store.audit(identity.account["id"], "proposal.create", item.get("id", ""), {"category": req.category}, actor=identity.user.get("email", "owner"))
+    return {"ok": True, "proposal": item}
+
+
+@app.get("/api/knowledge/proposals")
+def list_proposals_route(request: Request, status: str = "pending"):
+    identity = auth_service.require_identity(request)
+    return {"proposals": store.list_proposals(identity.account["id"], status=status)}
+
+
+@app.post("/api/knowledge/proposals/{pid}/review")
+def review_proposal_route(pid: str, req: ReviewRequest, request: Request):
+    identity = auth_service.require_identity(request)
+    auth_service.require_session(identity)
+    item = store.review_proposal(identity.account["id"], pid, approve=req.approve, reviewer=identity.user.get("email", "owner"))
+    if item is None:
+        raise HTTPException(status_code=404, detail="Proposal not found.")
+    store.audit(identity.account["id"], "proposal.review", pid, {"approve": req.approve}, actor=identity.user.get("email", "owner"))
+    return {"ok": True, "proposal": item}
+
+
+@app.get("/api/knowledge/facts")
+def list_facts_route(request: Request, limit: int = 50):
+    identity = auth_service.require_identity(request)
+    return {"facts": store.list_facts(identity.account["id"], limit=limit)}
+
+
+@app.post("/api/team/invite")
+def invite_route(req: InviteRequest, request: Request):
+    identity = auth_service.require_identity(request)
+    auth_service.require_session(identity)
+    if not _valid_email(req.email):
+        raise HTTPException(status_code=422, detail="Enter a valid email address.")
+    invite = store.invite_member(identity.account["id"], req.email, req.role)
+    store.audit(identity.account["id"], "team.invite", invite.get("email", ""), {"role": invite.get("role")}, actor=identity.user.get("email", "owner"))
+    return {"ok": True, "invite": invite}
+
+
+@app.get("/api/audit")
+def audit_route(request: Request, limit: int = 20):
+    identity = auth_service.require_identity(request)
+    return {"audit": store.list_audit(identity.account["id"], limit=limit)}
+
+
+@app.post("/mcp")
+def mcp_route(req: McpRequest, request: Request):
+    """Minimal MCP surface (B3): tools/list exposes narrow read-only graph tools.
+    Auth via session/API key; aud checked against expected service. Read-only only."""
+    identity = auth_service.require_identity(request)
+    account_id = identity.account["id"]
+    aud = req.params.get("aud")
+    if aud not in (None, "", "helio"):
+        return {"jsonrpc": "2.0", "id": req.id, "error": {"code": -32001, "message": "Invalid audience (aud). Use 'helio'."}}
+    if req.method == "tools/list":
+        return {"jsonrpc": "2.0", "id": req.id, "result": {"tools": [
+            {"name": "blast_radius", "description": "What breaks if a service goes down.", "inputSchema": {"type": "object", "properties": {"service": {"type": "string"}}}},
+            {"name": "ownership", "description": "Who owns a service and who is on call.", "inputSchema": {"type": "object", "properties": {"service": {"type": "string"}}}},
+            {"name": "facts", "description": "Verified company facts for this workspace.", "inputSchema": {"type": "object", "properties": {}}},
+        ]}}
+    if req.method == "tools/call":
+        name = req.params.get("name")
+        args = req.params.get("arguments") or {}
+        if name == "facts":
+            return {"jsonrpc": "2.0", "id": req.id, "result": {"content": [{"type": "text", "text": json.dumps(store.list_facts(account_id, limit=20), default=str)}], "isError": False}}
+        if name in ("blast_radius", "ownership"):
+            return {"jsonrpc": "2.0", "id": req.id, "result": {"content": [{"type": "text", "text": json.dumps({"use": "POST /ask", "question": f"Who owns {args.get('service', '?')}?"}, default=str)}], "isError": False}}
+        return {"jsonrpc": "2.0", "id": req.id, "error": {"code": -32602, "message": f"Unknown tool: {name}"}}
+    return {"jsonrpc": "2.0", "id": req.id, "error": {"code": -32601, "message": f"Method not found: {req.method}"}}
 
 
 # --------------------------------------------------------------------------- #

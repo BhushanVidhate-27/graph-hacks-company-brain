@@ -311,6 +311,55 @@ CREATE TABLE IF NOT EXISTS onboarding_progress (
     completed_at TEXT,
     updated_at TEXT NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS facts (
+    id TEXT PRIMARY KEY,
+    account_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+    category TEXT NOT NULL DEFAULT 'general',
+    text TEXT NOT NULL,
+    evidence TEXT NOT NULL DEFAULT '{}',
+    confidence REAL NOT NULL DEFAULT 1.0,
+    status TEXT NOT NULL DEFAULT 'verified',
+    created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_facts_account ON facts(account_id, created_at);
+
+CREATE TABLE IF NOT EXISTS proposals (
+    id TEXT PRIMARY KEY,
+    account_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+    category TEXT NOT NULL DEFAULT 'general',
+    text TEXT NOT NULL,
+    evidence TEXT NOT NULL DEFAULT '{}',
+    confidence REAL NOT NULL DEFAULT 0.5,
+    status TEXT NOT NULL DEFAULT 'pending',
+    created_at TEXT NOT NULL,
+    reviewed_at TEXT,
+    reviewed_by TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_proposals_account ON proposals(account_id, status, created_at);
+
+CREATE TABLE IF NOT EXISTS workspace_members (
+    id TEXT PRIMARY KEY,
+    account_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+    email TEXT NOT NULL,
+    role TEXT NOT NULL DEFAULT 'reader',
+    token TEXT NOT NULL UNIQUE,
+    expires_at TEXT NOT NULL,
+    accepted_at TEXT,
+    created_at TEXT NOT NULL DEFAULT ''
+);
+CREATE INDEX IF NOT EXISTS idx_members_account ON workspace_members(account_id, created_at);
+
+CREATE TABLE IF NOT EXISTS audit_log (
+    id TEXT PRIMARY KEY,
+    account_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+    actor TEXT NOT NULL DEFAULT 'system',
+    action TEXT NOT NULL,
+    target TEXT NOT NULL DEFAULT '',
+    meta TEXT NOT NULL DEFAULT '{}',
+    created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_audit_account ON audit_log(account_id, created_at);
 """
 
 POSTGRES_SCHEMA = r"""
@@ -421,6 +470,56 @@ CREATE TABLE IF NOT EXISTS onboarding_progress (
     completed_at TEXT,
     updated_at TEXT NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS facts (
+    id TEXT PRIMARY KEY,
+    account_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+    category TEXT NOT NULL DEFAULT 'general',
+    text TEXT NOT NULL,
+    evidence TEXT NOT NULL DEFAULT '{}',
+    confidence REAL NOT NULL DEFAULT 1.0,
+    status TEXT NOT NULL DEFAULT 'verified',
+    created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_facts_account ON facts(account_id, created_at);
+
+CREATE TABLE IF NOT EXISTS proposals (
+    id TEXT PRIMARY KEY,
+    account_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+    category TEXT NOT NULL DEFAULT 'general',
+    text TEXT NOT NULL,
+    evidence TEXT NOT NULL DEFAULT '{}',
+    confidence REAL NOT NULL DEFAULT 0.5,
+    status TEXT NOT NULL DEFAULT 'pending',
+    created_at TEXT NOT NULL,
+    reviewed_at TEXT,
+    reviewed_by TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_proposals_account ON proposals(account_id, status, created_at);
+
+CREATE TABLE IF NOT EXISTS workspace_members (
+    id TEXT PRIMARY KEY,
+    account_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+    email TEXT NOT NULL,
+    role TEXT NOT NULL DEFAULT 'reader',
+    token TEXT NOT NULL UNIQUE,
+    expires_at TEXT NOT NULL,
+    accepted_at TEXT,
+    created_at TEXT NOT NULL DEFAULT ''
+);
+CREATE INDEX IF NOT EXISTS idx_members_account ON workspace_members(account_id, created_at);
+
+CREATE TABLE IF NOT EXISTS audit_log (
+    id TEXT PRIMARY KEY,
+    account_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+    actor TEXT NOT NULL DEFAULT 'system',
+    action TEXT NOT NULL,
+    target TEXT NOT NULL DEFAULT '',
+    meta TEXT NOT NULL DEFAULT '{}',
+    created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_audit_account ON audit_log(account_id, created_at);
+
 """
 
 MIGRATIONS_SQLITE = [
@@ -457,6 +556,53 @@ MIGRATIONS_SQLITE = [
         completed_at TEXT,
         updated_at TEXT NOT NULL
     )""",
+
+    """CREATE TABLE IF NOT EXISTS facts (
+        id TEXT PRIMARY KEY,
+        account_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+        category TEXT NOT NULL DEFAULT 'general',
+        text TEXT NOT NULL,
+        evidence TEXT NOT NULL DEFAULT '{}',
+        confidence REAL NOT NULL DEFAULT 1.0,
+        status TEXT NOT NULL DEFAULT 'verified',
+        created_at TEXT NOT NULL
+    )""",
+    "CREATE INDEX IF NOT EXISTS idx_facts_account ON facts(account_id, created_at)",
+    """CREATE TABLE IF NOT EXISTS proposals (
+        id TEXT PRIMARY KEY,
+        account_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+        category TEXT NOT NULL DEFAULT 'general',
+        text TEXT NOT NULL,
+        evidence TEXT NOT NULL DEFAULT '{}',
+        confidence REAL NOT NULL DEFAULT 0.5,
+        status TEXT NOT NULL DEFAULT 'pending',
+        created_at TEXT NOT NULL,
+        reviewed_at TEXT,
+        reviewed_by TEXT
+    )""",
+    "CREATE INDEX IF NOT EXISTS idx_proposals_account ON proposals(account_id, status, created_at)",
+    """CREATE TABLE IF NOT EXISTS workspace_members (
+        id TEXT PRIMARY KEY,
+        account_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+        email TEXT NOT NULL,
+        role TEXT NOT NULL DEFAULT 'reader',
+        token TEXT NOT NULL UNIQUE,
+        expires_at TEXT NOT NULL,
+        accepted_at TEXT,
+        created_at TEXT NOT NULL DEFAULT ''
+    )""",
+    "CREATE INDEX IF NOT EXISTS idx_members_account ON workspace_members(account_id, created_at)",
+    """CREATE TABLE IF NOT EXISTS audit_log (
+        id TEXT PRIMARY KEY,
+        account_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+        actor TEXT NOT NULL DEFAULT 'system',
+        action TEXT NOT NULL,
+        target TEXT NOT NULL DEFAULT '',
+        meta TEXT NOT NULL DEFAULT '{}',
+        created_at TEXT NOT NULL
+    )""",
+    "CREATE INDEX IF NOT EXISTS idx_audit_account ON audit_log(account_id, created_at)",
+
 ]
 
 MIGRATIONS_POSTGRES = [
@@ -493,6 +639,53 @@ MIGRATIONS_POSTGRES = [
         completed_at TEXT,
         updated_at TEXT NOT NULL
     )""",
+
+    """CREATE TABLE IF NOT EXISTS facts (
+        id TEXT PRIMARY KEY,
+        account_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+        category TEXT NOT NULL DEFAULT 'general',
+        text TEXT NOT NULL,
+        evidence TEXT NOT NULL DEFAULT '{}',
+        confidence REAL NOT NULL DEFAULT 1.0,
+        status TEXT NOT NULL DEFAULT 'verified',
+        created_at TEXT NOT NULL
+    )""",
+    "CREATE INDEX IF NOT EXISTS idx_facts_account ON facts(account_id, created_at)",
+    """CREATE TABLE IF NOT EXISTS proposals (
+        id TEXT PRIMARY KEY,
+        account_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+        category TEXT NOT NULL DEFAULT 'general',
+        text TEXT NOT NULL,
+        evidence TEXT NOT NULL DEFAULT '{}',
+        confidence REAL NOT NULL DEFAULT 0.5,
+        status TEXT NOT NULL DEFAULT 'pending',
+        created_at TEXT NOT NULL,
+        reviewed_at TEXT,
+        reviewed_by TEXT
+    )""",
+    "CREATE INDEX IF NOT EXISTS idx_proposals_account ON proposals(account_id, status, created_at)",
+    """CREATE TABLE IF NOT EXISTS workspace_members (
+        id TEXT PRIMARY KEY,
+        account_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+        email TEXT NOT NULL,
+        role TEXT NOT NULL DEFAULT 'reader',
+        token TEXT NOT NULL UNIQUE,
+        expires_at TEXT NOT NULL,
+        accepted_at TEXT,
+        created_at TEXT NOT NULL DEFAULT ''
+    )""",
+    "CREATE INDEX IF NOT EXISTS idx_members_account ON workspace_members(account_id, created_at)",
+    """CREATE TABLE IF NOT EXISTS audit_log (
+        id TEXT PRIMARY KEY,
+        account_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+        actor TEXT NOT NULL DEFAULT 'system',
+        action TEXT NOT NULL,
+        target TEXT NOT NULL DEFAULT '',
+        meta TEXT NOT NULL DEFAULT '{}',
+        created_at TEXT NOT NULL
+    )""",
+    "CREATE INDEX IF NOT EXISTS idx_audit_account ON audit_log(account_id, created_at)",
+
 ]
 
 

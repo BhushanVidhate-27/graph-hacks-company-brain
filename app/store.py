@@ -947,3 +947,102 @@ def update_onboarding(
             (account_id, json.dumps(stored), new_dismissed, None, now),
         )
     return get_onboarding(account_id)
+
+
+# --------------------------------------------------------------------------- #
+# Facts / Proposals (B1), members (B4), audit (B6)
+# --------------------------------------------------------------------------- #
+
+
+def _norm_evidence(ev: Any) -> dict[str, Any]:
+    return ev if isinstance(ev, dict) else {"source": str(ev or "upload")}
+
+
+def create_proposal(account_id: str, *, category: str, text: str, evidence: dict[str, Any] | None = None, confidence: float = 0.5) -> dict[str, Any]:
+    pid = new_id("prop")
+    now = now_iso()
+    with connect() as conn:
+        conn.execute(
+            "INSERT INTO proposals (id, account_id, category, text, evidence, confidence, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            (pid, account_id, (category or "general")[:40], (text or "")[:4000], json.dumps(_norm_evidence(evidence)), max(0.0, min(1.0, float(confidence))), "pending", now),
+        )
+    return get_proposal(account_id, pid) or {}
+
+
+def list_proposals(account_id: str, status: str = "pending", limit: int = 50) -> list[dict[str, Any]]:
+    with connect() as conn:
+        rows = conn.execute(
+            "SELECT id, account_id, category, text, evidence, confidence, status, created_at, reviewed_at, reviewed_by FROM proposals WHERE account_id = ? AND status = ? ORDER BY created_at DESC LIMIT ?",
+            (account_id, (status or "pending").lower(), max(1, min(limit, 200))),
+        ).fetchall()
+    out = []
+    for r in rows:
+        d = dict(r)
+        d["evidence"] = _parse_json(d.get("evidence"), {})
+        out.append(d)
+    return out
+
+
+def get_proposal(account_id: str, pid: str) -> dict[str, Any] | None:
+    with connect() as conn:
+        row = conn.execute(
+            "SELECT id, account_id, category, text, evidence, confidence, status, created_at, reviewed_at, reviewed_by FROM proposals WHERE account_id = ? AND id = ?",
+            (account_id, pid),
+        ).fetchone()
+    if not row:
+        return None
+    d = dict(row)
+    d["evidence"] = _parse_json(d.get("evidence"), {})
+    return d
+
+
+def review_proposal(account_id: str, pid: str, *, approve: bool, reviewer: str = "owner") -> dict[str, Any] | None:
+    prop = get_proposal(account_id, pid)
+    if not prop or prop.get("status") not in ("pending", "conflict"):
+        return prop
+    now = now_iso()
+    new_status = "approved" if approve else "rejected"
+    with connect() as conn:
+        conn.execute("UPDATE proposals SET status = ?, reviewed_at = ?, reviewed_by = ? WHERE account_id = ? AND id = ?", (new_status, now, reviewer, account_id, pid))
+        if approve:
+            conn.execute(
+                "INSERT INTO facts (id, account_id, category, text, evidence, confidence, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                (new_id("fact"), account_id, prop["category"], prop["text"], json.dumps(prop.get("evidence") or {}), prop.get("confidence", 1.0), "verified", now),
+            )
+    return get_proposal(account_id, pid)
+
+
+def list_facts(account_id: str, limit: int = 50) -> list[dict[str, Any]]:
+    with connect() as conn:
+        rows = conn.execute(
+            "SELECT id, account_id, category, text, evidence, confidence, status, created_at FROM facts WHERE account_id = ? ORDER BY created_at DESC LIMIT ?",
+            (account_id, max(1, min(limit, 200))),
+        ).fetchall()
+    out = []
+    for r in rows:
+        d = dict(r)
+        d["evidence"] = _parse_json(d.get("evidence"), {})
+        out.append(d)
+    return out
+
+
+def invite_member(account_id: str, email: str, role: str = "reader") -> dict[str, Any]:
+    role = role if role in {"admin", "validator", "contributor", "reader", "billing"} else "reader"
+    mid, token = new_id("mem"), secrets.token_hex(16)
+    import datetime as _dt
+    exp = (_dt.datetime.now(_dt.timezone.utc) + _dt.timedelta(days=7)).isoformat(timespec="seconds")
+    with connect() as conn:
+        conn.execute("INSERT INTO workspace_members (id, account_id, email, role, token, expires_at) VALUES (?, ?, ?, ?, ?, ?)", (mid, account_id, email.strip().lower()[:120], role, _hash_token(token), exp))
+    # Return raw token once; store hash.
+    return {"id": mid, "email": email.strip().lower(), "role": role, "invite_token": token, "expires_at": exp}
+
+
+def audit(account_id: str, action: str, target: str = "", meta: dict[str, Any] | None = None, actor: str = "system") -> None:
+    with connect() as conn:
+        conn.execute("INSERT INTO audit_log (id, account_id, actor, action, target, meta, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)", (new_id("aud"), account_id, actor, action[:40], target[:200], json.dumps(meta or {}), now_iso()))
+
+
+def list_audit(account_id: str, limit: int = 20) -> list[dict[str, Any]]:
+    with connect() as conn:
+        rows = conn.execute("SELECT id, account_id, actor, action, target, meta, created_at FROM audit_log WHERE account_id = ? ORDER BY created_at DESC LIMIT ?", (account_id, max(1, min(limit, 100)))).fetchall()
+    return [dict(r) for r in rows]
