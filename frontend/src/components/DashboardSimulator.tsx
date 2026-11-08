@@ -27,6 +27,7 @@ import {
 import { CadCrosshair } from './CadCrosshair';
 import { HeronButton } from './HeronButton';
 import { AnimatedNumber } from './motion/AnimatedNumber';
+import { WelcomeFlow } from './WelcomeFlow';
 import { useAuth } from '../lib/auth';
 import {
   api,
@@ -78,6 +79,7 @@ export const DashboardSimulator: React.FC<Props> = ({ onSelectMode }) => {
   const [selectedProviderId, setSelectedProviderId] = useState('github');
   const [config, setConfig] = useState<Record<string, any>>({});
   const [connName, setConnName] = useState('');
+  const [welcomeOpen, setWelcomeOpen] = useState(false);
 
   const authenticated = Boolean(me?.authenticated);
   const plan = me?.plan;
@@ -98,6 +100,7 @@ export const DashboardSimulator: React.FC<Props> = ({ onSelectMode }) => {
             ? 'Purchase complete. Your workspace is active — connect your data sources below to start importing context into Helio.'
             : 'Checkout was cancelled. Your current plan is unchanged.',
         );
+        if (flag === 'success') setWelcomeOpen(true);
       }
     } catch {
       /* ignore */
@@ -136,6 +139,15 @@ export const DashboardSimulator: React.FC<Props> = ({ onSelectMode }) => {
   useEffect(() => {
     void load();
   }, [load]);
+
+  useEffect(() => {
+    if (!authenticated || !onboarding) return;
+    // First sign-in / first invoice: guided welcome beats Cognee's static flow.
+    if (!onboarding.dismissed && !onboarding.completed && onboarding.done_count <= 1) {
+      const seen = sessionStorage.getItem('helio_welcome_seen');
+      if (!seen) setWelcomeOpen(true);
+    }
+  }, [authenticated, onboarding]);
 
   const withBusy = async (key: string, fn: () => Promise<void>) => {
     setBusy(key);
@@ -254,6 +266,9 @@ export const DashboardSimulator: React.FC<Props> = ({ onSelectMode }) => {
             <>
               <HeronButton variant="brand" size="sm" onClick={() => onSelectMode?.('chat-widget')} icon={false}>
                 Ask agent
+              </HeronButton>
+              <HeronButton variant="outline" size="sm" onClick={() => setWelcomeOpen(true)} className="border-white/40 text-white hover:bg-white hover:text-[#282828]" icon={false}>
+                Start setup
               </HeronButton>
               <HeronButton variant="outline" size="sm" onClick={() => window.dispatchEvent(new CustomEvent('helio:navigate', { detail: 'account' }))} className="border-white/40 text-white hover:bg-white hover:text-[#282828]" icon={false}>
                 Account
@@ -518,6 +533,15 @@ export const DashboardSimulator: React.FC<Props> = ({ onSelectMode }) => {
           </div>
         </div>
       </div>
+
+      <WelcomeFlow
+        open={welcomeOpen}
+        providers={providers}
+        integrationsCount={integrations.length}
+        onClose={() => { sessionStorage.setItem('helio_welcome_seen', '1'); setWelcomeOpen(false); }}
+        onDone={() => { sessionStorage.setItem('helio_welcome_seen', '1'); setWelcomeOpen(false); void load(); }}
+        onAsk={() => { sessionStorage.setItem('helio_welcome_seen', '1'); setWelcomeOpen(false); onSelectMode?.('chat-widget'); }}
+      />
     </div>
   );
 };
