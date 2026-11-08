@@ -469,6 +469,23 @@ section[id] {
 /* Mystery landing hero */
 .mystery-hero {
   position: relative;
+  background: radial-gradient(circle at 50% 46%, #101013 0%, #09090b 58%, #060608 100%);
+}
+
+.mystery-vignette {
+  background:
+    radial-gradient(ellipse at 50% 42%, transparent 28%, rgba(6, 6, 8, 0.55) 72%, #060608 100%),
+    linear-gradient(to bottom, rgba(9, 9, 11, 0.85), transparent 18%, transparent 82%, rgba(9, 9, 11, 0.95));
+}
+
+.mystery-bloom {
+  position: absolute;
+  width: min(52vw, 520px);
+  aspect-ratio: 1;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(225, 92, 70, 0.32) 0%, rgba(225, 92, 70, 0.1) 38%, transparent 70%);
+  filter: blur(28px);
+  animation: mystery-bloom 5.5s ease-in-out infinite;
 }
 
 .mystery-core {
@@ -476,22 +493,34 @@ section[id] {
   animation: mystery-pulse 4.2s ease-in-out infinite;
 }
 
+.mystery-thread {
+  width: 1px;
+  height: 34px;
+  background: linear-gradient(to bottom, transparent, rgba(225, 92, 70, 0.55));
+}
+
 @keyframes mystery-pulse {
   0%, 100% { transform: scale(1); filter: drop-shadow(0 0 46px rgba(225, 92, 70, 0.4)); }
-  50% { transform: scale(1.05); filter: drop-shadow(0 0 90px rgba(225, 92, 70, 0.62)); }
+  50% { transform: scale(1.06); filter: drop-shadow(0 0 92px rgba(225, 92, 70, 0.62)); }
+}
+
+@keyframes mystery-bloom {
+  0%, 100% { opacity: 0.55; transform: scale(0.94); }
+  50% { opacity: 0.9; transform: scale(1.06); }
 }
 
 .mystery-chevron {
-  animation: mystery-bob 1.7s ease-in-out infinite;
+  animation: mystery-bob 1.9s ease-in-out infinite;
 }
 
 @keyframes mystery-bob {
-  0%, 100% { transform: translateY(-6px); opacity: 0.45; }
+  0%, 100% { transform: translateY(-5px); opacity: 0.4; }
   50% { transform: translateY(4px); opacity: 0.85; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .mystery-core,
+  .mystery-bloom,
   .mystery-chevron {
     animation: none;
   }

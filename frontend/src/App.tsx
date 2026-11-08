@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Navbar } from './components/Navbar';
-import { HeroSection } from './components/HeroSection';
 import { ViolationInspector } from './components/ViolationInspector';
 import { ProblemsSection } from './components/ProblemsSection';
 import { ProductShowcaseSection } from './components/ProductShowcaseSection';
