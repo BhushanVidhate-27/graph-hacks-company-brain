@@ -801,11 +801,11 @@ def list_import_runs(account_id: str, limit: int = 20) -> list[dict[str, Any]]:
 # --------------------------------------------------------------------------- #
 
 ONBOARDING_STEP_DEFS = [
-    {"id": "account_created", "title": "Create your workspace", "description": "Your Helio account and workspace are ready."},
-    {"id": "plan_activated", "title": "Confirm your plan", "description": "Start a trial or activate a paid plan to unlock the right limits."},
-    {"id": "source_connected", "title": "Connect a data source", "description": "Add GitHub, Slack, or another source so Helio has real context."},
-    {"id": "import_completed", "title": "Run your first import", "description": "Import data from a connected source into your workspace."},
-    {"id": "first_question", "title": "Ask your first question", "description": "Use the agent to ask who owns something, what breaks, or what changed."},
+    {"id": "account_created", "title": "Create your workspace", "description": "Done — your Helio account and workspace are ready. Sign in any time with the same email and password."},
+    {"id": "plan_activated", "title": "Confirm your plan", "description": "Stay on Free (50 questions/mo, no card) or start a 14-day trial of Starter/Professional. Go to Plans → Choose a pack. You can change or cancel anytime in Account → Manage billing."},
+    {"id": "source_connected", "title": "Connect a data source", "description": "In the console, open Integrations and connect GitHub (Starter+), Slack, Jira or a CSV upload. Read-only access — Helio never writes back to your tools."},
+    {"id": "import_completed", "title": "Run your first import", "description": "After connecting, press Run import on the source. Helio extracts ownership, dependencies and decisions into your graph and shows a provenance trail for every fact."},
+    {"id": "first_question", "title": "Ask your first question", "description": "Open the Helio agent and ask: Who owns payments? What breaks if payments-gateway dies? Every answer shows the graph path — nodes, edges and dates. If it does not know, it says so."},
 ]
 
 
@@ -1027,6 +1027,16 @@ def list_facts(account_id: str, limit: int = 50) -> list[dict[str, Any]]:
         d["evidence"] = _parse_json(d.get("evidence"), {})
         out.append(d)
     return out
+
+
+def count_pending_invites(account_id: str) -> int:
+    """Pending (unexpired) workspace invites — counts against the seat limit."""
+    with connect() as conn:
+        row = conn.execute(
+            "SELECT COUNT(*) AS n FROM workspace_members WHERE account_id = ? AND expires_at > ?",
+            (account_id, now_iso()),
+        ).fetchone()
+        return int(row["n"]) if row else 0
 
 
 def invite_member(account_id: str, email: str, role: str = "reader") -> dict[str, Any]:

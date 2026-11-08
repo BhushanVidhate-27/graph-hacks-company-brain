@@ -265,6 +265,73 @@ export const AccountView: React.FC<AccountViewProps> = ({ onBack, onSelectMode }
         </div>
       </div>
 
+      {/* Post-login info: what the user gets + how to use it */}
+      <div className="mb-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-[#f4f4ec] cad-border p-6 relative">
+          <CadCrosshair position="tl" />
+          <CadCrosshair position="tr" />
+          <div className="font-mono text-[10px] uppercase tracking-widest text-[#e15c46] font-bold mb-2">
+            WHAT YOU GET // {plan?.name ?? "Free"}
+          </div>
+          <ul className="space-y-2 font-mono text-xs text-[#282828]">
+            {(plan?.features ?? []).map((feature) => (
+              <li key={feature} className="flex items-start gap-2">
+                <Check className="mt-0.5 size-3.5 shrink-0 text-[#e15c46]" />
+                <span>{feature}</span>
+              </li>
+            ))}
+          </ul>
+          <div className="mt-4 border-t border-[#282828]/10 pt-3 font-mono text-[10px] leading-relaxed text-[#5c5c56]">
+            {plan?.credits} · {plan?.limits.seats === null ? "Unlimited seats" : `${plan?.limits.seats} seat(s)`} ·{" "}
+            {plan?.limits.graphs === null ? "Unlimited graphs" : `${plan?.limits.graphs} graph(s)`}
+            {plan?.limits.api_access ? " · API access included" : " · API access on Professional+"}
+          </div>
+        </div>
+
+        <div className="bg-[#f4f4ec] cad-border p-6 relative">
+          <CadCrosshair position="tl" />
+          <CadCrosshair position="tr" />
+          <div className="font-mono text-[10px] uppercase tracking-widest text-[#e15c46] font-bold mb-2">
+            GETTING STARTED // INSTRUCTIONS
+          </div>
+          <ol className="space-y-2.5 font-mono text-xs leading-relaxed text-[#282828]">
+            <li>
+              <span className="font-bold text-[#e15c46]">1.</span> Open the graph console and connect a data source (Slack, CSV, Jira — GitHub needs Starter+). Access is read-only.
+            </li>
+            <li>
+              <span className="font-bold text-[#e15c46]">2.</span> Run the first import. Helio extracts owners, dependencies and decisions into your graph.
+            </li>
+            <li>
+              <span className="font-bold text-[#e15c46]">3.</span> Ask the agent: who owns payments, what breaks, what changed. Every answer shows its graph path.
+            </li>
+            <li>
+              <span className="font-bold text-[#e15c46]">4.</span> Track usage below. Free resets monthly; upgrade any time — change or cancel in Manage billing.
+            </li>
+          </ol>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <HeronButton variant="brand" size="sm" onClick={() => onSelectMode("chat-widget")}>
+              Ask your first question
+            </HeronButton>
+            <HeronButton variant="outline" size="sm" onClick={() => onSelectMode("pricing")}>
+              Compare plans
+            </HeronButton>
+          </div>
+        </div>
+      </div>
+
+      <div className="mb-8 cad-border bg-[#f4f4ec] px-5 py-4 flex items-start gap-3 font-mono text-[11px] leading-relaxed text-[#5c5c56]">
+        <ShieldCheck className="mt-0.5 size-4 shrink-0 text-[#e15c46]" />
+        <span>
+          <span className="font-bold uppercase text-[#282828]">Your data stays yours.</span>{" "}
+          Workspaces are isolated — no other account can read your graph. Passwords are hashed, API keys are
+          stored hashed and shown once, and integrations are read-only. Questions?{" "}
+          <a href="mailto:contact.helio.brain@gmail.com" className="text-[#e15c46] hover:underline">
+            contact.helio.brain@gmail.com
+          </a>
+          .
+        </span>
+      </div>
+
       {billingMessage && (
         <div className="mb-6 cad-border border-emerald-700/40 bg-emerald-50 p-3 font-mono text-xs text-emerald-800">
           {billingMessage}

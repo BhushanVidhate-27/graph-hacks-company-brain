@@ -769,6 +769,13 @@ def list_integrations(request: Request):
 def create_integration(req: IntegrationRequest, request: Request):
     identity = auth_service.require_identity(request)
     auth_service.require_session(identity)
+    # GitHub sync is a paid feature (Starter+). Free workspaces may still use
+    # Slack/CSV/webhook/manual sources offered in onboarding.
+    if req.provider.lower().strip() == "github" and not plan_service.limit_for(identity.plan, "github_sync"):
+        raise HTTPException(
+            status_code=403,
+            detail="GitHub sync is available on the Starter plan and above.",
+        )
     try:
         item = integrations_service.save_connection(
             identity.account["id"],
@@ -840,6 +847,11 @@ def import_integration(integration_id: str, req: IntegrationImportRequest, reque
     existing = store.get_integration(identity.account["id"], integration_id)
     if existing is None:
         raise HTTPException(status_code=404, detail="Integration not found.")
+    if (existing.get("provider") or "").lower() == "github" and not plan_service.limit_for(identity.plan, "github_sync"):
+        raise HTTPException(
+            status_code=403,
+            detail="GitHub sync is available on the Starter plan and above.",
+        )
     run = integrations_service.run_import(identity.account["id"], existing, payload=req.payload)
     return {"ok": run.get("status") == "completed", "run": run, "integration": integrations_service.public_integration(store.get_integration(identity.account["id"], integration_id))}
 
@@ -866,6 +878,13 @@ def create_brain_kind_route(kind: str, request: Request):
     import json as _json
 
     body = request  # use form? simpler: path-only create
+    # Graph-count enforcement: Free/Starter include one graph; Professional is unlimited.
+    graphs = plan_service.limit_for(identity.plan, "graphs")
+    if graphs is not None and len(store.list_brains(identity.account["id"])) >= int(graphs):
+        raise HTTPException(
+            status_code=403,
+            detail=f"This plan includes {graphs} graph(s). Upgrade to add more.",
+        )
     brain = store.create_brain(identity.account["id"], kind, f"{kind.title()} brain")
     store.audit(identity.account["id"], "brain.create", brain["id"], {"kind": brain["kind"]}, actor=identity.user.get("email", "owner"))
     return {"ok": True, "brain": brain}
@@ -880,6 +899,13 @@ class AgentConnectionRequest(BaseModel):
 def connect_agent_route(req: AgentConnectionRequest, request: Request):
     identity = auth_service.require_identity(request)
     auth_service.require_session(identity)
+    # Same gate as POST /api/keys: agent connections mint API keys, so a
+    # Free/Starter account must not get one through this back door.
+    if not plan_service.limit_for(identity.plan, "api_access"):
+        raise HTTPException(
+            status_code=403,
+            detail="API access is available on the Professional plan and above.",
+        )
     key_record = store.create_api_key(identity.account["id"], identity.user["id"], req.name)
     store.audit(identity.account["id"], "agent.connect", req.name, {"provider": req.provider}, actor=identity.user.get("email", "owner"))
     return {"ok": True, "provider": req.provider, "name": req.name, "api_key": key_record[0], "prefix": key_record[1].get("prefix")}
@@ -952,6 +978,15 @@ def invite_route(req: InviteRequest, request: Request):
     auth_service.require_session(identity)
     if not _valid_email(req.email):
         raise HTTPException(status_code=422, detail="Enter a valid email address.")
+    # Seat enforcement: users + pending invites may not exceed the plan's seats.
+    seats = plan_service.limit_for(identity.plan, "seats")
+    if seats is not None:
+        used = store.count_users(identity.account["id"]) + store.count_pending_invites(identity.account["id"])
+        if used >= int(seats):
+            raise HTTPException(
+                status_code=403,
+                detail=f"This plan includes {seats} seat(s). Upgrade to add more teammates.",
+            )
     invite = store.invite_member(identity.account["id"], req.email, req.role)
     store.audit(identity.account["id"], "team.invite", invite.get("email", ""), {"role": invite.get("role")}, actor=identity.user.get("email", "owner"))
     return {"ok": True, "invite": invite}

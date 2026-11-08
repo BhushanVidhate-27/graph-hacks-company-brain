@@ -141,6 +141,10 @@ export const WelcomeFlow: React.FC<Props> = ({ open, providers, integrationsCoun
               <>
                 <div className="font-mono text-[10px] uppercase tracking-widest text-[#f08a75]">Step 1 of {STEPS.length}</div>
                 <h2 className="mt-2 font-mono text-lg font-bold uppercase tracking-tight">What kind of memory?</h2>
+                <ol className="mt-3 space-y-1 font-mono text-[11px] leading-relaxed text-white/55">
+                  <li><span className="text-white/80">1.</span> Pick who the memory belongs to — your whole company, just you, or your coding agent.</li>
+                  <li><span className="text-white/80">2.</span> Next you will add a data source. You can change this choice later in settings.</li>
+                </ol>
                 <div className="mt-5 space-y-2">
                   {kinds.map((k) => (
                     <button key={k.id} onClick={() => setKind(k.id)} className={`flex w-full items-center gap-3 border px-3 py-3 text-left ${kind === k.id ? 'border-[#e15c46] bg-[#e15c46]/10' : 'border-white/10 hover:border-white/30'}`}>
@@ -159,6 +163,11 @@ export const WelcomeFlow: React.FC<Props> = ({ open, providers, integrationsCoun
                 <div className="font-mono text-[10px] uppercase tracking-widest text-[#f08a75]">Step 2 of {STEPS.length}</div>
                 <h2 className="mt-2 font-mono text-lg font-bold uppercase tracking-tight">What should helio read?</h2>
                 <p className="mt-2 font-mono text-[11px] text-white/50">Connect a source. Everyone in this workspace can ask about what you add.</p>
+                <ol className="mt-3 space-y-1 font-mono text-[11px] leading-relaxed text-white/55">
+                  <li><span className="text-white/80">1.</span> Tap Add next to a source and follow its sign-in. Access is read-only — nothing is written back.</li>
+                  <li><span className="text-white/80">2.</span> Run the first import from the console. Helio pulls owners, dependencies and decisions into your graph.</li>
+                  <li><span className="text-white/80">3.</span> Free includes Slack, CSV and webhooks. GitHub sync needs Starter or above.</li>
+                </ol>
                 <div className="mt-4 divide-y divide-white/10 border border-white/10">
                   {sourceRows.map((r) => (
                     <button key={r.id} onClick={() => toggle(r.id)} className="flex w-full items-center justify-between px-3 py-2.5 text-left hover:bg-white/5">
@@ -178,6 +187,11 @@ export const WelcomeFlow: React.FC<Props> = ({ open, providers, integrationsCoun
                 <div className="font-mono text-[10px] uppercase tracking-widest text-[#f08a75]">Step 3 of {STEPS.length}</div>
                 <h2 className="mt-2 font-mono text-lg font-bold uppercase tracking-tight">Ask your first question.</h2>
                 <p className="mt-2 font-mono text-[11px] text-white/50">Every answer comes with its graph path — nodes, edges, dates.</p>
+                <ol className="mt-3 space-y-1 font-mono text-[11px] leading-relaxed text-white/55">
+                  <li><span className="text-white/80">1.</span> Pick an example below, or type your own question about owners, blast radius or history.</li>
+                  <li><span className="text-white/80">2.</span> Check the trail under the answer — if Helio has no evidence, it says “no answer” instead of guessing.</li>
+                  <li><span className="text-white/80">3.</span> Free includes 50 questions a month. Usage resets on the 1st; upgrade any time in your account page.</li>
+                </ol>
                 <div className="mt-5 space-y-2">
                   {['Who owns payments?', 'What breaks if ledger dies?', 'Who knows the retry logic?'].map((q) => (
                     <button key={q} onClick={() => { onAsk(); }} className="w-full border border-white/10 px-3 py-2.5 text-left font-mono text-xs hover:border-[#e15c46]">{q}</button>
