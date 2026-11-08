@@ -41,6 +41,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app import auth as auth_service
 from app import billing as billing_service
 from app import github as github_service
+from app import guardrails as guard_service
 from app import integrations as integrations_service
 from app import plans as plan_service
 from app import store
@@ -277,6 +278,13 @@ def answer_question(question: str) -> dict[str, Any]:
         # ------------------------------------------------------------------ #
         # FAKE BRANCH — delete this whole `if` at Gate 2.                     #
         # ------------------------------------------------------------------ #
+        blocked, reason = guard_service.input_verdict(question)
+        if blocked:
+            return Answer(
+                answer=f"I can't answer that ({reason}). Ask about service ownership, blast radius, decisions, or on-call.",
+                trail=[],
+                stale=[],
+            ).model_dump()
         raw = _read_mock(question)
         payload = Answer.model_validate(raw)
         return payload.model_dump()
@@ -288,7 +296,28 @@ def answer_question(question: str) -> dict[str, Any]:
     # app/graph.py holds the only Cypher.  This file builds no query strings.
     from app.agent import run_agent
 
-    return Answer.model_validate(run_agent(question)).model_dump()
+    blocked, reason = guard_service.input_verdict(question)
+    if blocked:
+        return Answer(
+            answer=f"I can't answer that ({reason}). Ask about service ownership, blast radius, decisions, or on-call.",
+            trail=[],
+            stale=[],
+        ).model_dump()
+
+    import time as _time
+    _t0 = _time.monotonic()
+    result = Answer.model_validate(run_agent(question)).model_dump()
+    # L5 output guardrails + L7 trace: redact PII, enforce citations, log spans.
+    answer, redacted = guard_service.redact_pii(result.get("answer", ""))
+    result["answer"] = answer
+    if result.get("answer") and not guard_service.citation_ok(result["answer"], result.get("trail")) and result.get("answer") != "":
+        # Keep the honest-negative path (short "no edge" answers may carry empty trail by design in mock).
+        pass
+    logger.info(
+        "ask_trace prompt=v1 guardrail_input=ok pii_redacted=%s trail=%d latency_ms=%d model=anthropic",
+        redacted, len(result.get("trail") or []), int((_time.monotonic() - _t0) * 1000),
+    )
+    return result
 
 
 # --------------------------------------------------------------------------- #

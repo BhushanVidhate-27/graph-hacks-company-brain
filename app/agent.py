@@ -243,6 +243,8 @@ MAX_TOOL_ROUNDS = 6
 # cut (see the ordering note in staleness()).
 MAX_ROWS_PER_TOOL_RESULT = 40
 
+PROMPT_VERSION = "v1"  # L1: versioned in prompts/system.md — logged on every trace (L7).
+
 SYSTEM_PROMPT = """You are Helio's company-brain assistant.
 
 You answer questions about a fictional fintech called Helio -- who owns what,
