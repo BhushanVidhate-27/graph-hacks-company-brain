@@ -1,12 +1,14 @@
-# Stripe billing setup
+# Razorpay billing setup
 
-Helio sells two self-serve plans through Stripe Checkout and manages them through the Stripe Customer Portal. The backend calls Stripe's REST API directly with `httpx`; there is no Stripe SDK to install.
+Helio sells two self-serve plans through **Razorpay** (primary rail, live-verified account): a dedicated `/pay` checkout page using Razorpay Orders + embedded Checkout, and payment-link redirects from the pricing section. Both activate only after server-side verification. Stripe remains as an opt-in fallback (`PAYMENT_PROVIDER=stripe`).
 
 Plans and prices live in [`app/plans.py`](app/plans.py). Change a price there, not in the frontend — the marketing page reads the same catalog from `GET /api/plans`.
 
+> Razorpay is INR-native: set `RAZORPAY_INR_RATE` (₹ per $) or `RAZORPAY_PRICE_STARTER` / `RAZORPAY_PRICE_PROFESSIONAL` (paise) so USD pack prices are never charged as rupees. See `.env.example`.
+
 ---
 
-## 1. Create the products
+## 1. Create the products (Stripe fallback only)
 
 In the [Stripe Dashboard](https://dashboard.stripe.com):
 

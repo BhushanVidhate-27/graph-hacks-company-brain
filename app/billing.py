@@ -51,8 +51,9 @@ def stripe_mode() -> str:
 
 
 def payment_provider() -> str:
-    """Which rail serves checkout: razorpay when keys exist, else stripe, else local."""
-    return (os.getenv("PAYMENT_PROVIDER", "") or ("razorpay" if os.getenv("RAZORPAY_KEY_ID") else "stripe")).lower()
+    """Which rail serves checkout. Razorpay is the primary rail; Stripe/local
+    are opt-in via PAYMENT_PROVIDER."""
+    return (os.getenv("PAYMENT_PROVIDER", "") or "razorpay").lower()
 
 
 def is_configured() -> bool:

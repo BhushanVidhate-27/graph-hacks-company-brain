@@ -341,9 +341,11 @@ The reasoning engine is the product; the SaaS layer is the commercial surface ar
 | `GET` | `/api/usage` | Current month's usage |
 | `GET` / `POST` / `DELETE` | `/api/keys` | List, create and revoke API keys |
 | `GET` | `/api/billing/me` | Subscription and billing state |
-| `POST` | `/api/billing/checkout` | Create a Stripe Checkout Session |
-| `POST` | `/api/billing/portal` | Create a Stripe Customer Portal session |
-| `POST` | `/api/stripe/webhook` | Verify and apply Stripe events |
+| `POST` | `/api/billing/checkout` | Create a checkout (Razorpay payment link by default) |
+| `POST` | `/api/billing/portal` | Create a billing portal session |
+| `POST` | `/api/razorpay/order` + `/verify` | `/pay` embedded checkout (Orders + HMAC verify) |
+| `POST` | `/api/razorpay/webhook` | Verify and apply Razorpay events |
+| `POST` | `/api/stripe/webhook` | Verify and apply Stripe events (opt-in fallback) |
 
 `POST /ask` keeps its frozen contract: an SSE stream of `{answer, trail[], stale[]}` followed by `data: [DONE]`. Authentication is optional by default; set `HELIO_REQUIRE_AUTH=1` to require it.
 
