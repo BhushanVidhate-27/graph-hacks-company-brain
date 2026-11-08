@@ -498,6 +498,7 @@ _DEFAULT_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
     "https://helio-front.onrender.com",
+    "https://helio.runs-on.dev",
 ]
 _EXTRA = [o.strip() for o in os.getenv("CORS_ALLOW_ORIGINS", "").split(",") if o.strip()]
 ALLOWED_ORIGINS = _DEFAULT_ORIGINS + _EXTRA

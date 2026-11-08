@@ -9,4 +9,4 @@ Disallow: /api
 Disallow: /console
 Disallow: /preview
 
-Sitemap: https://helio-brain.onrender.com/sitemap.xml
+Sitemap: https://helio.runs-on.dev/sitemap.xml

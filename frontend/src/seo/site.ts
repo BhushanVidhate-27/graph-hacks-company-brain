@@ -1,11 +1,10 @@
 /**
  * Single source of truth for the public site identity.
  *
- * The canonical host is the Render URL until a custom domain is attached. When
- * that happens, change SITE_URL here and in public/robots.txt (the sitemap is
- * generated from this module).
+ * Custom domain helio.runs-on.dev is attached on Render; the onrender.com
+ * URL remains a fallback. The sitemap is generated from this module.
  */
-export const SITE_URL = 'https://helio-brain.onrender.com';
+export const SITE_URL = 'https://helio.runs-on.dev';
 export const SITE_NAME = 'Helio';
 export const SITE_TAGLINE = 'The company brain for engineering teams';
 export const CONTACT_EMAIL = 'contact.helio.brain@gmail.com';

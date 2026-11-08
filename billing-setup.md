@@ -27,7 +27,7 @@ Add these to `.env` (or your host's secret store):
 | `STRIPE_PRICE_STARTER` | yes | Price ID for the $15/month plan |
 | `STRIPE_PRICE_PROFESSIONAL` | yes | Price ID for the $49/month plan |
 | `STRIPE_MODE` | yes | `test` or `live` in production; `local` only for development |
-| `HELIO_APP_URL` | recommended | Public origin, e.g. `https://helio-brain.onrender.com`, used for success/cancel/portal redirects |
+| `HELIO_APP_URL` | recommended | Public origin, e.g. `https://helio.runs-on.dev`, used for success/cancel/portal redirects |
 | `HELIO_ALLOW_LOCAL_BILLING` | no | Must stay `0` in production. `1` plus `STRIPE_MODE=local` grants a plan without Stripe — a development shortcut only |
 
 `STRIPE_PRICE_PRO` is still read as a fallback for deployments configured before the catalog was split. New deployments should use `STRIPE_PRICE_PROFESSIONAL`.

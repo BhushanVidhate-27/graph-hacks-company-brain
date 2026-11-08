@@ -14,7 +14,7 @@ the leaves.
 The company is **Helio**: a synthetic 120-person fintech, 5 teams, 20 services,
 mid-migration between payment providers. All data is synthetic.
 
-**Live:** <https://helio-brain.onrender.com> · **Video:** see submission
+**Live:** <https://helio.runs-on.dev> · **Video:** see submission
 
 ---
 

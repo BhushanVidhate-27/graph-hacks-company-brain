@@ -696,7 +696,7 @@ export const AccountView: React.FC<AccountViewProps> = ({ onBack, onSelectMode }
             <div className="mt-4 font-mono text-[10px] text-[#5c5c56]">
               Example:{" "}
               <code className="bg-[#ecece4] px-1.5 py-0.5">
-                {`curl -X POST ${API_URL || 'https://helio-brain.onrender.com'}/ask -H "Authorization: Bearer helio_…" -H "Content-Type: application/json" -d '{"question":"Who owns ledger-service?"}'`}
+                {`curl -X POST ${API_URL || 'https://helio.runs-on.dev'}/ask -H "Authorization: Bearer helio_…" -H "Content-Type: application/json" -d '{"question":"Who owns ledger-service?"}'`}
               </code>
             </div>
           </>

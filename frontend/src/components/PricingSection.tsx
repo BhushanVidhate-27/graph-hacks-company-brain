@@ -417,7 +417,7 @@ export const PricingSection: React.FC<PricingSectionProps> = ({ onSelectMode }) 
                 <button
                   onClick={() => void handleSelect(plan, true)}
                   disabled={isBusy}
-                  className={`mt-2 w-full font-mono text-[10px] uppercase font-bold underline underline-offset-2 disabled:opacity-50 ${plan.highlighted ? 'text-white/80 hover:text-white' : 'text-[#e15c46] hover:text-[#282828]'}`}
+                  className={`mt-2 w-full font-mono text-[10px] uppercase disabled:opacity-50 ${plan.highlighted ? 'text-white/50' : 'text-[#5c5c56]'}`}
                 >
                   or start {plan.trial_days || billing.trial_days}-day free trial{me?.authenticated ? '' : ' (sign up first)'}
                 </button>
