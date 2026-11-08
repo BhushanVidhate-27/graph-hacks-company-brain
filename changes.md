@@ -44,6 +44,7 @@
 ### Pricing note — LOCKED (do not change)
 Keep current pricing exactly: **Free $0 / Starter $15 / Professional $49 / Enterprise custom** (questions/seats as in `app/plans.py`). Do not re-price to per-company or usage-tokens. Compete on *approach*: better onboarding-to-value, review queue, MCP, roles, and proof — same price, more value per plan.
 
-## 4. Non-goals
+## 4. Non-goals (principles)
+- **Not copying.** We improve only what we're missing; no competitor copy, logos, or wording. Do not add features just because they have them.
+- **No frontend redesign.** Frontend stays as-is (dark theme, minimal copy, current sections). App/approach improvements only — match Company Brain *level*, not their *look*.
 - No new vector-RAG engine; graph stays the source of truth.
-- No copying competitor copy/logos/wording.
