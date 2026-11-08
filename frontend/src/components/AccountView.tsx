@@ -68,7 +68,7 @@ export const AccountView: React.FC<AccountViewProps> = ({ onBack, onSelectMode }
   const usage = me?.usage;
   const subscription = me?.subscription;
   const billing = me?.billing;
-  const canUseApi = Boolean(plan?.limits.api_access);
+  const canUseApi = Boolean(plan?.limits?.api_access);
 
   const loadKeys = useCallback(async () => {
     if (!authenticated) return;
@@ -282,9 +282,9 @@ export const AccountView: React.FC<AccountViewProps> = ({ onBack, onSelectMode }
             ))}
           </ul>
           <div className="mt-4 border-t border-[#282828]/10 pt-3 font-mono text-[10px] leading-relaxed text-[#5c5c56]">
-            {plan?.credits} · {plan?.limits.seats === null ? "Unlimited seats" : `${plan?.limits.seats} seat(s)`} ·{" "}
-            {plan?.limits.graphs === null ? "Unlimited graphs" : `${plan?.limits.graphs} graph(s)`}
-            {plan?.limits.api_access ? " · API access included" : " · API access on Professional+"}
+            {plan?.credits} · {plan?.limits?.seats === null || plan?.limits?.seats === undefined ? "Unlimited seats" : `${plan.limits.seats} seat(s)`} ·{" "}
+            {plan?.limits?.graphs === null || plan?.limits?.graphs === undefined ? "Unlimited graphs" : `${plan.limits.graphs} graph(s)`}
+            {plan?.limits?.api_access ? " · API access included" : " · API access on Professional+"}
           </div>
         </div>
 

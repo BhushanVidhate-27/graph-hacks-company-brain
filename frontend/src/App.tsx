@@ -1,4 +1,40 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+
+class AppErrorBoundary extends React.Component<
+  { children: React.ReactNode; onReset?: () => void },
+  { error: Error | null }
+> {
+  state: { error: Error | null } = { error: null };
+  static getDerivedStateFromError(error: Error) {
+    return { error };
+  }
+  componentDidCatch(error: Error) {
+    console.error('Helio UI error', error);
+  }
+  render() {
+    if (this.state.error) {
+      return (
+        <div className="min-h-[60vh] flex items-center justify-center px-6 py-16">
+          <div className="cad-border bg-[#f4f4ec] p-6 max-w-lg text-center font-mono">
+            <div className="text-[10px] uppercase tracking-widest text-[#e15c46] font-bold mb-2">Something went wrong</div>
+            <p className="text-xs text-[#5c5c56] mb-4">The page hit an error. Your account is fine — try reloading.</p>
+            <button
+              onClick={() => {
+                this.setState({ error: null });
+                this.props.onReset?.();
+                window.location.reload();
+              }}
+              className="bg-[#e15c46] px-4 py-2 text-xs font-bold uppercase text-white"
+            >
+              Reload
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 import { Navbar } from './components/Navbar';
 import { HeroSection } from './components/HeroSection';
 import { ViolationInspector } from './components/ViolationInspector';
@@ -234,6 +270,7 @@ const AppShell: React.FC<AppShellProps> = ({
         onTouchEnd={swipe.onTouchEnd}
       >
         <PageTransitionFrame phase={phase} fromIndex={fromIndex} toIndex={toIndex}>
+          <AppErrorBoundary onReset={() => setCurrentMode('website')}>
           <React.Suspense fallback={<div className="min-h-[60vh]" aria-hidden="true" />}>
             {currentMode === 'website' && renderWebsiteContent()}
 
@@ -278,6 +315,7 @@ const AppShell: React.FC<AppShellProps> = ({
             />
           )}
           </React.Suspense>
+          </AppErrorBoundary>
         </PageTransitionFrame>
       </main>
 
