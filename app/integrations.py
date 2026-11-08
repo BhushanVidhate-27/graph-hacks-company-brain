@@ -421,18 +421,25 @@ def run_import(account_id: str, integration: dict[str, Any], *, payload: dict[st
             owner = (cfg.get("owner") or github.GITHUB_OWNER or "").strip()
             repo = (cfg.get("repo") or github.GITHUB_REPO or "").strip()
             token = (cfg.get("token") or github.GITHUB_TOKEN or "").strip()
-            if owner and repo and token and (cfg.get("owner") or cfg.get("token")):
-                headers = {"Accept": "application/vnd.github+json", "Authorization": f"Bearer {token}"}
-                ok_i, issues, err_i = _http_json("GET", f"https://api.github.com/repos/{owner}/{repo}/issues?state=open&per_page=50", headers=headers)
-                ok_p, pulls, err_p = _http_json("GET", f"https://api.github.com/repos/{owner}/{repo}/pulls?state=open&per_page=50", headers=headers)
-                if not ok_i and not ok_p:
-                    raise RuntimeError(err_i or err_p or "GitHub import failed")
-                items = []
-                if ok_i and isinstance(issues, list):
-                    items.extend([{"type": "issue", "number": x.get("number"), "title": x.get("title"), "state": x.get("state"), "url": x.get("html_url")} for x in issues if "pull_request" not in x])
-                if ok_p and isinstance(pulls, list):
-                    items.extend([{"type": "pull_request", "number": x.get("number"), "title": x.get("title"), "state": x.get("state"), "url": x.get("html_url")} for x in pulls])
-                summary = {"owner": owner, "repo": repo, "items_fetched": len(items), "sample": items[:10]}
+            if owner and repo and (token or cfg.get("owner")):
+                if token:
+                    headers = {"Accept": "application/vnd.github+json", "Authorization": f"Bearer {token}"}
+                    ok_i, issues, err_i = _http_json("GET", f"https://api.github.com/repos/{owner}/{repo}/issues?state=open&per_page=50", headers=headers)
+                    ok_p, pulls, err_p = _http_json("GET", f"https://api.github.com/repos/{owner}/{repo}/pulls?state=open&per_page=50", headers=headers)
+                    if not ok_i and not ok_p:
+                        raise RuntimeError(err_i or err_p or "GitHub import failed")
+                    items = []
+                    if ok_i and isinstance(issues, list):
+                        items.extend([{"type": "issue", "number": x.get("number"), "title": x.get("title"), "state": x.get("state"), "url": x.get("html_url")} for x in issues if "pull_request" not in x])
+                    if ok_p and isinstance(pulls, list):
+                        items.extend([{"type": "pull_request", "number": x.get("number"), "title": x.get("title"), "state": x.get("state"), "url": x.get("html_url")} for x in pulls])
+                    summary = {"owner": owner, "repo": repo, "items_fetched": len(items), "sample": items[:10]}
+                else:
+                    data = github._direct_public_sync(owner, repo, "open")
+                    if data.get("error") and not data.get("items"):
+                        raise RuntimeError(data["error"])
+                    summary = {"owner": owner, "repo": repo, "items_fetched": len(data.get("items") or []), "sample": (data.get("items") or [])[:10]}
+
             else:
                 data = github.sync_state("open")
                 if data.get("error") and not data.get("items"):

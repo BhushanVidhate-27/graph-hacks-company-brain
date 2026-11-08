@@ -43,7 +43,13 @@ GITHUB_REPO = os.getenv("GITHUB_REPO") or os.getenv("GITHUB_REPOSITORY") or ""
 
 
 class _MissingConfig(Exception):
-    """Raised when the required GitHub integration variables are missing."""
+    """
+
+from dotenv import load_dotenv
+
+load_dotenv()
+
+Raised when the required GitHub integration variables are missing."""
 
 
 def _missing_env(required: list[str]) -> list[str]:
@@ -107,6 +113,10 @@ def list_repo_items(state: str = "open") -> dict[str, Any]:
 
     repo = _repo()
     if repo is None:
+        # Allow public, unauthenticated import when token is absent — keeps
+        # demo/smoke flows useful without exposing credentials.
+        if GITHUB_OWNER and GITHUB_REPO:
+            return _direct_public_sync(GITHUB_OWNER, GITHUB_REPO, state)
         return {
             "owner": GITHUB_OWNER,
             "repo": GITHUB_REPO,
@@ -240,3 +250,56 @@ def sync_state(state: str = "open") -> dict[str, Any]:
         upsert_items(data.get("items", []))
     return data
     return {"owner": GITHUB_OWNER, "repo": GITHUB_REPO, "items": items}
+
+
+def _direct_public_sync(owner: str, repo: str, state: str = "open") -> dict[str, Any]:
+    """No-auth REST fallback for public repos (useful for demos/tests)."""
+    import httpx
+    base = f"https://api.github.com/repos/{owner}/{repo}"
+    headers = {"Accept": "application/vnd.github+json"}
+    try:
+        with httpx.Client(timeout=20, follow_redirects=True) as client:
+            repo_r = client.get(base, headers=headers)
+            issues_r = client.get(f"{base}/issues?state={state}&per_page=50", headers=headers)
+            pulls_r = client.get(f"{base}/pulls?state={state}&per_page=50", headers=headers)
+        if not repo_r.is_success:
+            return {"owner": owner, "repo": repo, "configured": True, "items": [], "error": f"GitHub HTTP {repo_r.status_code}"}
+        items: list[dict[str, Any]] = []
+        try:
+            issue_data = issues_r.json() if issues_r.is_success else []
+            for issue in issue_data:
+                if "pull_request" in issue:
+                    continue
+                items.append({
+                    "id": str(issue.get("id")),
+                    "number": issue.get("number"),
+                    "title": issue.get("title"),
+                    "state": issue.get("state"),
+                    "user": {"login": (issue.get("user") or {}).get("login")},
+                    "labels": issue.get("labels", []),
+                    "comments": issue.get("comments", 0),
+                    "created_at": issue.get("created_at"),
+                    "updated_at": issue.get("updated_at"),
+                    "html_url": issue.get("html_url"),
+                    "pull_request": False,
+                })
+            pull_data = pulls_r.json() if pulls_r.is_success else []
+            for pull in pull_data:
+                items.append({
+                    "id": str(pull.get("id")),
+                    "number": pull.get("number"),
+                    "title": pull.get("title"),
+                    "state": pull.get("state"),
+                    "user": {"login": (pull.get("user") or {}).get("login")},
+                    "labels": pull.get("labels", []),
+                    "comments": 0,
+                    "created_at": pull.get("created_at"),
+                    "updated_at": pull.get("updated_at"),
+                    "html_url": pull.get("html_url"),
+                    "pull_request": True,
+                })
+        except Exception:
+            return {"owner": owner, "repo": repo, "configured": True, "items": [], "error": "unparseable GitHub payload"}
+        return {"owner": owner, "repo": repo, "configured": True, "items": items}
+    except Exception as exc:  # noqa: BLE001
+        return {"owner": owner, "repo": repo, "configured": True, "items": [], "error": f"{type(exc).__name__}: {exc}"}
