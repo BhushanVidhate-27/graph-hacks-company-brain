@@ -157,6 +157,8 @@ export interface BillingSetup {
   local_billing: boolean;
   trial_days?: number;
   trial_enabled?: boolean;
+  /** Interim razorpay.me link (no API keys) — fixed-amount page checkout. */
+  payment_page?: string | null;
   required_env: string[];
   missing: string[];
 }
@@ -213,6 +215,9 @@ export interface RazorpayOrderResponse {
   status?: string;
   trial?: boolean;
   trial_days?: number;
+  /** Interim path: redirect the browser here (razorpay.me with fixed amount). */
+  url?: string;
+  manual_activation?: boolean;
   message?: string;
   error?: string;
 }

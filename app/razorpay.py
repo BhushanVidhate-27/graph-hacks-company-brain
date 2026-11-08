@@ -24,6 +24,12 @@ import httpx
 from app import plans, store
 
 RAZORPAY_API = "https://api.razorpay.com/v1"
+# Interim public payment page (no API keys). Accepts a fixed ?amount=<INR>.
+DEFAULT_PAYMENT_PAGE = "https://razorpay.me/@helio"
+
+
+def payment_page() -> str:
+    return (os.getenv("RAZORPAY_PAYMENT_PAGE", DEFAULT_PAYMENT_PAGE) or DEFAULT_PAYMENT_PAGE).rstrip("/")
 
 
 def key_id() -> str:
@@ -48,21 +54,23 @@ def is_configured() -> bool:
 
 def setup_details() -> dict[str, Any]:
     ready = all(_amount_for(plans.get_plan(plan_id)) for plan_id in plans.PAID_PLANS)
+    interim = all(inr_amount(plans.get_plan(plan_id)) for plan_id in plans.PAID_PLANS)
     return {
-        "configured": is_configured(),
-        "mode": "razorpay",
+        "configured": is_configured() or interim,
+        "mode": "razorpay" if is_configured() else "razorpay-page",
         "provider": "razorpay",
         "currency": currency(),
         "trial_days": plans.trial_days(),
         "trial_enabled": plans.trial_days() > 0,
         "price_ready": bool(ready),
+        "payment_page": payment_page() if not is_configured() else None,
         "required_env": ["RAZORPAY_KEY_ID", "RAZORPAY_KEY_SECRET", "RAZORPAY_CURRENCY"],
         "missing": [name for name in ("RAZORPAY_KEY_ID", "RAZORPAY_KEY_SECRET") if not os.getenv(name)],
     }
 
 
 def _amount_for(plan: dict[str, Any]) -> int | None:
-    """Charge amount in the smallest unit (paise/cents).
+    """Charge amount in the smallest unit (paise/cents). Used by API checkout.
 
     The site's prices are locked in USD. A Razorpay account charging INR needs
     either an explicit pack amount (RAZORPAY_PRICE_STARTER / _PROFESSIONAL in
@@ -86,6 +94,29 @@ def _amount_for(plan: dict[str, Any]) -> int | None:
             return int(round(float(price) * float(rate) * 100))
         except ValueError:
             return None
+    return None
+
+
+def inr_amount(plan: dict[str, Any]) -> int | None:
+    """Fixed whole-rupee amount for the interim razorpay.me page.
+
+    Preferred: RAZORPAY_PRICE_<PLAN> in rupees (e.g. 1299). Falls back to the
+    smallest-unit helper ÷100 when an explicit paise/FX amount is set.
+    """
+    price = plan.get("price_monthly")
+    if not price:
+        return None
+    explicit = os.getenv(f"RAZORPAY_PRICE_{str(plan.get('id', '')).upper()}", "").strip()
+    if explicit:
+        try:
+            val = int(explicit)
+            # Treat 4+ digits (or >= 10000) as paise from older config.
+            return val // 100 if val >= 10000 else val
+        except ValueError:
+            return None
+    smallest = _amount_for(plan)
+    if smallest:
+        return max(1, smallest // 100)
     return None
 
 
@@ -120,7 +151,8 @@ def _request(method: str, path: str, data: dict[str, Any] | list[tuple[str, str]
 
 
 def build_checkout(*, plan_id: str, account: dict[str, Any], user: dict[str, Any], success_url: str, cancel_url: str, trial: bool = False) -> dict[str, Any]:
-    """Create a Razorpay payment link for a paid plan.
+    """Create a Razorpay payment link for a paid plan, or redirect to the
+    interim razorpay.me page with a fixed amount while API setup is pending.
 
     Trials are granted locally (no charge) for HELIO_TRIAL_DAYS; payment happens
     when the user converts or pays for the first month.
@@ -136,6 +168,24 @@ def build_checkout(*, plan_id: str, account: dict[str, Any], user: dict[str, Any
         store.upsert_subscription(account["id"], plan=plan["id"], status="trialing", current_period_end=period_end, cancel_at_period_end=False)
         store.audit(account["id"], "billing.trial_start", plan["id"], {"days": days}, actor=user.get("email", "owner"))
         return {"ok": True, "mode": "trial", "upgraded": True, "plan": plan["id"], "status": "trialing", "trial": True, "trial_days": days, "message": f"{plan['name']} trial started ({days} days, no card required)."}
+
+    # Interim path (no API keys): fixed-amount Razorpay.me link. The payment
+    # page has no signed callback, so activation is manual — we record intent
+    # and tell the payer to reference their email.
+    if not is_configured():
+        amt = inr_amount(plan)
+        if not amt:
+            return {"ok": False, "error": "invalid_amount", "message": f"Set RAZORPAY_PRICE_{str(plan.get('id', '')).upper()} (rupees) to enable interim checkout."}
+        intent_id = store.new_id("payme")
+        with store.connect() as conn:
+            conn.execute(
+                "INSERT INTO payment_links (id, account_id, plan_id, status, created_at) VALUES (?, ?, ?, ?, ?)",
+                (intent_id, account["id"], plan["id"], "created", store.now_iso()),
+            )
+        store.audit(account["id"], "billing.checkout", plan["id"], {"provider": "razorpay-page", "intent_id": intent_id, "amount_inr": amt}, actor=user.get("email", "owner"))
+        note = quote_plus(f"Helio {plan['name']} {user.get('email', '')}")
+        url = f"{payment_page()}?amount={amt}&purpose={note}"
+        return {"ok": True, "mode": "razorpay-page", "url": url, "session_id": intent_id, "plan": plan["id"], "amount": amt, "currency": "INR", "message": f"Redirecting to Razorpay (₹{amt}). Activation is confirmed after payment is received."}
 
     amount = _amount_for(plan)
     if not amount:
@@ -190,8 +240,38 @@ def build_order(*, plan_id: str, account: dict[str, Any], user: dict[str, Any], 
         store.audit(account["id"], "billing.trial_start", plan["id"], {"days": days}, actor=user.get("email", "owner"))
         return {"ok": True, "mode": "trial", "upgraded": True, "plan": plan["id"], "status": "trialing", "trial": True, "trial_days": days, "message": f"{plan['name']} trial started ({days} days, no card required)."}
 
+    # Interim path (no API keys): send the browser to the fixed-amount
+    # razorpay.me page; embedded Orders/Checkout needs keys, so this is the
+    # honest fallback until setup is complete. Activation is manual.
     if not is_configured():
-        return {"ok": False, "error": "billing_not_configured", "message": "Razorpay is not configured on this deployment."}
+        amt = inr_amount(plan)
+        if not amt:
+            return {"ok": False, "error": "billing_not_configured", "message": f"Set RAZORPAY_PRICE_{str(plan.get('id', '')).upper()} (rupees) to enable interim checkout."}
+        intent_id = store.new_id("payme")
+        with store.connect() as conn:
+            conn.execute(
+                "INSERT INTO payment_orders (id, account_id, plan_id, amount, currency, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                (intent_id, account["id"], plan["id"], amt, "INR", "created", store.now_iso()),
+            )
+        store.audit(account["id"], "billing.checkout", plan["id"], {"provider": "razorpay-page", "intent_id": intent_id, "amount_inr": amt}, actor=user.get("email", "owner"))
+        note = quote_plus(f"Helio {plan['name']} {user.get('email', '')}")
+        url = f"{payment_page()}?amount={amt}&purpose={note}"
+        return {
+            "ok": True,
+            "mode": "razorpay-page",
+            "provider": "razorpay-page",
+            "url": url,
+            "order_id": intent_id,
+            "amount": amt,
+            "currency": "INR",
+            "plan": plan["id"],
+            "plan_name": plan["name"],
+            "name": "Helio",
+            "description": f"Helio {plan['name']} — ₹{amt}/mo",
+            "prefill": {"name": user.get("name") or "", "email": user.get("email") or ""},
+            "manual_activation": True,
+            "message": f"Redirecting to Razorpay (₹{amt}, fixed). Activation is confirmed after payment is received.",
+        }
 
     amount = _amount_for(plan)
     if not amount:

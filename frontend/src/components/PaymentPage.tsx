@@ -99,9 +99,11 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({ onSelectMode }) => {
 
   const paidPacks = plans.filter((plan) => plan.id === 'starter' || plan.id === 'professional');
   const enterprise = plans.find((plan) => plan.id === 'enterprise');
+  const apiCheckout = billing?.mode === 'razorpay';
+  const interimPage = billing?.mode === 'razorpay-page';
   const configured = Boolean(billing?.configured);
   const localDemo = Boolean(billing?.local_billing);
-  const priceWarning = configured && billing?.price_ready === false;
+  const priceWarning = apiCheckout && billing?.price_ready === false;
 
   const pay = async (plan: Plan) => {
     if (busy) return;
@@ -115,16 +117,10 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({ onSelectMode }) => {
 
     setBusy(plan.id);
     try {
-      if (!configured) {
-        if (localDemo) {
-          const result = await checkout(plan.id);
-          setNotice(result.message || `${plan.name} activated in local demo mode.`);
-          await refresh();
-          return;
-        }
-        setError(
-          `Razorpay is not configured on this deployment. Set ${billing?.required_env?.join(', ') || 'RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET'} and restart.`,
-        );
+      if (!configured && localDemo) {
+        const result = await checkout(plan.id);
+        setNotice(result.message || `${plan.name} activated in local demo mode.`);
+        await refresh();
         return;
       }
 
@@ -132,6 +128,12 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({ onSelectMode }) => {
       if (order.upgraded) {
         setNotice(order.message || `${plan.name} is active.`);
         await refresh();
+        return;
+      }
+      // Interim (no API keys): redirect to razorpay.me with a fixed amount.
+      if (order.mode === 'razorpay-page' && order.url) {
+        setNotice(order.message || `Redirecting to Razorpay (₹${order.amount ?? ''}, fixed)…`);
+        window.location.assign(order.url);
         return;
       }
       if (!order.ok || !order.order_id || !order.key_id) {
@@ -218,14 +220,15 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({ onSelectMode }) => {
             Pick a pack, pay securely
           </h1>
           <p className="mt-3 max-w-2xl font-mono text-xs md:text-sm text-[#5c5c56] leading-relaxed">
-            Razorpay handles UPI, cards, netbanking and wallets. The plan is activated only after the
-            server verifies Razorpay&apos;s signature — the browser never decides what was paid for.
+            {apiCheckout
+              ? 'Razorpay handles UPI, cards, netbanking and wallets. The plan is activated only after the server verifies Razorpay’s signature — the browser never decides what was paid for.'
+              : 'Secure payments on Razorpay at a fixed pack price (₹). Pay with UPI, cards, netbanking or wallets — your plan is activated after we confirm the payment.'}
           </p>
         </div>
         <div className="cad-border bg-[#f4f4ec] px-4 py-3 font-mono text-[10px] text-[#5c5c56] flex items-center gap-2">
           <ShieldCheck className="size-4 text-[#e15c46]" />
           <span className="uppercase tracking-wider">
-            {configured ? `Live · ${billing?.currency || 'INR'}` : localDemo ? 'Local demo billing' : 'Keys not configured'}
+            {apiCheckout ? `Live · ${billing?.currency || 'INR'}` : localDemo ? 'Local demo billing' : 'Razorpay · fixed price'}
           </span>
         </div>
       </div>
@@ -243,13 +246,13 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({ onSelectMode }) => {
         </div>
       )}
 
-      {!configured && !localDemo && (
+      {interimPage && !localDemo && (
         <div className="mb-6 cad-border bg-[#f4f4ec] px-4 py-4 font-mono text-[11px] text-[#5c5c56] leading-relaxed">
-          <span className="font-bold uppercase text-[#282828]">Razorpay keys needed.</span>{' '}
-          Add <code className="text-[#e15c46]">RAZORPAY_KEY_ID</code> and{' '}
-          <code className="text-[#e15c46]">RAZORPAY_KEY_SECRET</code> (plus{' '}
-          <code className="text-[#e15c46]">RAZORPAY_INR_RATE</code> or per-pack INR prices) to the
-          deployment, then reload. The page is already wired for live checkout.
+          <span className="font-bold uppercase text-[#282828]">Fixed-price checkout.</span>{' '}
+          You’ll pay a fixed ₹ amount on{' '}
+          <a href="https://razorpay.me/@helio" className="text-[#e15c46] hover:underline" target="_blank" rel="noreferrer">razorpay.me/@helio</a>.
+          After paying, your plan is activated once we confirm the payment (usually within a few hours). Need it now? Email{' '}
+          <a href="mailto:contact.helio.brain@gmail.com" className="text-[#e15c46] hover:underline">contact.helio.brain@gmail.com</a> with your receipt.
         </div>
       )}
 
@@ -327,10 +330,15 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({ onSelectMode }) => {
                   {isBusy && busy === plan.id
                     ? 'Opening Razorpay…'
                     : me?.authenticated
-                      ? `Pay ${formatPrice(plan)} with Razorpay`
+                      ? `Pay ${formatPrice(plan)} on Razorpay`
                       : `Sign in to pay ${formatPrice(plan)}`}
                   <ArrowRight className="size-3.5" />
                 </HeronButton>
+                {interimPage && (
+                  <div className={`font-mono text-[10px] text-center ${plan.highlighted ? 'text-white/50' : 'text-[#5c5c56]'}`}>
+                    Fixed price · activated after confirmation
+                  </div>
+                )}
                 {billing?.trial_enabled && !current && (
                   <button
                     type="button"
@@ -372,7 +380,7 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({ onSelectMode }) => {
 
       <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 font-mono text-[10px] text-[#5c5c56]">
         <span className="inline-flex items-center gap-1.5">
-          <Lock className="size-3 text-[#e15c46]" /> Signature verified server-side
+          <Lock className="size-3 text-[#e15c46]" /> {apiCheckout ? 'Signature verified server-side' : 'Secure payment on Razorpay'}
         </span>
         <span>UPI · Cards · Netbanking · Wallets</span>
         <span>Cancel anytime</span>
