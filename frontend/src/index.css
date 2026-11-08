@@ -452,6 +452,18 @@ section[id] {
   50% { opacity: 0.35; transform: scale(0.78); }
 }
 
+/* Ticker — seamless infinite scroll (reference: promo strip marquee).
+   The track holds two identical groups and slides -50%, so the loop has no jump. */
+.ticker-track {
+  animation: helio-ticker 30s linear infinite;
+}
+.ticker:hover .ticker-track {
+  animation-play-state: paused;
+}
+@keyframes helio-ticker {
+  to { transform: translateX(-50%); }
+}
+
 /* Integration marquee — slow horizontal drift, pauses behind reduced motion */
 .footer-luxe-marquee {
   animation: helio-marquee 32s linear infinite;
@@ -462,6 +474,7 @@ section[id] {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .ticker-track,
   .footer-luxe-marquee { animation: none; }
 }
 

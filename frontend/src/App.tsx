@@ -16,6 +16,7 @@ import { DeviceViewportFrame } from './components/DeviceViewportFrame';
 import { PaymentPage } from './components/PaymentPage';
 import { TraversalBand } from './components/TraversalBand';
 import { LearnStrip } from './components/LearnStrip';
+import { AnnouncementTicker } from './components/TickerBar';
 import {
   GRAPH_PAGES,
   PageTransitionFrame,
@@ -214,6 +215,9 @@ const AppShell: React.FC<AppShellProps> = ({
 
   return (
     <div className="min-h-screen bg-[#ecece4] text-[#282828] font-mono relative selection:bg-[#e15c46] selection:text-white">
+
+      {/* Promo ticker — scrolls away above the sticky navbar, like the reference */}
+      {(currentMode === 'website' || currentMode === 'viewport') && <AnnouncementTicker />}
 
       {/* Main Navbar */}
       <Navbar

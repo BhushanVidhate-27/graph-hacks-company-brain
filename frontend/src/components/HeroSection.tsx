@@ -4,6 +4,7 @@ import { CadCrosshair } from './CadCrosshair';
 import { TextReveal } from './motion/TextReveal';
 import { Reveal } from './motion/Reveal';
 import { ArrowDown, Network, ShieldCheck, GitBranch, AlertOctagon } from 'lucide-react';
+import { TickerBar } from './TickerBar';
 import { ViewMode } from '../types';
 
 interface HeroSectionProps {
@@ -121,18 +122,33 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onSelectMode, onNaviga
 
       </div>
 
-      {/* Sub-bar: Supported tools ticker */}
+      {/* Sub-bar: scrolling ticker (was a static text line) */}
       <Reveal className="relative z-10" delay={0.55} y={10} priority>
-        <div className="pt-4 flex flex-wrap items-center justify-between gap-4 font-mono text-xs text-[#5c5c56]">
-          <div className="flex items-center gap-2">
+        <div className="pt-4 flex items-center gap-4 font-mono text-xs">
+          <div className="flex shrink-0 items-center gap-2 text-[#5c5c56]">
             <span className="w-2 h-2 bg-[#e15c46]" />
-            <span className="font-bold text-[#282828]">ONE GRAPH:</span>
-            <span>Ownership · Dependencies · Decisions · On-call</span>
+            <span className="font-bold text-[#282828]">ONE GRAPH</span>
           </div>
 
-          <button 
+          <TickerBar
+            variant="light"
+            speed={24}
+            label="One graph: Ownership, Dependencies, Decisions, On-call, Blast radius, Provenance, Honest negatives"
+            className="min-w-0 flex-1 py-1"
+            items={[
+              'Ownership',
+              'Dependencies',
+              'Decisions',
+              'On-call',
+              'Blast radius',
+              'Provenance',
+              'Honest negatives',
+            ]}
+          />
+
+          <button
             onClick={() => onNavigateSection('inspector-section')}
-            className="flex items-center gap-1.5 text-[#e15c46] hover:underline"
+            className="flex shrink-0 items-center gap-1.5 text-[#e15c46] hover:underline"
           >
             <span>SEARCH VS. GRAPH</span>
             <ArrowDown className="w-3.5 h-3.5" />

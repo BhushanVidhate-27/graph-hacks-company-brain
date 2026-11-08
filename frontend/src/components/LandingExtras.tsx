@@ -1,6 +1,7 @@
 import React from 'react';
-import { ArrowRight, CheckCircle2, Database, GitBranch, Lock, MessageSquare, Server } from 'lucide-react';
+import { ArrowRight, CheckCircle2, Database, Lock, MessageSquare, Server } from 'lucide-react';
 import { Reveal } from './motion/Reveal';
+import { TickerBar } from './TickerBar';
 
 const SOURCES = [
   { tag: 'call transcript', label: 'Renewal call — Oct 12' },
@@ -49,27 +50,22 @@ export const CodeSnippet: React.FC = () => {
   );
 };
 
-export const ProofStrip: React.FC = () => {
-  const items = [
-    { stat: '100%', label: 'answers with a path' },
-    { stat: '50', label: 'free questions / mo' },
-    { stat: 'SOC 2', label: 'ready · self-host' },
-  ];
-  return (
-    <section className="w-full border-y border-white/10 bg-white/[0.015] px-4 md:px-8 py-8">
-      <div className="mx-auto grid max-w-7xl grid-cols-1 gap-4 sm:grid-cols-3">
-        {items.map((item, i) => (
-          <Reveal key={item.label} delay={i * 0.06}>
-            <div className="text-center sm:text-left">
-              <div className="font-mono text-2xl font-bold text-[#e15c46]">{item.stat}</div>
-              <div className="mt-1 font-mono text-[10px] uppercase tracking-widest text-white/45">{item.label}</div>
-            </div>
-          </Reveal>
-        ))}
-      </div>
-    </section>
-  );
-};
+export const ProofStrip: React.FC = () => (
+  <section aria-label="Proof points" className="w-full border-y border-white/10 bg-white/[0.015] py-4">
+    <TickerBar
+      variant="dark"
+      speed={28}
+      label="100% answers with a path, 50 free questions per month, SOC 2 ready, self-host"
+      items={[
+        '100% answers with a path',
+        '50 free questions / month',
+        'SOC 2 ready · self-host',
+        'No card required',
+        'Cancel anytime',
+      ]}
+    />
+  </section>
+);
 
 export const DemoQuestion: React.FC = () => (
   <section className="relative w-full px-4 md:px-8 py-12 md:py-16 max-w-7xl mx-auto">
@@ -102,18 +98,13 @@ export const DemoQuestion: React.FC = () => (
 
 export const IntegrationMarquee: React.FC = () => (
   <section aria-label="Integrations" className="w-full border-y border-white/10 bg-white/[0.015] py-5 overflow-hidden">
-    <div className="footer-luxe-marquee flex w-max items-center gap-4 pl-4">
-      {[...INTEGRATIONS, ...INTEGRATIONS].map((name, i) => (
-        <span
-          key={`${name}-${i}`}
-          className="inline-flex shrink-0 items-center gap-2 border border-white/10 px-4 py-2 font-mono text-[11px] uppercase tracking-wider text-white/60"
-          aria-hidden={i >= INTEGRATIONS.length}
-        >
-          <GitBranch className="size-3.5 text-[#f08a75]" aria-hidden="true" />
-          {name}
-        </span>
-      ))}
-    </div>
+    <TickerBar
+      variant="dark"
+      chip
+      speed={32}
+      label="Integrations: GitHub, Slack, Jira, Linear, Notion, Webhook, CSV"
+      items={INTEGRATIONS}
+    />
     <p className="mt-4 text-center font-mono text-[10px] uppercase tracking-widest text-white/40">
       Fed from the tools you already use
     </p>
