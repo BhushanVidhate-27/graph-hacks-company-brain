@@ -339,6 +339,18 @@ CREATE TABLE IF NOT EXISTS payment_links (
     paid_at TEXT
 );
 CREATE INDEX IF NOT EXISTS idx_payment_links_account ON payment_links(account_id);
+CREATE TABLE IF NOT EXISTS payment_orders (
+    id TEXT PRIMARY KEY,
+    account_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+    plan_id TEXT NOT NULL,
+    amount INTEGER NOT NULL,
+    currency TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'created',
+    payment_id TEXT,
+    created_at TEXT NOT NULL,
+    paid_at TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_payment_orders_account ON payment_orders(account_id);
 CREATE TABLE IF NOT EXISTS facts (
     id TEXT PRIMARY KEY,
     account_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
@@ -508,6 +520,18 @@ CREATE TABLE IF NOT EXISTS payment_links (
     paid_at TEXT
 );
 CREATE INDEX IF NOT EXISTS idx_payment_links_account ON payment_links(account_id);
+CREATE TABLE IF NOT EXISTS payment_orders (
+    id TEXT PRIMARY KEY,
+    account_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+    plan_id TEXT NOT NULL,
+    amount INTEGER NOT NULL,
+    currency TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'created',
+    payment_id TEXT,
+    created_at TEXT NOT NULL,
+    paid_at TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_payment_orders_account ON payment_orders(account_id);
 CREATE TABLE IF NOT EXISTS facts (
     id TEXT PRIMARY KEY,
     account_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
@@ -686,6 +710,19 @@ MIGRATIONS_SQLITE = [
     )""",
     "CREATE INDEX IF NOT EXISTS idx_payment_links_account ON payment_links(account_id)",
 
+    """CREATE TABLE IF NOT EXISTS payment_orders (
+        id TEXT PRIMARY KEY,
+        account_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+        plan_id TEXT NOT NULL,
+        amount INTEGER NOT NULL,
+        currency TEXT NOT NULL,
+        status TEXT NOT NULL DEFAULT 'created',
+        payment_id TEXT,
+        created_at TEXT NOT NULL,
+        paid_at TEXT
+    )""",
+    "CREATE INDEX IF NOT EXISTS idx_payment_orders_account ON payment_orders(account_id)",
+
 ]
 
 MIGRATIONS_POSTGRES = [
@@ -796,6 +833,19 @@ MIGRATIONS_POSTGRES = [
         paid_at TEXT
     )""",
     "CREATE INDEX IF NOT EXISTS idx_payment_links_account ON payment_links(account_id)",
+
+    """CREATE TABLE IF NOT EXISTS payment_orders (
+        id TEXT PRIMARY KEY,
+        account_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+        plan_id TEXT NOT NULL,
+        amount INTEGER NOT NULL,
+        currency TEXT NOT NULL,
+        status TEXT NOT NULL DEFAULT 'created',
+        payment_id TEXT,
+        created_at TEXT NOT NULL,
+        paid_at TEXT
+    )""",
+    "CREATE INDEX IF NOT EXISTS idx_payment_orders_account ON payment_orders(account_id)",
 
 ]
 

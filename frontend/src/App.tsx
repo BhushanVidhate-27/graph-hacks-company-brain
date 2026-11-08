@@ -13,6 +13,7 @@ import { ArchitectureStrip } from './components/ArchitectureStrip';
 import { CodeSnippet, DemoQuestion, DeploymentStrip, IntegrationMarquee, ProofStrip } from './components/LandingExtras';
 import { MysteryHero } from './components/MysteryHero';
 import { DeviceViewportFrame } from './components/DeviceViewportFrame';
+import { PaymentPage } from './components/PaymentPage';
 import { TraversalBand } from './components/TraversalBand';
 import { LearnStrip } from './components/LearnStrip';
 import {
@@ -264,6 +265,12 @@ const AppShell: React.FC<AppShellProps> = ({
             <AccountView
               onBack={() => transitionTo('website')}
               onSelectMode={accountNavigate}
+            />
+          )}
+
+          {currentMode === 'pay' && (
+            <PaymentPage
+              onSelectMode={(mode) => transitionTo(mode)}
             />
           )}
           </React.Suspense>

@@ -8,6 +8,7 @@ export const PATH_FOR_MODE: Record<ViewMode, string> = {
   viewport: '/preview',
   auth: '/auth',
   account: '/account',
+  pay: '/pay',
 };
 
 export const MODE_FOR_PATH: Record<string, ViewMode> = {
@@ -17,6 +18,7 @@ export const MODE_FOR_PATH: Record<string, ViewMode> = {
   '/preview': 'viewport',
   '/auth': 'auth',
   '/account': 'account',
+  '/pay': 'pay',
 };
 
 export const TITLE_FOR_MODE: Record<ViewMode, string> = {
@@ -26,6 +28,7 @@ export const TITLE_FOR_MODE: Record<ViewMode, string> = {
   viewport: 'Helio Device Preview',
   auth: 'Sign in to Helio',
   account: 'Your Helio Account',
+  pay: 'Pay for your Helio pack',
 };
 
 export const isAppPath = (path: string) => path in MODE_FOR_PATH;

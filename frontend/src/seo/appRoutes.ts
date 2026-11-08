@@ -41,6 +41,12 @@ export const APP_ROUTES: AppRouteSeo[] = [
     description: 'Preview the Helio marketing site at desktop, tablet and mobile widths.',
     shellHeading: 'Opening device preview…',
   },
+  {
+    path: '/pay',
+    title: 'Pay for your Helio pack',
+    description: 'Pay for Starter or Professional with Razorpay — UPI, cards, netbanking and wallets.',
+    shellHeading: 'Opening secure checkout…',
+  },
 ];
 
 export const APP_ROUTE_BY_PATH = new Map(APP_ROUTES.map((route) => [route.path, route]));

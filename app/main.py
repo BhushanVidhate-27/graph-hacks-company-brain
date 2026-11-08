@@ -147,6 +147,17 @@ class CheckoutRequest(BaseModel):
     trial: bool = Field(default=False)
 
 
+class RazorpayOrderRequest(BaseModel):
+    plan: str = Field(min_length=2, max_length=40)
+    trial: bool = Field(default=False)
+
+
+class RazorpayVerifyRequest(BaseModel):
+    razorpay_order_id: str = Field(min_length=4, max_length=120)
+    razorpay_payment_id: str = Field(min_length=4, max_length=120)
+    razorpay_signature: str = Field(min_length=8, max_length=200)
+
+
 class ApiKeyRequest(BaseModel):
     name: str = Field(default="Default key", min_length=1, max_length=80)
 
@@ -1106,6 +1117,43 @@ def billing_portal(request: Request):
     return result
 
 
+
+
+@app.post("/api/razorpay/order")
+def razorpay_order(req: RazorpayOrderRequest, request: Request):
+    """Create a Razorpay Order for the in-app /pay checkout."""
+
+    identity = auth_service.require_identity(request)
+    from app import razorpay as razorpay_service
+
+    result = razorpay_service.build_order(
+        plan_id=req.plan,
+        account=identity.account,
+        user=identity.user,
+        trial=req.trial,
+    )
+    if not result.get("ok"):
+        status = 503 if result.get("error") == "billing_not_configured" else 400
+        return JSONResponse(status_code=status, content=result)
+    return result
+
+
+@app.post("/api/razorpay/verify")
+def razorpay_verify(req: RazorpayVerifyRequest, request: Request):
+    """Verify Checkout's HMAC response, then activate the account."""
+
+    identity = auth_service.require_identity(request)
+    from app import razorpay as razorpay_service
+
+    order = razorpay_service.get_order(req.razorpay_order_id)
+    if not order or order.get("account_id") != identity.account["id"]:
+        return JSONResponse(status_code=404, content={"ok": False, "error": "unknown_order", "message": "This order does not belong to your account."})
+    if not razorpay_service.verify_payment_signature(req.razorpay_order_id, req.razorpay_payment_id, req.razorpay_signature):
+        return JSONResponse(status_code=400, content={"ok": False, "error": "invalid_signature", "message": "Payment verification failed."})
+    activated = razorpay_service.activate_order(req.razorpay_order_id, req.razorpay_payment_id)
+    if activated is None:
+        return JSONResponse(status_code=404, content={"ok": False, "error": "unknown_order", "message": "Order not found."})
+    return {"ok": True, **activated}
 
 
 @app.get("/api/razorpay/callback")

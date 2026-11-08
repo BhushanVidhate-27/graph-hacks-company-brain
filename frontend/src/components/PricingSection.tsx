@@ -193,6 +193,16 @@ export const PricingSection: React.FC<PricingSectionProps> = ({ onSelectMode }) 
       return;
     }
 
+    // Paid packs use the dedicated Razorpay checkout page. The plan travels in
+    // the query string so the page opens with the right card highlighted.
+    if (!trial && (target.id === 'starter' || target.id === 'professional') && checkoutConfigured) {
+      if (typeof window !== 'undefined') {
+        window.history.replaceState({ mode: 'pay' }, '', `/pay?plan=${target.id}`);
+      }
+      onSelectMode('pay');
+      return;
+    }
+
     if (billing && !checkoutConfigured) {
       setNotice('Paid plans are invoiced by email right now — opening your mail app.');
       window.location.href =

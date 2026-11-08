@@ -151,6 +151,9 @@ export interface Usage {
 export interface BillingSetup {
   configured: boolean;
   mode: string;
+  provider?: string;
+  currency?: string;
+  price_ready?: boolean;
   local_billing: boolean;
   trial_days?: number;
   trial_enabled?: boolean;
@@ -188,6 +191,37 @@ export interface CheckoutResponse {
   trial_days?: number;
   url?: string;
   session_id?: string;
+  message?: string;
+  error?: string;
+}
+
+export interface RazorpayOrderResponse {
+  ok: boolean;
+  mode?: string;
+  provider?: string;
+  order_id?: string;
+  key_id?: string;
+  amount?: number;
+  currency?: string;
+  plan?: string;
+  plan_name?: string;
+  name?: string;
+  description?: string;
+  prefill?: { name?: string; email?: string };
+  notes?: Record<string, string>;
+  upgraded?: boolean;
+  status?: string;
+  trial?: boolean;
+  trial_days?: number;
+  message?: string;
+  error?: string;
+}
+
+export interface RazorpayVerifyResponse {
+  ok: boolean;
+  account_id?: string;
+  plan_id?: string;
+  plan_name?: string;
   message?: string;
   error?: string;
 }
@@ -285,6 +319,23 @@ export const api = {
     portal: () =>
       request<{ ok: boolean; url?: string; message?: string }>("/api/billing/portal", {
         method: "POST",
+      }),
+  },
+
+  razorpay: {
+    order: (plan: PlanId, trial = false) =>
+      request<RazorpayOrderResponse>("/api/razorpay/order", {
+        method: "POST",
+        body: JSON.stringify({ plan, trial }),
+      }),
+    verify: (payload: {
+      razorpay_order_id: string;
+      razorpay_payment_id: string;
+      razorpay_signature: string;
+    }) =>
+      request<RazorpayVerifyResponse>("/api/razorpay/verify", {
+        method: "POST",
+        body: JSON.stringify(payload),
       }),
   },
 

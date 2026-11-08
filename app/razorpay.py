@@ -47,23 +47,56 @@ def is_configured() -> bool:
 
 
 def setup_details() -> dict[str, Any]:
+    ready = all(_amount_for(plans.get_plan(plan_id)) for plan_id in plans.PAID_PLANS)
     return {
         "configured": is_configured(),
         "mode": "razorpay",
+        "provider": "razorpay",
         "currency": currency(),
         "trial_days": plans.trial_days(),
         "trial_enabled": plans.trial_days() > 0,
+        "price_ready": bool(ready),
         "required_env": ["RAZORPAY_KEY_ID", "RAZORPAY_KEY_SECRET", "RAZORPAY_CURRENCY"],
         "missing": [name for name in ("RAZORPAY_KEY_ID", "RAZORPAY_KEY_SECRET") if not os.getenv(name)],
     }
 
 
-def _amount_for(plan: dict[str, Any]) -> int:
+def _amount_for(plan: dict[str, Any]) -> int | None:
+    """Charge amount in the smallest unit (paise/cents).
+
+    The site's prices are locked in USD. A Razorpay account charging INR needs
+    either an explicit pack amount (RAZORPAY_PRICE_STARTER / _PROFESSIONAL in
+    paise) or an FX rate (RAZORPAY_INR_RATE). Never silently charge $15 as ₹15.
+    """
+
     price = plan.get("price_monthly")
     if not price:
-        return 0
-    # INR is paise; USD-style units are cents — same *100 convention.
-    return int(round(float(price) * 100))
+        return None
+    if currency() == "USD":
+        return int(round(float(price) * 100))
+    explicit = os.getenv(f"RAZORPAY_PRICE_{str(plan.get('id', '')).upper()}", "").strip()
+    if explicit:
+        try:
+            return int(explicit)
+        except ValueError:
+            return None
+    rate = os.getenv("RAZORPAY_INR_RATE", "").strip()
+    if rate:
+        try:
+            return int(round(float(price) * float(rate) * 100))
+        except ValueError:
+            return None
+    return None
+
+
+def _amount_hint(plan: dict[str, Any]) -> str:
+    if currency() == "USD":
+        return "This pack has no monthly price. Enable international payments on Razorpay or set RAZORPAY_CURRENCY."
+    return (
+        f"Set RAZORPAY_INR_RATE (for example 88) or RAZORPAY_PRICE_{str(plan.get('id', '')).upper()} "
+        f"in paise so the ${plan.get('price_monthly')} pack is not charged as ₹{plan.get('price_monthly')}."
+    )
+
 
 
 def _request(method: str, path: str, data: dict[str, Any] | list[tuple[str, str]] | None = None) -> tuple[dict | None, str | None]:
@@ -105,8 +138,8 @@ def build_checkout(*, plan_id: str, account: dict[str, Any], user: dict[str, Any
         return {"ok": True, "mode": "trial", "upgraded": True, "plan": plan["id"], "status": "trialing", "trial": True, "trial_days": days, "message": f"{plan['name']} trial started ({days} days, no card required)."}
 
     amount = _amount_for(plan)
-    if amount <= 0:
-        return {"ok": False, "error": "invalid_amount", "message": "This plan has no monthly price."}
+    if not amount:
+        return {"ok": False, "error": "invalid_amount", "message": _amount_hint(plan)}
 
     # Local map link -> account/plan, so the callback can activate without trusting redirect query params.
     body, err = _request(
@@ -136,6 +169,113 @@ def build_checkout(*, plan_id: str, account: dict[str, Any], user: dict[str, Any
         )
     store.audit(account["id"], "billing.checkout", plan["id"], {"provider": "razorpay", "link_id": link_id}, actor=user.get("email", "owner"))
     return {"ok": True, "mode": "razorpay", "url": short_url, "session_id": link_id, "plan": plan["id"], "message": "Redirecting to secure checkout…"}
+
+
+def build_order(*, plan_id: str, account: dict[str, Any], user: dict[str, Any], trial: bool = False) -> dict[str, Any]:
+    """Create a Razorpay Order for embedded Checkout (the /pay page).
+
+    Unlike payment links, an order keeps the customer on Helio while Razorpay's
+    modal collects the payment. The order id is stored locally so verification
+    and webhooks can activate the right account without trusting the browser.
+    """
+
+    plan = plans.get_plan(plan_id)
+    if not plans.is_paid(plan["id"]):
+        return {"ok": False, "error": "invalid_plan", "message": "The free plan does not require checkout."}
+
+    days = plans.trial_days()
+    if trial and days > 0:
+        period_end = (datetime.now(timezone.utc) + timedelta(days=days)).isoformat(timespec="seconds")
+        store.upsert_subscription(account["id"], plan=plan["id"], status="trialing", current_period_end=period_end, cancel_at_period_end=False)
+        store.audit(account["id"], "billing.trial_start", plan["id"], {"days": days}, actor=user.get("email", "owner"))
+        return {"ok": True, "mode": "trial", "upgraded": True, "plan": plan["id"], "status": "trialing", "trial": True, "trial_days": days, "message": f"{plan['name']} trial started ({days} days, no card required)."}
+
+    if not is_configured():
+        return {"ok": False, "error": "billing_not_configured", "message": "Razorpay is not configured on this deployment."}
+
+    amount = _amount_for(plan)
+    if not amount:
+        return {"ok": False, "error": "invalid_amount", "message": _amount_hint(plan)}
+
+    body, err = _request(
+        "POST",
+        "/orders",
+        {
+            "amount": amount,
+            "currency": currency(),
+            "receipt": f"helio_{plan['id']}_{account['id'][-8:]}",
+            "notes": {"account_id": account["id"], "plan": plan["id"]},
+        },
+    )
+    if err:
+        return {"ok": False, "error": "razorpay_error", "message": err}
+    order_id = (body or {}).get("id") or ""
+    if not order_id:
+        return {"ok": False, "error": "razorpay_error", "message": "Razorpay did not return an order id."}
+
+    with store.connect() as conn:
+        conn.execute(
+            "INSERT INTO payment_orders (id, account_id, plan_id, amount, currency, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            (order_id, account["id"], plan["id"], amount, currency(), "created", store.now_iso()),
+        )
+    store.audit(account["id"], "billing.order", plan["id"], {"provider": "razorpay", "order_id": order_id, "amount": amount, "currency": currency()}, actor=user.get("email", "owner"))
+    return {
+        "ok": True,
+        "mode": "razorpay",
+        "provider": "razorpay",
+        "order_id": order_id,
+        "key_id": key_id(),
+        "amount": int((body or {}).get("amount") or amount),
+        "currency": (body or {}).get("currency") or currency(),
+        "plan": plan["id"],
+        "plan_name": plan["name"],
+        "name": "Helio",
+        "description": f"Helio {plan['name']} — monthly",
+        "prefill": {"name": user.get("name") or "", "email": user.get("email") or ""},
+        "notes": {"account_id": account["id"], "plan": plan["id"]},
+    }
+
+
+def get_order(order_id: str) -> dict[str, Any] | None:
+    with store.connect() as conn:
+        row = conn.execute(
+            "SELECT id, account_id, plan_id, amount, currency, status, payment_id, created_at, paid_at FROM payment_orders WHERE id = ?",
+            (order_id,),
+        ).fetchone()
+    return store.row_to_dict(row)
+
+
+def verify_payment_signature(order_id: str, payment_id: str, signature: str) -> bool:
+    """HMAC check for Checkout's handler response."""
+
+    if not key_secret():
+        return False
+    digest = hmac.new(key_secret().encode(), f"{order_id}|{payment_id}".encode(), hashlib.sha256).hexdigest()
+    return hmac.compare_digest(digest, signature or "")
+
+
+def activate_order(order_id: str, payment_id: str = "") -> dict[str, Any] | None:
+    """Mark an order paid and move the account onto the pack. Idempotent."""
+
+    with store.connect() as conn:
+        row = conn.execute(
+            "SELECT id, account_id, plan_id, status FROM payment_orders WHERE id = ?",
+            (order_id,),
+        ).fetchone()
+        if not row:
+            return None
+        already_paid = row["status"] == "paid"
+        if not already_paid:
+            conn.execute(
+                "UPDATE payment_orders SET status = 'paid', payment_id = ?, paid_at = ? WHERE id = ?",
+                (payment_id or None, store.now_iso(), order_id),
+            )
+    if already_paid:
+        return {"account_id": row["account_id"], "plan_id": row["plan_id"], "plan_name": plans.get_plan(row["plan_id"])["name"]}
+    period_end = (datetime.now(timezone.utc) + timedelta(days=30)).isoformat(timespec="seconds")
+    store.upsert_subscription(row["account_id"], plan=row["plan_id"], status="active", current_period_end=period_end, cancel_at_period_end=False)
+    store.audit(row["account_id"], "billing.activated", row["plan_id"], {"provider": "razorpay", "order_id": order_id, "payment_id": payment_id}, actor="system")
+    return {"account_id": row["account_id"], "plan_id": row["plan_id"], "plan_name": plans.get_plan(row["plan_id"])["name"]}
 
 
 def verify_callback_signature(payment_id: str, link_id: str, signature: str) -> bool:
@@ -174,12 +314,29 @@ def handle_webhook(raw: bytes, event_id: str | None = None) -> dict[str, Any]:
     except ValueError:
         return {"ok": False, "error": "invalid_json"}
     event_type = body.get("event", "")
+    payload = body.get("payload") or {}
+
     if event_type == "payment.captured":
-        notes = (((body.get("payload") or {}).get("payment") or {}).get("entity") or {}).get("notes") or {}
+        entity = ((payload.get("payment") or {}).get("entity") or {})
+        order_id = entity.get("order_id") or ""
+        if order_id:
+            activated = activate_order(order_id, entity.get("id") or "")
+            if activated:
+                return {"ok": True, "synced": activated["account_id"]}
+        notes = entity.get("notes") or {}
         account_id, plan_id = notes.get("account_id"), notes.get("plan")
         if account_id and plan_id and plans.get_plan(plan_id) and plans.is_paid(plan_id):
             period_end = (datetime.now(timezone.utc) + timedelta(days=30)).isoformat(timespec="seconds")
             store.upsert_subscription(account_id, plan=plan_id, status="active", current_period_end=period_end, cancel_at_period_end=False)
             store.audit(account_id, "billing.activated", plan_id, {"provider": "razorpay", "webhook": event_id or ""}, actor="system")
             return {"ok": True, "synced": account_id}
+
+    if event_type == "order.paid":
+        entity = ((payload.get("order") or {}).get("entity") or {})
+        order_id = entity.get("id") or ""
+        if order_id:
+            activated = activate_order(order_id)
+            if activated:
+                return {"ok": True, "synced": activated["account_id"]}
+
     return {"ok": True, "ignored": event_type}

@@ -1,4 +1,4 @@
-export type ViewMode = 'website' | 'chat-widget' | 'dashboard' | 'viewport' | 'auth' | 'account';
+export type ViewMode = 'website' | 'chat-widget' | 'dashboard' | 'viewport' | 'auth' | 'account' | 'pay';
 
 export interface DependencyNode {
   id: string;
