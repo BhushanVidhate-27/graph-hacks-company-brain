@@ -446,3 +446,22 @@ section[id] {
 @media (prefers-reduced-motion: reduce) {
   .footer-luxe-marquee { animation: none; }
 }
+
+/* Maple leaves on pricing (fall season nod) */
+.maple-fall__leaf {
+  position: absolute;
+  top: -12%;
+  opacity: 0;
+  animation: maple-fall-drift ease-in-out infinite alternate;
+}
+
+@keyframes maple-fall-drift {
+  0% { transform: translate3d(0, -8%, 0) rotateZ(-24deg); opacity: 0; }
+  12% { opacity: 0.85; }
+  55% { transform: translate3d(8vw, 55vh, 0) rotateZ(18deg) translateX(24px); opacity: 0.9; }
+  100% { transform: translate3d(-6vw, 108vh, 0) rotateZ(-35deg) translateX(-32px); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .maple-fall__leaf { animation: none; opacity: 0; }
+}
