@@ -81,17 +81,19 @@
 }
 
 :root {
-  --cl-bg: #0e0e11;
-  --cl-primary: #f2f2f0;
+  --cl-bg: #09090b;
+  --cl-surface: #101013;
+  --cl-elevated: #141417;
+  --cl-primary: #fafafa;
   --cl-brand: #e15c46;
-  --cl-border: rgba(255, 255, 255, 0.12);
+  --cl-border: rgba(255, 255, 255, 0.09);
 }
 
 body {
   background-color: var(--cl-bg);
   background-image:
-    radial-gradient(1100px 500px at 70% -10%, rgba(225, 92, 70, 0.08), transparent 65%),
-    radial-gradient(800px 460px at 10% 0%, rgba(255, 255, 255, 0.045), transparent 60%);
+    radial-gradient(1100px 500px at 70% -10%, rgba(225, 92, 70, 0.07), transparent 65%),
+    radial-gradient(900px 520px at 12% -20%, rgba(255, 255, 255, 0.035), transparent 60%);
   background-repeat: no-repeat;
   color: var(--cl-primary);
   font-family: 'Space Mono', monospace;
@@ -135,11 +137,11 @@ section[id] {
    via the extra ancestor. Footer (`.footer-luxe`) is already dark-native. */
 .bg-\[\#ecece4\],
 .bg-\[\#f4f4ec\] {
-  background-color: #141417 !important;
+  background-color: #101013 !important;
 }
 
 .bg-\[\#ecece4\]\/95 {
-  background-color: rgba(14, 14, 17, 0.92) !important;
+  background-color: rgba(9, 9, 11, 0.92) !important;
 }
 
 .text-\[\#282828\] {

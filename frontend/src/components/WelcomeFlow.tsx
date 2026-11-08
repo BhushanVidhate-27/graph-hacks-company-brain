@@ -35,7 +35,7 @@ const GraphVisual: React.FC<{ active: boolean }> = ({ active }) => (
       { x: 100, y: 215 }, { x: 90, y: 120 },
     ].map((p, i) => (
       <g key={`n-${i}`}>
-        <circle cx={p.x} cy={p.y} r="10" fill="#0e0e11" stroke={active ? '#f08a75' : 'rgba(255,255,255,0.5)'} strokeWidth="1.5" />
+        <circle cx={p.x} cy={p.y} r="10" fill="#09090b" stroke={active ? '#f08a75' : 'rgba(255,255,255,0.5)'} strokeWidth="1.5" />
         <circle cx={p.x} cy={p.y} r="3" fill={active && i % 2 === 0 ? '#e15c46' : 'rgba(255,255,255,0.6)'} />
       </g>
     ))}
@@ -95,7 +95,7 @@ export const WelcomeFlow: React.FC<Props> = ({ open, providers, integrationsCoun
 
   return (
     <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-label="Welcome to helio">
-      <div className="w-full max-w-3xl overflow-hidden border border-white/15 bg-[#0e0e11] text-white shadow-2xl">
+      <div className="w-full max-w-3xl overflow-hidden border border-white/15 bg-[#09090b] text-white shadow-2xl">
         <div className="grid md:grid-cols-2">
           <div className="relative min-h-[280px] border-b border-white/10 md:border-b-0 md:border-r">
             <div className="absolute left-4 top-4 font-mono text-[10px] uppercase tracking-widest text-white/45">your graph</div>

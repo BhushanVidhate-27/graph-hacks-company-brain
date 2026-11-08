@@ -31,7 +31,7 @@ export const CodeSnippet: React.FC = () => {
             <h2 className="mt-3 font-mono text-2xl md:text-3xl font-bold uppercase tracking-tight text-white">Try it in 30 seconds.</h2>
             <p className="mt-3 font-mono text-xs md:text-sm text-white/55 leading-relaxed">One call. Every answer carries its path.</p>
           </div>
-          <div className="border border-white/10 bg-[#121215]">
+          <div className="border border-white/10 bg-[#101013]">
             <div className="flex items-center justify-between border-b border-white/10 px-4 py-2.5">
               <span className="font-mono text-[10px] uppercase tracking-widest text-white/45">helio · quickstart</span>
               <button

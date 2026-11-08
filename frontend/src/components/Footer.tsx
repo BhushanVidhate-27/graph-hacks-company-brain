@@ -79,7 +79,7 @@ export const Footer: React.FC<FooterProps> = ({ onSelectMode }) => {
   };
 
   return (
-    <footer className="footer-luxe relative w-full overflow-hidden bg-[#0e0e11] text-white select-none">
+    <footer className="footer-luxe relative w-full overflow-hidden bg-[#09090b] text-white select-none">
       {/* luminous top hairline */}
       <div className="footer-luxe-glow" aria-hidden="true" />
 
