@@ -1,21 +1,21 @@
 # Helio company brain — production image.
 #
-# The frontend is angy-fronted (Vite + React). It is built here and copied into
+# The frontend is frontend (Vite + React). It is built here and copied into
 # the Python runtime so the site and the API share ONE origin: no CORS, and no
 # proxy between the browser and the SSE stream.
 
 # --------------------------------------------------------------------------- #
-# Stage 1: build the Helio frontend (angy-fronted).
+# Stage 1: build the Helio frontend (frontend).
 # --------------------------------------------------------------------------- #
 FROM node:22-slim AS site
 
 WORKDIR /site
 
 # Lockfile first so source edits do not re-run npm ci.
-COPY angy-fronted/package.json angy-fronted/package-lock.json ./
+COPY frontend/package.json frontend/package-lock.json ./
 RUN npm ci --no-audit --no-fund
 
-COPY angy-fronted/ ./
+COPY frontend/ ./
 RUN npm run build
 
 # --------------------------------------------------------------------------- #

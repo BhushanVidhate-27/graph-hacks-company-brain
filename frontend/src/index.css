@@ -279,3 +279,67 @@ section[id] {
 ::-webkit-scrollbar-thumb {
   background: #282828;
 }
+
+/* ------------------------------------------------------------------ */
+/* Footer — dark luxurious theme (scoped to .footer-luxe, site stays light) */
+/* ------------------------------------------------------------------ */
+
+.footer-luxe {
+  font-family: 'Space Mono', monospace;
+  letter-spacing: 0.01em;
+}
+
+.footer-luxe-glow {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(225, 92, 70, 0.65) 30%, rgba(225, 92, 70, 0.65) 70%, transparent);
+}
+
+.footer-luxe-h {
+  color: #f08a75;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  margin: 0 0 16px;
+}
+
+.footer-luxe-link {
+  color: rgba(255, 255, 255, 0.66);
+  font-size: 13px;
+  line-height: 1.4;
+  transition: color 160ms ease;
+}
+
+.footer-luxe-link:hover,
+.footer-luxe-link:focus-visible {
+  color: #fff;
+  outline: none;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: #e15c46;
+}
+
+.footer-luxe-wordmark-wrap {
+  overflow: hidden;
+  line-height: 0.78;
+  text-align: center;
+  user-select: none;
+}
+
+.footer-luxe-wordmark {
+  display: block;
+  font-weight: 700;
+  font-size: clamp(88px, 19vw, 260px);
+  letter-spacing: 0.015em;
+  color: transparent;
+  -webkit-text-stroke: 1.5px rgba(225, 92, 70, 0.38);
+  paint-order: stroke fill;
+  mask-image: linear-gradient(to bottom, #000 42%, transparent 96%);
+  -webkit-mask-image: linear-gradient(to bottom, #000 42%, transparent 96%);
+  text-shadow: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .footer-luxe-link { transition: none; }
+}

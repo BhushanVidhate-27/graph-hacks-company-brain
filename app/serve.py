@@ -16,7 +16,7 @@ Why same-origin matters, twice:
     the SSE response. A proxy that buffers turns a working local stream into a
     dead production one.
 
-`site/` is the Vite build of angy-fronted, produced by the `site` stage of the
+`site/` is the Vite build of frontend, produced by the `site` stage of the
 Dockerfile. It is plain HTML/CSS/JS with no Node runtime behind it, so this
 process is still the only thing that has to stay alive.
 
@@ -36,7 +36,7 @@ from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.gzip import GZipMiddleware
 
-# Overridable so a local `npm run build` in angy-fronted can be served without
+# Overridable so a local `npm run build` in frontend can be served without
 # rebuilding the image.
 SITE_DIR = Path(os.getenv("HELIO_SITE_DIR", "site"))
 

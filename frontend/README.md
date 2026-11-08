@@ -1,4 +1,4 @@
-# Helio — A Company Brain (`angy-fronted`)
+# Helio — A Company Brain (`frontend`)
 
 **Track 03: Company Brain · Graph Hacks**
 

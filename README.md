@@ -33,7 +33,7 @@ generate.py → load.py → graph.py (Cypher) → verify.py
                                               │
                                     ┌─────────┘
                                     ▼
-                          agent.py + main.py → angy-fronted/
+                          agent.py + main.py → frontend/
 ```
 
 ---
