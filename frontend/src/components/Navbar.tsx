@@ -27,6 +27,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentMode, onSelectMode, onNav
 
   return (
     <header className="relative w-full cad-border-b bg-[#ecece4]/95 backdrop-blur-md sticky top-0 z-40 select-none">
+      <div aria-hidden="true" className="navbar-dots pointer-events-none absolute inset-0" />
       <CadCrosshair position="tl" />
       <CadCrosshair position="tr" />
 
