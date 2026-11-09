@@ -5,44 +5,19 @@ import { Reveal } from './motion/Reveal';
 export const RolesSection: React.FC = () => {
   const roles = [
     {
-      title: 'INCIDENT COMMANDERS',
-      desc: 'Trace blast radius and find the active on-call engineer in seconds during outages.',
+      title: 'SRE / platform',
+      desc: 'Use dependency paths and on-call ownership before changes — or during incidents — cascade.',
       num: '[01]'
     },
     {
-      title: 'STAFF ARCHITECTS',
-      desc: 'Follow SUPERSEDES chains to ensure deprecated architectural decisions are retired.',
+      title: 'Architecture / leadership',
+      desc: 'Follow decision history and ownership blind spots across teams and services.',
       num: '[02]'
     },
     {
-      title: 'ENGINEERING DIRECTORS',
-      desc: 'Audit unowned services (like config-service) and eliminate structural blindspots.',
+      title: 'Engineering teams',
+      desc: 'Ask for the current owner and proof trail instead of trusting stale wikis or commit volume.',
       num: '[03]'
-    },
-    {
-      title: 'SITE RELIABILITY ENGINEERS',
-      desc: 'Map multi-hop cascade dependencies before releasing core infrastructure changes.',
-      num: '[04]'
-    },
-    {
-      title: 'NEW HIRES & DEVELOPERS',
-      desc: 'Discover who actually maintains a codebase recently, bypassing stale Confluence wikis.',
-      num: '[05]'
-    },
-    {
-      title: 'PLATFORM LEADS',
-      desc: 'Keep service tiers and SLA contracts compliant across distributed engineering teams.',
-      num: '[06]'
-    },
-    {
-      title: 'SECURITY AUDITORS',
-      desc: 'Visualize exact blast radius when a critical dependency requires emergency patching.',
-      num: '[07]'
-    },
-    {
-      title: 'PRODUCT MANAGERS',
-      desc: 'Map cross-team service ownership to eliminate organizational blockers.',
-      num: '[08]'
     }
   ];
 
@@ -57,7 +32,7 @@ export const RolesSection: React.FC = () => {
         </div>
       </Reveal>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {roles.map((r, index) => (
           <Reveal key={r.num} delay={index * 0.04} className="h-full">
             <div
