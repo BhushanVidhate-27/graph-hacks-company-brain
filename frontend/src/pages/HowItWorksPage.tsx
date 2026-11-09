@@ -12,23 +12,24 @@ import {
 const STEPS = [
   {
     number: '01',
-    title: 'Connect your sources',
-    body: 'Helio ingests services, owning teams, people, dependency edges, on-call rotations, and decision records. GitHub metadata adds recency signals.',
+    title: 'Connect records',
+    body: 'Import services, teams, people, dependencies, on-call rotations, decisions, and GitHub activity.',
   },
   {
     number: '02',
-    title: 'Resolve the question as a graph traversal',
-    body: 'Questions map to typed relationships: ownership (OWNED_BY), impact (HAS_DEPENDENT), history (SUPERSEDES), and paging (ON_CALL). Search is used to locate entities, not to invent relationships.',
+    title: 'Traverse relationships',
+    body: 'Resolve the question using typed graph edges. Search helps locate entities; it does not invent relationships.',
+    detail: 'Ownership uses OWNED_BY, impact uses HAS_DEPENDENT, history uses SUPERSEDES, and paging uses ON_CALL.',
   },
   {
     number: '03',
-    title: 'Return the answer with its evidence',
-    body: 'The response carries the nodes, edges and dates it used. Volume and recency are separate signals, so the person with the most commits is not automatically the owner. If an edge is missing, the answer says the graph has no record instead of filling the gap.',
+    title: 'Return the answer with evidence',
+    body: 'Each answer includes the nodes, edges, and dates used. Recent activity and historical volume remain separate signals.',
   },
   {
     number: '04',
-    title: 'Let a person check it',
-    body: 'Every claim can be opened in the trail or the graph console. That is the difference between a plausible paragraph and an answer a team can defend during an incident or a postmortem.',
+    title: 'Keep it checkable',
+    body: 'Missing evidence is reported as missing. The trail, dates, and console make each answer easy to verify.',
   },
 ];
 
@@ -85,6 +86,15 @@ export const HowItWorksPage: React.FC = () => (
     </PageHero>
 
     <Section eyebrow="The loop" title="Four steps, each one checkable">
+      <div className="mb-5 cad-border bg-[#f4f4ec] px-4 py-3 font-mono text-[10px] uppercase tracking-wider text-[#282828] flex flex-wrap items-center gap-2" aria-label="Helio flow">
+        <span className="text-[#e15c46] font-bold">Connect records</span>
+        <span aria-hidden="true">→</span>
+        <span>Resolve entities</span>
+        <span aria-hidden="true">→</span>
+        <span>Traverse relationships</span>
+        <span aria-hidden="true">→</span>
+        <span>Return answer + trail</span>
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         {STEPS.map((step) => (
           <div key={step.number} className="cad-border bg-[#f4f4ec] p-6">
@@ -97,6 +107,12 @@ export const HowItWorksPage: React.FC = () => (
             <p className="mt-3 font-mono text-xs md:text-sm text-[#5c5c56] leading-relaxed">
               {step.body}
             </p>
+            {'detail' in step && step.detail ? (
+              <details className="mt-3 font-mono text-[10px] uppercase tracking-wider text-[#5c5c56]">
+                <summary className="cursor-pointer text-[#e15c46]">Technical detail</summary>
+                <p className="mt-2 leading-relaxed normal-case tracking-normal text-[#5c5c56]">{step.detail}</p>
+              </details>
+            ) : null}
           </div>
         ))}
       </div>
@@ -104,11 +120,13 @@ export const HowItWorksPage: React.FC = () => (
 
     <Section eyebrow="Example" title="Three questions, one service">
       <div className="mt-8 space-y-4 max-w-3xl">
-        {WORKED_EXAMPLE.map((item) => (
-          <div key={item.question} className="cad-border bg-[#f4f4ec] p-5">
-            <h3 className="font-mono text-sm md:text-base font-bold text-[#282828]">{item.question}</h3>
+        {WORKED_EXAMPLE.map((item, index) => (
+          <details key={item.question} className="cad-border bg-[#f4f4ec] p-5" open={index === 0}>
+            <summary className="cursor-pointer font-mono text-sm md:text-base font-bold text-[#282828]">
+              {item.question}
+            </summary>
             <p className="mt-2 font-mono text-xs md:text-sm text-[#5c5c56] leading-relaxed">{item.answer}</p>
-          </div>
+          </details>
         ))}
       </div>
       <div className="mt-6 flex flex-wrap gap-4">
