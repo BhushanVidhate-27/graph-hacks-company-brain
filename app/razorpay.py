@@ -190,13 +190,32 @@ def build_checkout(*, plan_id: str, account: dict[str, Any], user: dict[str, Any
         store.audit(account["id"], "billing.trial_start", plan["id"], {"days": days}, actor=user.get("email", "owner"))
         return {"ok": True, "mode": "trial", "upgraded": True, "plan": plan["id"], "status": "trialing", "trial": True, "trial_days": days, "message": f"{plan['name']} trial started ({days} days, no card required)."}
 
-    # Interim path (no API keys): fixed-amount Razorpay.me link. The payment
-    # page has no signed callback, so activation is manual — we record intent
-    # and tell the payer to reference their email.
+    # Interim path (no API keys): prefer a pre-created Razorpay Payment Link for
+    # this plan when one is configured; otherwise fall back to the public
+    # razorpay.me fixed-amount page.
     if not is_configured():
+        links = plan_payment_links()
+        if links.get(plan["id"]):
+            intent_id = store.new_id("payme")
+            with store.connect() as conn:
+                conn.execute(
+                    "INSERT INTO payment_links (id, account_id, plan_id, status, created_at) VALUES (?, ?, ?, ?, ?)",
+                    (intent_id, account["id"], plan["id"], "created", store.now_iso()),
+                )
+            store.audit(account["id"], "billing.checkout", plan["id"], {"provider": "razorpay-link", "intent_id": intent_id, "amount_inr": inr_amount(plan)}, actor=user.get("email", "owner"))
+            return {
+                "ok": True,
+                "mode": "razorpay-link",
+                "url": links[plan["id"]],
+                "session_id": intent_id,
+                "plan": plan["id"],
+                "amount": (inr_amount(plan) or 0) * 100,
+                "currency": "INR",
+                "message": f"Redirecting to Razorpay (₹{inr_amount(plan) or 0}). Activation is confirmed after payment is received.",
+            }
         amt = inr_amount(plan)
         if not amt:
-            return {"ok": False, "error": "invalid_amount", "message": f"Set RAZORPAY_PRICE_{str(plan.get('id', '')).upper()} (rupees) to enable interim checkout."}
+            return {"ok": False, "error": "invalid_amount", "message": f"Set RAZORPAY_PRICE_{str(plan.get('id', '')).upper()} (rupees) or RAZORPAY_PAYMENT_LINK_{str(plan.get('id', '')).upper()} to enable checkout."}
         intent_id = store.new_id("payme")
         with store.connect() as conn:
             conn.execute(
