@@ -9,36 +9,37 @@ import {
   Section,
 } from './MarketingChrome';
 
-const SOURCES = [
-  {
-    name: 'GitHub',
-    status: 'Available',
-    body: 'Reads issues, pull requests and commit metadata for one owner and repository. Used as a recency signal: who touched the code, and when. Read-only; Helio never writes back.',
-  },
-  {
-    name: 'Services and dependencies',
-    status: 'Available',
-    body: 'Import services, owning teams, and dependency relationships from structured records.',
-  },
-  {
-    name: 'On-call rotations',
-    status: 'Available via import',
-    body: 'Rotation membership and the active weekly on-call are separate facts. Helio stores both, so "on the rotation" is not confused with "paging now".',
-  },
-  {
-    name: 'Decision records',
-    status: 'Available via import',
-    body: 'ADRs and architecture notes are stored with dates and SUPERSEDES edges. A newer decision can retire an older document without deleting it.',
-  },
+const MATRIX = [
+  { source: 'GitHub', status: 'Native connector', read: 'Issues, PRs, commit metadata', sync: 'API sync', write: 'Read-only', plan: 'Starter+' },
+  { source: 'Slack', status: 'Native connector', read: 'Messages and channels', sync: 'API sync', write: 'Read-only', plan: 'Free' },
+  { source: 'Linear', status: 'Import', read: 'Issues and projects', sync: 'API import', write: 'Read-only', plan: 'Free' },
+  { source: 'Notion', status: 'Import', read: 'Pages and databases', sync: 'API import', write: 'Read-only', plan: 'Free' },
+  { source: 'Webhook', status: 'Import', read: 'Events and payloads', sync: 'Push import', write: 'Read-only', plan: 'Free' },
+  { source: 'CSV', status: 'Import', read: 'Structured records', sync: 'File import', write: 'Read-only', plan: 'Free' },
+  { source: 'Jira', status: 'Not native yet', read: '—', sync: '—', write: '—', plan: '—' },
+  { source: 'PagerDuty / Opsgenie / Confluence', status: 'Not native yet', read: '—', sync: '—', write: '—', plan: '—' },
+];
+
+const STRUCTURED_IMPORTS = [
   {
     name: 'Helio API',
     status: 'Available on paid plans',
     body: 'Create an API key in the account and query the same graph from your own tooling. Keys are scoped to the workspace and can be revoked.',
   },
   {
-    name: 'PagerDuty, Opsgenie, Jira, Confluence',
-    status: 'Not native yet',
-    body: 'There is no one-click connector for these today. Their records can be imported through the graph loader, and Enterprise onboarding can scope a connector if that is the blocker.',
+    name: 'Services and dependencies',
+    status: 'Available via import',
+    body: 'Import services, owning teams, and dependency relationships from structured records.',
+  },
+  {
+    name: 'On-call rotations',
+    status: 'Available via import',
+    body: 'Rotation membership and the active weekly on-call are separate facts, so "on the rotation" is not confused with "paging now".',
+  },
+  {
+    name: 'Decision records',
+    status: 'Available via import',
+    body: 'ADRs and architecture notes are stored with dates and supersession edges. A newer decision can retire an older document without deleting it.',
   },
 ];
 
@@ -76,19 +77,54 @@ export const IntegrationsPage: React.FC = () => (
       <CtaLink href="/how-it-works" variant="outline">How the graph works</CtaLink>
     </PageHero>
 
-    <Section eyebrow="Sources" title="What can go into the graph">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        {SOURCES.map((source) => (
+    <Section eyebrow="Availability" title="Native, import, API and not-native sources">
+      <p className="mb-6 font-mono text-xs text-[#5c5c56] leading-relaxed">
+        Statuses match what Helio can do today. Import sources are structured data imports, not one-click
+        connectors.
+      </p>
+      <div className="overflow-x-auto cad-border bg-[#f4f4ec]">
+        <table className="w-full min-w-[760px] border-collapse text-left font-mono text-xs">
+          <thead>
+            <tr className="border-b border-[#282828]/20 text-[10px] uppercase tracking-wider text-[#5c5c56]">
+              <th className="px-4 py-3 font-bold">Source</th>
+              <th className="px-4 py-3 font-bold">Status</th>
+              <th className="px-4 py-3 font-bold">Data read</th>
+              <th className="px-4 py-3 font-bold">Sync method</th>
+              <th className="px-4 py-3 font-bold">Write access</th>
+              <th className="px-4 py-3 font-bold">Plan</th>
+            </tr>
+          </thead>
+          <tbody>
+            {MATRIX.map((row) => (
+              <tr key={row.source} className="border-b border-[#282828]/10 last:border-b-0 text-[#282828]">
+                <td className="px-4 py-3 font-bold">{row.source}</td>
+                <td className="px-4 py-3">
+                  <span
+                    className={`inline-block border px-2 py-1 text-[9px] uppercase tracking-wider ${
+                      row.status === 'Not native yet'
+                        ? 'border-[#282828]/30 text-[#5c5c56]'
+                        : 'border-[#e15c46] text-[#e15c46]'
+                    }`}
+                  >
+                    {row.status}
+                  </span>
+                </td>
+                <td className="px-4 py-3 text-[#5c5c56]">{row.read}</td>
+                <td className="px-4 py-3 text-[#5c5c56]">{row.sync}</td>
+                <td className="px-4 py-3 text-[#5c5c56]">{row.write}</td>
+                <td className="px-4 py-3 text-[#5c5c56]">{row.plan}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-5">
+        {STRUCTURED_IMPORTS.map((source) => (
           <div key={source.name} className="cad-border bg-[#f4f4ec] p-6">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <h3 className="font-mono text-base font-bold uppercase text-[#282828]">{source.name}</h3>
-              <span
-                className={`font-mono text-[9px] uppercase tracking-widest px-2 py-1 border ${
-                  source.status === 'Not native yet'
-                    ? 'border-[#282828]/30 text-[#5c5c56]'
-                    : 'border-[#e15c46] text-[#e15c46]'
-                }`}
-              >
+              <span className="font-mono text-[9px] uppercase tracking-widest px-2 py-1 border border-[#e15c46] text-[#e15c46]">
                 {source.status}
               </span>
             </div>
