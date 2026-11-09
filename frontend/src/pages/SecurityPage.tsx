@@ -78,6 +78,42 @@ export const SecurityPage: React.FC = () => (
       </Prose>
     </Section>
 
+    <Section eyebrow="Controls" title="Security overview">
+      <p className="mb-6 font-mono text-xs text-[#5c5c56] leading-relaxed">
+        Last reviewed: 9 November 2026. Only controls implemented and verified in the current product are
+        listed. Deployment-dependent controls are called out explicitly.
+      </p>
+      <div className="overflow-x-auto cad-border bg-[#f4f4ec]">
+        <table className="w-full min-w-[760px] border-collapse text-left font-mono text-xs">
+          <thead>
+            <tr className="border-b border-[#282828]/20 text-[10px] uppercase tracking-wider text-[#5c5c56]">
+              <th className="px-4 py-3 font-bold">Control</th>
+              <th className="px-4 py-3 font-bold">Current behavior</th>
+              <th className="px-4 py-3 font-bold">Deployment-dependent</th>
+            </tr>
+          </thead>
+          <tbody>
+            {[
+              ['Authentication', 'Passwords, sessions, and API keys are hashed; sessions use HTTP-only cookies.', 'No'],
+              ['Tenant isolation', 'Relational records are account-scoped and each account uses a separate workspace graph.', 'No'],
+              ['GitHub connector', 'Read-only access to configured repository issues, pull requests, and commit metadata.', 'No'],
+              ['Model boundary', 'The graph supplies facts; the language model interprets the question and phrases the answer.', 'No'],
+              ['Application audit log', 'Account activity events are recorded for account management and support.', 'No'],
+              ['Encryption at rest', 'Not claimed independently; storage encryption depends on the selected hosting environment.', 'Yes'],
+              ['Retention / deletion', 'No self-service retention policy is currently provided. Contact us to request deletion.', 'Yes'],
+              ['SOC 2 / ISO 27001', 'Not currently SOC 2 or ISO 27001 certified.', 'No'],
+            ].map(([control, behavior, depends]) => (
+              <tr key={control} className="border-b border-[#282828]/10 last:border-b-0 text-[#282828]">
+                <td className="px-4 py-3 font-bold">{control}</td>
+                <td className="px-4 py-3 text-[#5c5c56]">{behavior}</td>
+                <td className="px-4 py-3 text-[#5c5c56]">{depends}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </Section>
+
     <Section eyebrow="Deployment" title="Managed or inside your network">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5 max-w-4xl">
         <div className="cad-border bg-[#f4f4ec] p-6">
