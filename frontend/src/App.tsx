@@ -38,7 +38,6 @@ class AppErrorBoundary extends React.Component<
 import { Navbar } from './components/Navbar';
 import { HeroSection } from './components/HeroSection';
 import { ViolationInspector } from './components/ViolationInspector';
-import { ProblemsSection } from './components/ProblemsSection';
 import { ProductShowcaseSection } from './components/ProductShowcaseSection';
 import { WorkflowSection } from './components/WorkflowSection';
 import { RolesSection } from './components/RolesSection';
@@ -219,9 +218,6 @@ const AppShell: React.FC<AppShellProps> = ({
 
       <div className="cad-border-t border-[#282828]/15" />
       <ViolationInspector />
-
-      <div className="cad-border-t border-[#282828]/15" />
-      <ProblemsSection />
 
       <div className="cad-border-t border-[#282828]/15" />
       <ProductShowcaseSection onSelectMode={transitionTo} />
