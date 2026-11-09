@@ -15,13 +15,17 @@ export const FaqPage: React.FC = () => (
     <PageHero
       eyebrow="FAQ"
       title="Questions about ownership, impact and evidence."
-      lede="Answers to common questions about Helio, pricing, security, and integrations."
+      lede="Short answers grouped by topic. For the full explanation, use the product pages and Learn guides."
     >
       <CtaLink href="/agent">Open the console</CtaLink>
       <CtaLink href="/security" variant="outline">Security details</CtaLink>
     </PageHero>
 
-    <FaqBlock items={FAQ_ITEMS} title="Helio FAQ" id="faq" />
+    <FaqBlock title="Product" id="faq-product" items={FAQ_ITEMS.filter((item) => ['faq1', 'faq2', 'faq3', 'faq4'].includes(item.id))} />
+    <FaqBlock title="Data & integrations" id="faq-data" items={FAQ_ITEMS.filter((item) => item.id === 'faq5')} />
+    <FaqBlock title="Security" id="faq-security" items={FAQ_ITEMS.filter((item) => item.id === 'faq6')} />
+    <FaqBlock title="Pricing" id="faq-pricing" items={FAQ_ITEMS.filter((item) => item.id === 'faq7')} />
+    <FaqBlock title="Deployment" id="faq-deployment" items={FAQ_ITEMS.filter((item) => item.id === 'faq8')} />
 
     <Section eyebrow="Go deeper" title="Read the long version">
       <Prose>
