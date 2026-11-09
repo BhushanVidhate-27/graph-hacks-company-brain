@@ -101,9 +101,11 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({ onSelectMode }) => {
   const enterprise = plans.find((plan) => plan.id === 'enterprise');
   const apiCheckout = billing?.mode === 'razorpay';
   const interimPage = billing?.mode === 'razorpay-page';
+  const linkPage = billing?.mode === 'razorpay-link';
   const configured = Boolean(billing?.configured);
   const localDemo = Boolean(billing?.local_billing);
   const priceWarning = apiCheckout && billing?.price_ready === false;
+  const planLinks = billing?.payment_links || {};
 
   const pay = async (plan: Plan) => {
     if (busy) return;
@@ -130,8 +132,8 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({ onSelectMode }) => {
         await refresh();
         return;
       }
-      // Interim (no API keys): redirect to razorpay.me with a fixed amount.
-      if (order.mode === 'razorpay-page' && order.url) {
+      // CLI-created Payment Link (no embedded order): redirect to the hosted link.
+      if ((order.mode === 'razorpay-link' || order.mode === 'razorpay-page') && order.url) {
         setNotice(order.message || `Redirecting to Razorpay (₹${order.amount ?? ''}, fixed)…`);
         window.location.assign(order.url);
         return;
@@ -243,6 +245,14 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({ onSelectMode }) => {
       {error && (
         <div className="mb-5 cad-border border-red-500/40 bg-red-500/5 px-4 py-3 font-mono text-xs text-red-300">
           {error}
+        </div>
+      )}
+
+      {linkPage && !localDemo && (
+        <div className="mb-6 cad-border bg-[#f4f4ec] px-4 py-4 font-mono text-[11px] text-[#5c5c56] leading-relaxed">
+          <span className="font-bold uppercase text-[#282828]">Razorpay Payment Links.</span>{' '}
+          Each pack has its own hosted Razorpay link. Pay on the link, then email your receipt to{' '}
+          <a href="mailto:contact.helio.brain@gmail.com" className="text-[#e15c46] hover:underline">contact.helio.brain@gmail.com</a> so we can activate your plan.
         </div>
       )}
 

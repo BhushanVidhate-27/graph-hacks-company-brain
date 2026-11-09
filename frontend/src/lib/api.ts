@@ -159,6 +159,8 @@ export interface BillingSetup {
   trial_enabled?: boolean;
   /** Interim razorpay.me link (no API keys) — fixed-amount page checkout. */
   payment_page?: string | null;
+  /** Razorpay Payment Links created via CLI, keyed by plan id. */
+  payment_links?: Record<string, string>;
   required_env: string[];
   missing: string[];
 }

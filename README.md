@@ -244,6 +244,7 @@ traversal. Named rather than faked.
 
 **Free-tier hosting sleeps.** Render's free tier spins down after 15 minutes idle;
 a cold start takes about 22 seconds. The first request after a gap is slow.
+**Fix — keep-alive pinger.** The project includes `scripts/ping-render.sh`, which pings `/health` every 5 minutes to keep the free Render tier awake. The `Dockerfile` starts this background process automatically, so the deployment stays up. You can also run it manually with `bash scripts/ping-render.sh` — see the script header for configuration options.
 
 **Single-writer assumptions.** The generator is seeded and deterministic — three
 consecutive runs are byte-identical — which is what makes the ground-truth

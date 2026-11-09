@@ -18,6 +18,7 @@ import hmac
 import os
 from datetime import datetime, timedelta, timezone
 from typing import Any
+from urllib.parse import quote_plus
 
 import httpx
 
@@ -52,18 +53,38 @@ def is_configured() -> bool:
     return bool(key_id() and key_secret())
 
 
+def plan_payment_links() -> dict[str, str]:
+    """Static Razorpay Payment Links for each plan, created via Razorpay CLI.
+
+    These are public Razorpay links for fixed amounts (one per paid pack), so
+    the frontend can redirect directly to the hosted Razorpay checkout without
+    calling the API to create an Order. Booking-created links do not need a
+    server callback to exist, but activation after a payment is still manual
+    until webhook + Orders API wiring is used.
+    """
+
+    links: dict[str, str] = {}
+    for plan_id in plans.PAID_PLANS:
+        url = os.getenv(f"RAZORPAY_PAYMENT_LINK_{plan_id.upper()}", "").strip()
+        if url:
+            links[plan_id] = url
+    return links
+
+
 def setup_details() -> dict[str, Any]:
     ready = all(_amount_for(plans.get_plan(plan_id)) for plan_id in plans.PAID_PLANS)
     interim = all(inr_amount(plans.get_plan(plan_id)) for plan_id in plans.PAID_PLANS)
+    links = plan_payment_links()
     return {
-        "configured": is_configured() or interim,
-        "mode": "razorpay" if is_configured() else "razorpay-page",
+        "configured": is_configured() or interim or bool(links),
+        "mode": "razorpay" if is_configured() else "razorpay-link" if links else "razorpay-page",
         "provider": "razorpay",
         "currency": currency(),
         "trial_days": plans.trial_days(),
         "trial_enabled": plans.trial_days() > 0,
         "price_ready": bool(ready),
         "payment_page": payment_page() if not is_configured() else None,
+        "payment_links": links,
         "required_env": ["RAZORPAY_KEY_ID", "RAZORPAY_KEY_SECRET", "RAZORPAY_CURRENCY"],
         "missing": [name for name in ("RAZORPAY_KEY_ID", "RAZORPAY_KEY_SECRET") if not os.getenv(name)],
     }
@@ -240,10 +261,36 @@ def build_order(*, plan_id: str, account: dict[str, Any], user: dict[str, Any], 
         store.audit(account["id"], "billing.trial_start", plan["id"], {"days": days}, actor=user.get("email", "owner"))
         return {"ok": True, "mode": "trial", "upgraded": True, "plan": plan["id"], "status": "trialing", "trial": True, "trial_days": days, "message": f"{plan['name']} trial started ({days} days, no card required)."}
 
-    # Interim path (no API keys): send the browser to the fixed-amount
-    # razorpay.me page; embedded Orders/Checkout needs keys, so this is the
-    # honest fallback until setup is complete. Activation is manual.
+    # Interim path (no API keys): prefer a pre-created Razorpay Payment Link for
+    # this plan when one is configured; otherwise fall back to the public
+    # razorpay.me fixed-amount page.
     if not is_configured():
+        links = plan_payment_links()
+        if links.get(plan["id"]):
+            intent_id = store.new_id("payme")
+            with store.connect() as conn:
+                conn.execute(
+                    "INSERT INTO payment_orders (id, account_id, plan_id, amount, currency, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                    (intent_id, account["id"], plan["id"], inr_amount(plan) or 0, "INR", "created", store.now_iso()),
+                )
+            store.audit(account["id"], "billing.checkout", plan["id"], {"provider": "razorpay-link", "intent_id": intent_id, "amount_inr": inr_amount(plan)}, actor=user.get("email", "owner"))
+            return {
+                "ok": True,
+                "mode": "razorpay-link",
+                "provider": "razorpay-link",
+                "url": links[plan["id"]],
+                "order_id": intent_id,
+                "amount": (inr_amount(plan) or 0) * 100,
+                "currency": "INR",
+                "plan": plan["id"],
+                "plan_name": plan["name"],
+                "name": "Helio",
+                "description": f"Helio {plan['name']} — ₹{inr_amount(plan) or 0}/mo",
+                "prefill": {"name": user.get("name") or "", "email": user.get("email") or ""},
+                "manual_activation": True,
+                "message": f"Redirecting to Razorpay (₹{inr_amount(plan) or 0}, fixed). Activation is confirmed after payment is received.",
+            }
+
         amt = inr_amount(plan)
         if not amt:
             return {"ok": False, "error": "billing_not_configured", "message": f"Set RAZORPAY_PRICE_{str(plan.get('id', '')).upper()} (rupees) to enable interim checkout."}
@@ -262,7 +309,7 @@ def build_order(*, plan_id: str, account: dict[str, Any], user: dict[str, Any], 
             "provider": "razorpay-page",
             "url": url,
             "order_id": intent_id,
-            "amount": amt,
+            "amount": amt * 100,
             "currency": "INR",
             "plan": plan["id"],
             "plan_name": plan["name"],

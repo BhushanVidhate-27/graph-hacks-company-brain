@@ -50,7 +50,10 @@ EXPOSE 8080
 #     cross-origin production page fails with a bare "Failed to fetch".
 #   - Nothing sits in front of the SSE stream to buffer it. A buffering proxy
 #     turns a stream that works locally into one that silently dies in production.
-#
+# --------------------------------------------------------------------------- #
+# Keep-alive pinger: Render free tier sleeps after 15 min idle. Run a
+# background process that pings /health every 5 min to keep the service awake.
+# --------------------------------------------------------------------------- #
+# Replace the CMD below.
+CMD ["sh", "-c", "mkdir -p /tmp\nnohup bash /srv/scripts/ping-render.sh >/dev/null 2>&1 &\nexec uvicorn app.serve:app --host 0.0.0.0 --port 8080 --timeout-keep-alive 120 --no-access-log"]
 # --timeout-keep-alive is long because a streamed answer holds the connection open.
-CMD ["uvicorn", "app.serve:app", "--host", "0.0.0.0", "--port", "8080", \
-     "--timeout-keep-alive", "120", "--no-access-log"]
