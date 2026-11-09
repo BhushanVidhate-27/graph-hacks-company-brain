@@ -64,17 +64,37 @@ def get_current_account() -> str | None:
     return _CURRENT_ACCOUNT.get()
 
 
-def graph_name_for(account_id: str | None) -> str:
-    """One FalkorDB graph per account; anonymous callers see the demo graph.
+_CURRENT_WORKSPACE: contextvars.ContextVar[str | None] = contextvars.ContextVar(
+    "helio_current_workspace", default=None
+)
+
+
+def set_current_workspace(workspace_id: str | None):
+    """Bind this request to a workspace graph. Returns a reset token."""
+    return _CURRENT_WORKSPACE.set(workspace_id)
+
+
+def reset_current_workspace(token) -> None:
+    """Unbind after the request. Always pair with set_current_workspace."""
+    _CURRENT_WORKSPACE.reset(token)
+
+
+def get_current_workspace() -> str | None:
+    return _CURRENT_WORKSPACE.get()
+
+
+def graph_name_for(account_id: str | None, workspace_id: str | None = None) -> str:
+    """One FalkorDB graph per workspace; anonymous callers see the demo graph.
 
     Account IDs are DB-generated (`acct_<hex>`); sanitising anyway keeps a
-    stray character out of the graph namespace. A tenant graph that does not
-    exist yet simply answers with no rows — an honest negative, never a
+    stray character out of the graph namespace. A workspace graph that does
+    not exist yet simply answers with no rows — an honest negative, never a
     neighbouring tenant's data.
     """
-    if not account_id:
+    name = workspace_id or get_current_workspace() or account_id
+    if not name:
         return GRAPH
-    safe = re.sub(r"[^A-Za-z0-9_]", "_", str(account_id))
+    safe = re.sub(r"[^A-Za-z0-9_]", "_", str(name))
     return f"{GRAPH}_{safe}"
 HOST = os.getenv("FALKORDB_HOST", "localhost")
 PORT = int(os.getenv("FALKORDB_PORT", "6379"))
@@ -84,6 +104,19 @@ PASSWORD = os.getenv("FALKORDB_PASSWORD", "")
 # GROUND_TRUTH fact 8. Recency must reorder Priya below Ravi, so expertise()
 # returns volume and recency separately and never a single fused ranking.
 STALE_DAYS = 90
+
+
+def _falkor_client():
+    """Connect to FalkorDB using the same env contract as the read path."""
+    kwargs = {"host": HOST, "port": PORT}
+    ssl_on = os.getenv("FALKORDB_SSL", "").strip().lower() in ("1", "true", "yes", "on")
+    if ssl_on:
+        kwargs["ssl"] = True
+    if USERNAME:
+        kwargs["username"] = USERNAME
+    if PASSWORD:
+        kwargs["password"] = PASSWORD
+    return FalkorDB(**kwargs)
 
 
 def _graph():
@@ -110,7 +143,37 @@ def _graph():
         kwargs["username"] = USERNAME
     if PASSWORD:
         kwargs["password"] = PASSWORD
-    return FalkorDB(**kwargs).select_graph(graph_name_for(get_current_account()))
+    return _falkor_client().select_graph(graph_name_for(get_current_account()))
+
+
+def workspace_graph(name: str):
+    """Return a FalkorDB graph handle for a workspace graph name."""
+    return _falkor_client().select_graph(name)
+
+
+def select_graph_for_workspace(workspace_id: str | None):
+    """Return the workspace graph selected by the current workspace binding."""
+    return workspace_graph(graph_name_for(None, workspace_id))
+
+
+def ensure_indexes(g) -> None:
+    """Create safe, idempotent indexes for common graph lookup labels."""
+    for stmt in [
+        "CREATE INDEX ON :Person(name)",
+        "CREATE INDEX ON :Team(name)",
+        "CREATE INDEX ON :Project(name)",
+        "CREATE INDEX ON :Document(name)",
+        "CREATE INDEX ON :Decision(id)",
+        "CREATE INDEX ON :BusinessRule(name)",
+        "CREATE INDEX ON :Concept(name)",
+        "CREATE INDEX ON :Customer(name)",
+        "CREATE INDEX ON :Service(name)",
+        "CREATE INDEX ON :Claim(id)",
+    ]:
+        try:
+            g.query(stmt)
+        except Exception:
+            pass
 
 
 def db_health() -> bool:

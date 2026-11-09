@@ -118,6 +118,15 @@ def create_account_with_owner(
             """,
             (account_id, created),
         )
+        conn.execute(
+            """
+            INSERT INTO workspaces
+                (id, tenant_id, account_id, name, is_default, graph_name, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(id) DO NOTHING
+            """,
+            (account_id, account_id, account_id, account_name, True, account_id, created, created),
+        )
 
     return {
         "account": get_account(account_id),
@@ -150,6 +159,84 @@ def set_stripe_customer(account_id: str, customer_id: str) -> None:
             "UPDATE accounts SET stripe_customer_id = ? WHERE id = ?",
             (customer_id, account_id),
         )
+
+
+def list_workspaces(account_id: str) -> list[dict[str, Any]]:
+    """Return every workspace owned by an account, creating the default."""
+    with connect() as conn:
+        rows = conn.execute(
+            """
+            SELECT id, tenant_id, account_id, name, is_default, graph_name,
+                   created_at, updated_at
+            FROM workspaces
+            WHERE account_id = ?
+            ORDER BY is_default DESC, created_at ASC
+            """,
+            (account_id,),
+        ).fetchall()
+        mine = [dict(row) for row in rows]
+        if mine:
+            return mine
+        account = conn.execute(
+            "SELECT id, name, created_at FROM accounts WHERE id = ?",
+            (account_id,),
+        ).fetchone()
+        if account is None:
+            return []
+        created = now_iso()
+        conn.execute(
+            """
+            INSERT INTO workspaces
+                (id, tenant_id, account_id, name, is_default, graph_name, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(id) DO NOTHING
+            """,
+            (account_id, account_id, account_id, account.get("name") or "Workspace",
+             True, account_id, account.get("created_at") or created, created),
+        )
+    return list_workspaces(account_id)
+
+
+def get_default_workspace(account_id: str) -> dict[str, Any] | None:
+    """Return the default workspace for an account.
+
+    The current product model keeps one default workspace per account, so
+    workspace_id usually equals account_id. Keeping this helper central lets
+    graph naming and canonical storage call the same canonical resolver.
+    """
+    rows = list_workspaces(account_id)
+    if not rows:
+        return {"id": account_id}
+    for row in rows:
+        if row.get("is_default"):
+            return row
+    return rows[0]
+
+
+def default_workspace_id(account_id: str) -> str:
+    workspace = get_default_workspace(account_id)
+    return str((workspace or {}).get("id") or account_id)
+
+
+def get_workspace(account_id: str, workspace_id: str | None = None) -> dict[str, Any] | None:
+    """Resolve a workspace for an account; default to the first workspace."""
+    rows = list_workspaces(account_id)
+    if not rows:
+        return None
+    if workspace_id:
+        for row in rows:
+            if row.get("id") == workspace_id:
+                return row
+        return None
+    for row in rows:
+        if row.get("is_default"):
+            return row
+    return rows[0]
+
+
+def resolve_workspace_id(account_id: str, workspace_id: str | None = None) -> str:
+    """Return a verified workspace ID for server-side graph/RLS context."""
+    return str((get_workspace(account_id, workspace_id) or {}).get("id") or default_workspace_id(account_id))
 
 
 def get_user(user_id: str) -> dict[str, Any] | None:

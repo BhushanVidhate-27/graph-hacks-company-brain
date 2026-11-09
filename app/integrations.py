@@ -20,7 +20,7 @@ from typing import Any
 
 import httpx
 
-from app import github, store
+from app import github, pipeline, store
 
 PROVIDERS: dict[str, dict[str, Any]] = {
     "github": {
@@ -412,6 +412,8 @@ def run_import(account_id: str, integration: dict[str, Any], *, payload: dict[st
         kind="import",
         status="running",
     )
+    graph_records: list[dict[str, Any]] = []
+    summary: dict[str, Any] = {}
 
     try:
         if provider == "github":
@@ -434,11 +436,13 @@ def run_import(account_id: str, integration: dict[str, Any], *, payload: dict[st
                     if ok_p and isinstance(pulls, list):
                         items.extend([{"type": "pull_request", "number": x.get("number"), "title": x.get("title"), "state": x.get("state"), "url": x.get("html_url")} for x in pulls])
                     summary = {"owner": owner, "repo": repo, "items_fetched": len(items), "sample": items[:10]}
+                    graph_records = items
                 else:
                     data = github._direct_public_sync(owner, repo, "open")
                     if data.get("error") and not data.get("items"):
                         raise RuntimeError(data["error"])
                     summary = {"owner": owner, "repo": repo, "items_fetched": len(data.get("items") or []), "sample": (data.get("items") or [])[:10]}
+                    graph_records = list(data.get("items") or [])
 
             else:
                 data = github.sync_state("open")
@@ -450,6 +454,7 @@ def run_import(account_id: str, integration: dict[str, Any], *, payload: dict[st
                     "items_fetched": len(data.get("items") or []),
                     "sample": (data.get("items") or [])[:10],
                 }
+                graph_records = list(data.get("items") or [])
             status, error = "completed", None
 
         elif provider == "slack":
@@ -458,6 +463,7 @@ def run_import(account_id: str, integration: dict[str, Any], *, payload: dict[st
             messages = payload.get("messages") if isinstance(payload.get("messages"), list) else []
             if messages:
                 summary = {"messages_received": len(messages), "source": "payload", "sample": messages[:5]}
+                graph_records = messages
                 status, error = "completed", None
             elif bot:
                 ok, body, err = _http_json("GET", "https://slack.com/api/auth.test", headers={"Authorization": f"Bearer {bot}"})
@@ -483,10 +489,20 @@ def run_import(account_id: str, integration: dict[str, Any], *, payload: dict[st
             }
             if records:
                 summary["sample"] = records[:5]
+                graph_records = records
             status, error = "completed", None
         else:
             raise RuntimeError(f"Unsupported provider: {provider}")
 
+        if graph_records:
+            # Canonical persistence + transactional outbox write to PostgreSQL;
+            # FalkorDB is updated asynchronously by the graph sync worker.
+            summary["canonical_knowledge"] = pipeline.persist_records(
+                account_id,
+                provider=str(provider or "integration"),
+                records=graph_records,
+                provenance={"integration_id": integration.get("id"), "import_run_id": run["id"]},
+            )
         store.upsert_integration(
             account_id,
             integration_id=integration.get("id"),

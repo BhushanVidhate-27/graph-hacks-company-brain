@@ -47,14 +47,35 @@ services:
     image: falkordb/falkordb:latest
     container_name: helio-falkordb
     restart: unless-stopped
+    command: ["falkordb", "--save", "900", "1", "--appendonly", "yes", "--dir", "/data", "--appendfsync", "always"]
     ports:
       - "6379:6379"
+    volumes:
+      - helio-falkordb:/data
     healthcheck:
       test: ["CMD", "redis-cli", "GRAPH.QUERY", "g", "RETURN 1 AS ok"]
       interval: 5s
       timeout: 5s
       retries: 12
       start_period: 10s
+
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: helio-postgres
+    environment:
+      POSTGRES_DB: helio
+      POSTGRES_USER: helio
+      POSTGRES_PASSWORD: helio
+    ports:
+      - "5432:5432"
+    volumes:
+      - helio-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U helio -d helio"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 5s
 
   frontend:
     build:

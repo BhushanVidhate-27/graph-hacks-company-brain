@@ -7,7 +7,7 @@ import re
 from pathlib import Path
 from typing import Any
 
-from app import store
+from app import object_storage, pipeline, store
 
 UPLOAD_DIR = Path(os.getenv("HELIO_UPLOAD_DIR", "data/uploads"))
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
@@ -100,4 +100,27 @@ def ingest(account_id: str, filename: str, raw: bytes) -> dict[str, Any]:
             account_id, category="company" if i == 0 else "knowledge",
             text=chunk[:4000], evidence={"source": filename, "chunk": i + 1}, confidence=0.6,
         ))
-    return {"filename": filename, "extracted_chars": len(text), "chunks": len(chunks), "proposals": len(proposals), "proposal_ids": [p["id"] for p in proposals]}
+
+    # Canonical storage: original bytes -> object storage, parsed text -> chunks,
+    # embeddings -> document_chunks, and outbox -> FalkorDB graph sync. Keep the
+    # existing proposal flow intact for backwards compatibility.
+    object_uri = object_storage.save_bytes(account_id, account_id, filename, raw)
+    canonical = pipeline.persist_document(
+        account_id,
+        workspace_id=account_id,
+        title=filename,
+        chunks=chunks,
+        provenance={"source": filename, "object_uri": object_uri},
+        source_kind="upload",
+        object_uri=object_uri,
+    )
+    return {
+        "filename": filename,
+        "extracted_chars": len(text),
+        "chunks": len(chunks),
+        "proposals": len(proposals),
+        "proposal_ids": [p["id"] for p in proposals],
+        "object_uri": object_uri,
+        "canonical_document_id": canonical["document_id"],
+        "canonical_chunks": canonical["chunk_count"],
+    }

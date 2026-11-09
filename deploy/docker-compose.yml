@@ -21,9 +21,13 @@ services:
   falkordb:
     image: falkordb/falkordb:latest
     container_name: helio-falkordb
+    restart: unless-stopped
+    command: ["falkordb", "--save", "900", "1", "--appendonly", "yes", "--dir", "/data", "--appendfsync", "always"]
     ports:
       - "6379:6379"   # FalkorDB
       - "3000:3000"   # FalkorDB Browser — open http://localhost:3000
+    volumes:
+      - helio-falkordb:/data
     healthcheck:
       # Cypher, not just TCP: the port accepts connections before the graph
       # engine is actually answering queries.
@@ -34,7 +38,7 @@ services:
       start_period: 10s
 
   postgres:
-    image: postgres:16-alpine
+    image: pgvector/pgvector:pg16
     container_name: helio-postgres
     environment:
       POSTGRES_DB: helio
@@ -50,6 +54,30 @@ services:
       timeout: 5s
       retries: 12
       start_period: 5s
+
+  graph-sync:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    container_name: helio-graph-sync
+    depends_on:
+      falkordb:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    env_file:
+      - ../.env
+    environment:
+      FALKORDB_HOST: falkordb
+      FALKORDB_PORT: "6379"
+      FALKORDB_USERNAME: ""
+      FALKORDB_PASSWORD: ""
+      FALKORDB_SSL: "false"
+      FALKORDB_GRAPH: helio
+      DATABASE_URL: ${DATABASE_URL:-postgresql://helio:helio@postgres:5432/helio}
+      USE_MOCK: "0"
+    command: ["python", "-m", "app.graph_sync", "--watch", "--limit", "50", "--interval", "5"]
+    restart: unless-stopped
 
   # One-shot. Generates data/ then loads it, then exits. Not a long-running
   # service — `docker compose up` runs it to completion and the api waits.
@@ -105,12 +133,16 @@ services:
       # Override DATABASE_URL in .env to use an external DB; set it empty and
       # keep HELIO_DB_PATH on helio-state volume for SQLite fallback.
       DATABASE_URL: ${DATABASE_URL:-postgresql://helio:helio@postgres:5432/helio}
+      HELIO_OBJECT_STORAGE_DIR: /srv/object-storage
+      HELIO_GRAPH_SYNC_POLL_SECONDS: "5"
       # Frontend and API are served from the SAME origin here, so CORS never
       # applies. Do not set USE_MOCK=1 — that answers from a JSON fixture and
       # never touches the graph, which looks identical to working.
       USE_MOCK: "0"
       # SQLite fallback path (used only when DATABASE_URL is empty).
       HELIO_DB_PATH: /srv/state/helio.db
+      HELIO_OBJECT_STORAGE_DIR: /srv/object-storage
+      HELIO_GRAPH_SYNC_POLL_SECONDS: "5"
       # The public demo stays open with a per-IP daily guard. Set to 1 to make
       # an account mandatory for every question.
       HELIO_REQUIRE_AUTH: ${HELIO_REQUIRE_AUTH:-0}
@@ -122,6 +154,7 @@ services:
       STRIPE_PRICE_PROFESSIONAL: ${STRIPE_PRICE_PROFESSIONAL:-}
     volumes:
       - helio-state:/srv/state
+      - helio-objects:/srv/object-storage
     restart: unless-stopped
 
 volumes:
@@ -129,3 +162,7 @@ volumes:
     name: helio-state
   helio-postgres:
     name: helio-postgres
+  helio-falkordb:
+    name: helio-falkordb
+  helio-objects:
+    name: helio-objects

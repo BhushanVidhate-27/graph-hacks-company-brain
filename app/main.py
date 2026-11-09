@@ -40,11 +40,13 @@ from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from app import auth as auth_service
 from app import billing as billing_service
+from app import db as db_service
 from app import github as github_service
 from app import guardrails as guard_service
 from app import integrations as integrations_service
 from app import knowledge as knowledge_service
 from app import plans as plan_service
+from app import retrieval as retrieval_service
 from app import store
 from app import usage as usage_service
 from fastapi.responses import JSONResponse, StreamingResponse
@@ -194,6 +196,12 @@ class KnowledgeUploadRequest(BaseModel):
     filename: str = Field(min_length=1, max_length=200)
     content_b64: str = Field(min_length=1)
     content_type: str | None = Field(default=None, max_length=100)
+
+
+class KnowledgeRetrieveRequest(BaseModel):
+    query: str = Field(min_length=1, max_length=500)
+    workspace_id: str | None = Field(default=None, max_length=120)
+    limit: int = Field(default=8, ge=1, le=50)
 
 
 class InviteRequest(BaseModel):
@@ -456,6 +464,12 @@ def stream_answer(
     from app import graph as graph_service
 
     token = graph_service.set_current_account(account_id)
+    workspace_id = store.default_workspace_id(account_id) if account_id else None
+    workspace_token = graph_service.set_current_workspace(workspace_id) if workspace_id else None
+    db_token = db_service.set_current_tenant(account_id) if account_id else None
+    db_workspace_token = (
+        db_service.set_current_workspace(workspace_id) if workspace_id else None
+    )
     try:
         result = answer_question(question)
     except Exception as exc:  # noqa: BLE001 - the failure must reach the client
@@ -467,6 +481,12 @@ def stream_answer(
         return
     finally:
         graph_service.reset_current_account(token)
+        if workspace_token is not None:
+            graph_service.reset_current_workspace(workspace_token)
+        if db_token is not None:
+            db_service.reset_current_tenant(db_token)
+        if db_workspace_token is not None:
+            db_service.reset_current_workspace(db_workspace_token)
 
     if on_success is not None:
         try:
@@ -987,6 +1007,18 @@ def review_proposal_route(pid: str, req: ReviewRequest, request: Request):
 def list_facts_route(request: Request, limit: int = 50):
     identity = auth_service.require_identity(request)
     return {"facts": store.list_facts(identity.account["id"], limit=limit)}
+
+
+@app.post("/api/knowledge/retrieve")
+def retrieve_knowledge(req: KnowledgeRetrieveRequest, request: Request):
+    identity = auth_service.require_identity(request)
+    auth_service.require_session(identity)
+    return retrieval_service.hybrid_search(
+        identity.account["id"],
+        req.query,
+        workspace_id=req.workspace_id,
+        limit=req.limit,
+    )
 
 
 @app.post("/api/team/invite")
