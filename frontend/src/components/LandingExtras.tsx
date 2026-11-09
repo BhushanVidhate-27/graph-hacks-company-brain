@@ -4,12 +4,20 @@ import { Reveal } from './motion/Reveal';
 import { TickerBar } from './TickerBar';
 
 const SOURCES = [
-  { tag: 'call transcript', label: 'Customer call' },
-  { tag: 'ticket', label: 'ENG-214' },
-  { tag: 'slack', label: '#renewal' },
+  { tag: 'dependency', label: 'payments-gateway' },
+  { tag: 'on-call', label: 'Platform rotation' },
+  { tag: 'decision', label: 'D-21' },
 ];
 
-const INTEGRATIONS = ['GitHub', 'Slack', 'Jira', 'Linear', 'Notion', 'Webhook', 'CSV'];
+const INTEGRATIONS = [
+  { name: 'GitHub', status: 'Connector' },
+  { name: 'Slack', status: 'Connector' },
+  { name: 'Linear', status: 'Import' },
+  { name: 'Notion', status: 'Import' },
+  { name: 'Webhook', status: 'Import' },
+  { name: 'CSV', status: 'Import' },
+  { name: 'Jira', status: 'Not native yet' },
+];
 
 const SNIPPET = `# ask with provenance
 curl -X POST /ask \\
@@ -55,13 +63,13 @@ export const ProofStrip: React.FC = () => (
     <TickerBar
       variant="dark"
       speed={28}
-      label="100% answers with a path, 50 free questions per month, SOC 2 ready, self-host"
+      label="Every supported answer includes its graph path. 50 questions per month on the free plan. No card required. Cancel anytime."
       items={[
-        '100% answers with a path',
-        '50 free questions / month',
-        'SOC 2 ready · self-host',
+        'Every supported answer includes its graph path',
+        '50 questions / month on Free',
         'No card required',
         'Cancel anytime',
+        'Self-host or managed',
       ]}
     />
   </section>
@@ -73,10 +81,10 @@ export const DemoQuestion: React.FC = () => (
       <div className="border border-white/10 bg-white/[0.02] p-5 md:p-7">
         <div className="font-mono text-[10px] uppercase tracking-widest text-[#f08a75] font-bold">Example</div>
         <div className="mt-3 font-mono text-xl md:text-2xl font-bold uppercase tracking-tight text-white">
-          What is blocking the renewal?
+          What breaks if payments-gateway goes down?
         </div>
         <p className="mt-3 max-w-2xl font-mono text-xs md:text-sm text-white/60 leading-relaxed">
-          SSO — requested in a customer call, still open with Engineering.
+          Eight downstream services across three hops; one dependent has no recorded owner.
         </p>
         <div className="mt-4 flex flex-wrap gap-2">
           {SOURCES.map((s) => (
@@ -102,11 +110,11 @@ export const IntegrationMarquee: React.FC = () => (
       variant="dark"
       chip
       speed={32}
-      label="Integrations: GitHub, Slack, Jira, Linear, Notion, Webhook, CSV"
-      items={INTEGRATIONS}
+      label="Native connectors: GitHub, Slack. Imports: Linear, Notion, Webhook, CSV. Jira is not native yet."
+      items={INTEGRATIONS.map(({ name, status }) => `${name} · ${status}`)}
     />
     <p className="mt-4 text-center font-mono text-[10px] uppercase tracking-widest text-white/40">
-      Fed from the tools you already use
+      Status-matched connectors and imports — see Integrations for details
     </p>
   </section>
 );
