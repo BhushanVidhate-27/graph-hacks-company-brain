@@ -41,7 +41,6 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
   {
     title: 'Company',
     links: [
-      { label: 'About Helio', href: '/how-it-works' },
       { label: 'Enterprise', href: 'mailto:contact.helio.brain@gmail.com?subject=Helio%20Enterprise' },
       { label: 'GitHub repository', href: 'https://github.com/BhushanVidhate-27/graph-hacks-company-brain' },
       { label: 'Open source', href: 'https://github.com/BhushanVidhate-27/graph-hacks-company-brain' },
@@ -52,7 +51,6 @@ const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
     title: 'Trust & support',
     links: [
       { label: 'Trust Center', href: '/security' },
-      { label: 'System status', href: '/faq' },
       { label: 'Support', href: 'mailto:contact.helio.brain@gmail.com' },
       { label: 'FAQ', href: '/faq' },
       { label: 'Learn', href: '/learn' },
@@ -151,8 +149,7 @@ export const Footer: React.FC<FooterProps> = ({ onSelectMode }) => {
                 Subscribe
               </button>
               <p id="footer-newsletter-note" className="text-[11px] leading-relaxed text-white/45 lg:max-w-xs">
-                Occasional updates. Unsubscribe anytime.{' '}
-                <a href="/security" className="underline underline-offset-2 hover:text-white">Terms</a>
+                Occasional updates. Unsubscribe anytime.
               </p>
               <p id="footer-newsletter-error" role="alert" className="sr-only">
                 {status === 'error' || (touched && email && !EMAIL_RE.test(email)) ? 'Enter a valid email address.' : ''}
@@ -171,10 +168,9 @@ export const Footer: React.FC<FooterProps> = ({ onSelectMode }) => {
         {/* Bottom bar */}
         <div className="mt-10 flex flex-col items-start justify-between gap-4 border-t border-white/10 pt-7 text-xs text-white/55 sm:flex-row sm:items-center">
           <nav aria-label="Legal" className="flex flex-wrap items-center gap-x-7 gap-y-2">
-            <a href="/security" className="transition-colors hover:text-white">Legal</a>
-            <a href="/security" className="transition-colors hover:text-white">Privacy Policy</a>
-            <a href="/security" className="transition-colors hover:text-white">DPA</a>
-            <a href="/faq" className="transition-colors hover:text-white">Accessibility</a>
+            <a href="/security" className="transition-colors hover:text-white">Trust Center</a>
+            <a href="/faq" className="transition-colors hover:text-white">FAQ</a>
+            <a href="/learn" className="transition-colors hover:text-white">Learn</a>
           </nav>
           <div className="flex items-center gap-6">
             <a href="mailto:contact.helio.brain@gmail.com" className="hidden transition-colors hover:text-white sm:inline">contact.helio.brain@gmail.com</a>
