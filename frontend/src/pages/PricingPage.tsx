@@ -29,7 +29,12 @@ const PRICING_FAQS = [
   {
     question: 'Can I cancel or change plans?',
     answer:
-      'Yes. Plans are monthly and can be changed from the billing portal. Paid features remain active until the end of the billing period after cancellation.',
+      'Yes. Plans are monthly. Paid features remain active until the end of the billing period, then the account returns to Free. Use the billing portal when checkout is configured, or email us for manual billing changes.',
+  },
+  {
+    question: 'Is there a trial?',
+    answer:
+      'Yes. Paid plans include a 14-day trial with no card required. If billing is configured, you can start it from a plan card; if it is not, paid plans are invoiced by email.',
   },
   {
     question: 'Can Helio be self-hosted?',

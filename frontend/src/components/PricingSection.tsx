@@ -389,14 +389,16 @@ export const PricingSection: React.FC<PricingSectionProps> = ({ onSelectMode }) 
 
                 {/* Features List */}
                 <div className="space-y-3 font-mono text-xs mb-8">
-                  {plan.features.map((feature) => (
-                    <div key={feature} className="flex items-start gap-2.5">
-                      <Check className="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-[#e15c46]" />
-                      <span className={plan.highlighted ? 'text-white/90' : 'text-[#282828]'}>
-                        {feature}
-                      </span>
-                    </div>
-                  ))}
+                  {plan.features
+                    .filter((feature) => !/questions \/ month$/i.test(feature.trim()))
+                    .map((feature) => (
+                      <div key={feature} className="flex items-start gap-2.5">
+                        <Check className="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-[#e15c46]" />
+                        <span className={plan.highlighted ? 'text-white/90' : 'text-[#282828]'}>
+                          {feature}
+                        </span>
+                      </div>
+                    ))}
                 </div>
               </div>
 
@@ -419,7 +421,7 @@ export const PricingSection: React.FC<PricingSectionProps> = ({ onSelectMode }) 
                   disabled={isBusy}
                   className={`mt-2 w-full font-mono text-[10px] uppercase disabled:opacity-50 ${plan.highlighted ? 'text-white/50' : 'text-[#5c5c56]'}`}
                 >
-                  or start {plan.trial_days || billing.trial_days}-day free trial{me?.authenticated ? '' : ' (sign up first)'}
+                  or start {plan.trial_days || billing.trial_days}-day paid-plan trial{me?.authenticated ? '' : ' (sign up first)'}
                 </button>
               )}
               </div>
@@ -436,12 +438,12 @@ export const PricingSection: React.FC<PricingSectionProps> = ({ onSelectMode }) 
             body: 'Each plan includes its seat allowance — 1, 3 or 10. You pay for the questions your team asks, not for inviting a reviewer to read a trail.',
           },
           {
-            title: 'Open-source core',
-            body: 'The graph, Cypher and agent loop are open source. Self-host them for free; the paid plans pay for the managed surface.',
+            title: 'Managed or self-hosted',
+            body: 'Run Helio as the managed service, or self-host the graph and API on your own infrastructure.',
           },
           {
-            title: 'Cancel from the portal',
-            body: 'Stripe Customer Portal handles plan changes, payment methods and cancellation. No retention call required.',
+            title: 'Cancel from the billing portal',
+            body: 'Plans are monthly. Change or cancel from the billing portal when checkout is configured, or email us for manual billing changes.',
           },
         ].map((item, index) => (
           <Reveal key={item.title} delay={index * 0.05} y={12}>
@@ -456,7 +458,7 @@ export const PricingSection: React.FC<PricingSectionProps> = ({ onSelectMode }) 
       </div>
 
       <div className="mt-8 text-center font-mono text-[11px] text-[#5c5c56]">
-        All plans include Cypher-verified answers on a dedicated graph engine, with streaming answers
+        All plans include Cypher-verifiable answers inside your workspace graph, with streaming answers
       </div>
     </section>
   );
