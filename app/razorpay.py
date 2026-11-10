@@ -646,7 +646,15 @@ def activate_subscription(
         account_id, plan_id = _subscription_scope(subscription_id)
     if not account_id or not plan_id:
         return None
-    period_end = current_end or (datetime.now(timezone.utc) + timedelta(days=30)).isoformat(timespec="seconds")
+    # A payment.captured event carries no period end. Keep the paid-through date
+    # that subscription.charged already stored instead of shortening it to 30
+    # days from now (which drifts earlier every cycle it fires).
+    existing_end = (store.get_payment_subscription(subscription_id) or {}).get("current_end")
+    period_end = (
+        current_end
+        or (existing_end if _is_future(existing_end) else None)
+        or (datetime.now(timezone.utc) + timedelta(days=30)).isoformat(timespec="seconds")
+    )
     store.upsert_payment_subscription(
         subscription_id,
         account_id,
@@ -706,7 +714,14 @@ def sync_subscription(
             plan_id=plan_id,
         )
 
-    in_grace = status in {"cancelled", "completed", "expired", "paused", "halted"} and _is_future(current_end)
+    terminal = {"cancelled", "completed", "expired", "paused", "halted"}
+    if status not in terminal:
+        # In-flight states (created, pending) and unknown future states must not
+        # revoke access: subscription.updated/pending can fire before a mandate
+        # is authorised or while a renewal is being retried.
+        return None
+
+    in_grace = _is_future(current_end)
     if in_grace:
         store.upsert_payment_subscription(
             subscription_id,

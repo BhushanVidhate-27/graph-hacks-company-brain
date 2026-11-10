@@ -162,3 +162,39 @@ def test_subscriptions_ready_needs_keys_and_both_plans(monkeypatch, account):
     assert razorpay.subscriptions_ready() is True
     monkeypatch.delenv("RAZORPAY_PLAN_PROFESSIONAL")
     assert razorpay.subscriptions_ready() is False
+
+
+def test_pending_status_does_not_revoke_active_access(account):
+    """subscription.pending/updated can fire mid-renewal; keep the paid plan."""
+
+    end = datetime.now(timezone.utc) + timedelta(days=20)
+    entity = _entity("active", current_end=end)
+    entity["notes"] = {"account_id": account["id"], "plan": "starter"}
+    razorpay.handle_webhook(_event("subscription.authenticated", entity))
+
+    pending = _entity("pending", current_end=end)
+    pending["notes"] = {"account_id": account["id"], "plan": "starter"}
+    razorpay.handle_webhook(_event("subscription.pending", pending))
+
+    sub = store.get_subscription(account["id"])
+    assert sub["plan"] == "starter"
+    assert sub["status"] == "active"
+
+
+def test_payment_captured_keeps_the_paid_through_date(account):
+    end = datetime.now(timezone.utc) + timedelta(days=27)
+    entity = _entity("active", current_end=end)
+    entity["notes"] = {"account_id": account["id"], "plan": "starter"}
+    razorpay.handle_webhook(_event("subscription.charged", entity))
+
+    body = json.dumps({
+        "event": "payment.captured",
+        "payload": {"payment": {"entity": {
+            "id": "pay_sub_charge_1",
+            "subscription_id": "sub_test_1",
+        }}},
+    }).encode()
+    razorpay.handle_webhook(body)
+
+    sub = store.get_subscription(account["id"])
+    assert sub["current_period_end"] == end.isoformat(timespec="seconds")
