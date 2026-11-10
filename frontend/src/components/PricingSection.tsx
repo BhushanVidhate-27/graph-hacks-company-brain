@@ -442,8 +442,8 @@ export const PricingSection: React.FC<PricingSectionProps> = ({ onSelectMode }) 
             body: 'Run Helio as the managed service, or self-host the graph and API on your own infrastructure.',
           },
           {
-            title: 'Cancel from the billing portal',
-            body: 'Plans are monthly. Change or cancel from the billing portal when checkout is configured, or email us for manual billing changes.',
+            title: 'Cancel from your account',
+            body: 'Plans are monthly subscriptions charged on Razorpay. Cancel in Account → Billing and the plan stays active until the paid month ends. No cancellation fee.',
           },
         ].map((item, index) => (
           <Reveal key={item.title} delay={index * 0.05} y={12}>

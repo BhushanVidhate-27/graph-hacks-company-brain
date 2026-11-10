@@ -157,6 +157,13 @@ export interface BillingSetup {
   local_billing: boolean;
   trial_days?: number;
   trial_enabled?: boolean;
+  /** Monthly Razorpay subscriptions are configured and will be offered. */
+  subscriptions?: boolean;
+  checkout_mode?: "subscription" | "one-time" | string;
+  /** Razorpay Plan ids keyed by Helio plan id. */
+  subscription_plans?: Record<string, string>;
+  /** Whole-rupee prices keyed by Helio plan id (what Razorpay charges). */
+  prices_inr?: Record<string, number>;
   /** Interim razorpay.me link (no API keys) — fixed-amount page checkout. */
   payment_page?: string | null;
   /** Razorpay Payment Links created via CLI, keyed by plan id. */
@@ -219,7 +226,20 @@ export interface RazorpayOrderResponse {
   trial_days?: number;
   /** Interim path: redirect the browser here (razorpay.me with fixed amount). */
   url?: string;
+  subscription_id?: string;
+  monthly?: boolean;
+  cancel_anytime?: boolean;
   manual_activation?: boolean;
+  message?: string;
+  error?: string;
+}
+
+export interface RazorpayCancelResponse {
+  ok: boolean;
+  subscription_id?: string;
+  status?: string;
+  current_period_end?: string | null;
+  cancel_at_period_end?: boolean;
   message?: string;
   error?: string;
 }
@@ -343,6 +363,14 @@ export const api = {
       request<RazorpayVerifyResponse>("/api/razorpay/verify", {
         method: "POST",
         body: JSON.stringify(payload),
+      }),
+    cancel: (subscriptionId?: string, atCycleEnd = true) =>
+      request<RazorpayCancelResponse>("/api/razorpay/cancel", {
+        method: "POST",
+        body: JSON.stringify({
+          subscription_id: subscriptionId,
+          at_cycle_end: atCycleEnd,
+        }),
       }),
   },
 

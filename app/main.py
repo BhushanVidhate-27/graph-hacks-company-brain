@@ -160,6 +160,11 @@ class RazorpayVerifyRequest(BaseModel):
     razorpay_signature: str = Field(min_length=8, max_length=200)
 
 
+class RazorpayCancelRequest(BaseModel):
+    subscription_id: str | None = Field(default=None, max_length=120)
+    at_cycle_end: bool = Field(default=True)
+
+
 class ApiKeyRequest(BaseModel):
     name: str = Field(default="Default key", min_length=1, max_length=80)
 
@@ -1240,6 +1245,24 @@ def razorpay_verify(req: RazorpayVerifyRequest, request: Request):
     return {"ok": True, **activated}
 
 
+@app.post("/api/razorpay/cancel")
+def razorpay_cancel(req: RazorpayCancelRequest, request: Request):
+    """Cancel the signed-in account's monthly subscription (default: at period end)."""
+
+    identity = auth_service.require_identity(request)
+    from app import razorpay as razorpay_service
+
+    result = razorpay_service.cancel_subscription(
+        identity.account,
+        req.subscription_id,
+        at_cycle_end=req.at_cycle_end,
+    )
+    if not result.get("ok"):
+        status = 404 if result.get("error") == "no_subscription" else 400
+        return JSONResponse(status_code=status, content=result)
+    return result
+
+
 @app.get("/api/razorpay/callback")
 def razorpay_callback(request: Request, razorpay_payment_link_id: str | None = None, razorpay_payment_id: str | None = None, razorpay_signature: str | None = None):
     import hmac, hashlib
@@ -1273,7 +1296,9 @@ async def razorpay_webhook(request: Request):
         parsed = json.loads(body or b"{}")
     except ValueError:
         parsed = {}
-    event_id = ((parsed.get("payload") or {}).get("payment") or {}).get("entity", {}).get("id")
+    event_id = request.headers.get("x-razorpay-event-id")
+    if not event_id:
+        event_id = ((parsed.get("payload") or {}).get("payment") or {}).get("entity", {}).get("id")
     if event_id and store.webhook_seen(event_id):
         return JSONResponse(status_code=200, content={"ok": True, "duplicate": True})
     result = razorpay_service.handle_webhook(body, event_id=event_id)

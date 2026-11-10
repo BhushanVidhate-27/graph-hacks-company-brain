@@ -100,12 +100,18 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({ onSelectMode }) => {
   const paidPacks = plans.filter((plan) => plan.id === 'starter' || plan.id === 'professional');
   const enterprise = plans.find((plan) => plan.id === 'enterprise');
   const apiCheckout = billing?.mode === 'razorpay';
+  const subscriptionCheckout = Boolean(billing?.subscriptions);
   const interimPage = billing?.mode === 'razorpay-page';
   const linkPage = billing?.mode === 'razorpay-link';
   const configured = Boolean(billing?.configured);
   const localDemo = Boolean(billing?.local_billing);
   const priceWarning = apiCheckout && billing?.price_ready === false;
   const planLinks = billing?.payment_links || {};
+
+  const priceLabel = (plan: Plan): string => {
+    const inr = billing?.prices_inr?.[plan.id];
+    return apiCheckout && inr ? `₹${inr.toLocaleString('en-IN')}` : formatPrice(plan);
+  };
 
   const pay = async (plan: Plan) => {
     if (busy) return;
@@ -132,9 +138,14 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({ onSelectMode }) => {
         await refresh();
         return;
       }
-      // CLI-created Payment Link (no embedded order): redirect to the hosted link.
-      if ((order.mode === 'razorpay-link' || order.mode === 'razorpay-page') && order.url) {
-        setNotice(order.message || `Redirecting to Razorpay (₹${order.amount ?? ''}, fixed)…`);
+      // CLI-created Payment Link or hosted subscription authorisation page.
+      if (
+        (order.mode === 'razorpay-link' ||
+          order.mode === 'razorpay-page' ||
+          order.mode === 'razorpay-subscription') &&
+        order.url
+      ) {
+        setNotice(order.message || 'Redirecting to Razorpay…');
         window.location.assign(order.url);
         return;
       }
@@ -223,7 +234,9 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({ onSelectMode }) => {
           </h1>
           <p className="mt-3 max-w-2xl font-mono text-xs md:text-sm text-[#5c5c56] leading-relaxed">
             {apiCheckout
-              ? 'Razorpay handles UPI, cards, netbanking and wallets. The plan is activated only after the server verifies Razorpay’s signature — the browser never decides what was paid for.'
+              ? subscriptionCheckout
+                ? 'A monthly subscription on Razorpay. UPI, cards and netbanking are supported. Your plan activates only after the server confirms Razorpay’s webhook — the browser never decides what was paid for. Cancel anytime.'
+                : 'Razorpay handles UPI, cards, netbanking and wallets. The plan is activated only after the server verifies Razorpay’s signature — the browser never decides what was paid for.'
               : 'Secure payments on Razorpay at a fixed pack price (₹). Pay with UPI, cards, netbanking or wallets — your plan is activated after we confirm the payment.'}
           </p>
         </div>
@@ -245,6 +258,15 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({ onSelectMode }) => {
       {error && (
         <div className="mb-5 cad-border border-red-500/40 bg-red-500/5 px-4 py-3 font-mono text-xs text-red-300">
           {error}
+        </div>
+      )}
+
+      {subscriptionCheckout && !localDemo && (
+        <div className="mb-6 cad-border bg-[#f4f4ec] px-4 py-4 font-mono text-[11px] text-[#5c5c56] leading-relaxed">
+          <span className="font-bold uppercase text-[#282828]">Billed monthly.</span>{' '}
+          Razorpay charges the same amount every month until you cancel. The first charge happens
+          when you authorise the mandate; access is confirmed by webhook, not by the browser. Cancel
+          from Account → Billing and the plan stays active until the paid month ends.
         </div>
       )}
 
@@ -306,7 +328,7 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({ onSelectMode }) => {
                   )}
                 </div>
                 <div className="mt-4 font-mono text-4xl font-bold tracking-tight text-[#e15c46]">
-                  {formatPrice(plan)}
+                  {priceLabel(plan)}
                   <span className={`text-xs font-normal ${plan.highlighted ? 'text-white/50' : 'text-[#5c5c56]'}`}>
                     /mo
                   </span>
@@ -340,10 +362,19 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({ onSelectMode }) => {
                   {isBusy && busy === plan.id
                     ? 'Opening Razorpay…'
                     : me?.authenticated
-                      ? `Pay ${formatPrice(plan)} on Razorpay`
-                      : `Sign in to pay ${formatPrice(plan)}`}
+                      ? subscriptionCheckout
+                        ? `Subscribe — ${priceLabel(plan)}/mo`
+                        : `Pay ${priceLabel(plan)} on Razorpay`
+                      : subscriptionCheckout
+                        ? `Sign in to subscribe — ${priceLabel(plan)}/mo`
+                        : `Sign in to pay ${priceLabel(plan)}`}
                   <ArrowRight className="size-3.5" />
                 </HeronButton>
+                {subscriptionCheckout && (
+                  <div className={`font-mono text-[10px] text-center ${plan.highlighted ? 'text-white/50' : 'text-[#5c5c56]'}`}>
+                    Monthly · auto-renews · cancel anytime
+                  </div>
+                )}
                 {interimPage && (
                   <div className={`font-mono text-[10px] text-center ${plan.highlighted ? 'text-white/50' : 'text-[#5c5c56]'}`}>
                     Fixed price · activated after confirmation

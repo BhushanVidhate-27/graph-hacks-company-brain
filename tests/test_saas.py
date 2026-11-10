@@ -14,7 +14,7 @@ import time
 import pytest
 from fastapi.testclient import TestClient
 
-from app import auth, main, plans, store, usage
+from app import auth, db, main, plans, store, usage
 
 PASSWORD = "correct-horse-battery"
 
@@ -29,7 +29,21 @@ def client(tmp_path, monkeypatch):
     monkeypatch.delenv("STRIPE_WEBHOOK_SECRET", raising=False)
     monkeypatch.delenv("STRIPE_PRICE_STARTER", raising=False)
     monkeypatch.delenv("STRIPE_PRICE_PROFESSIONAL", raising=False)
-    store._SCHEMA_READY.clear()
+    monkeypatch.setenv("PAYMENT_PROVIDER", "stripe")
+    for name in (
+        "RAZORPAY_KEY_ID",
+        "RAZORPAY_KEY_SECRET",
+        "RAZORPAY_WEBHOOK_SECRET",
+        "RAZORPAY_PRICE_STARTER",
+        "RAZORPAY_PRICE_PROFESSIONAL",
+        "RAZORPAY_PAYMENT_LINK_STARTER",
+        "RAZORPAY_PAYMENT_LINK_PROFESSIONAL",
+        "RAZORPAY_PLAN_STARTER",
+        "RAZORPAY_PLAN_PROFESSIONAL",
+        "RAZORPAY_INR_RATE",
+    ):
+        monkeypatch.delenv(name, raising=False)
+    db._SCHEMA_READY.clear()
     auth._FAILED_LOGINS.clear()
     usage._ANON_COUNTS.clear()
     monkeypatch.setattr(main, "USE_MOCK", True)

@@ -568,6 +568,96 @@ def upsert_subscription(
 
 
 # --------------------------------------------------------------------------- #
+# Razorpay subscriptions
+# --------------------------------------------------------------------------- #
+#
+# Razorpay is the payment rail, so its subscription id is the durable handle
+# between a hosted authorisation, recurring webhooks and this account. Keeping
+# it in its own table means the Stripe columns above keep their original
+# meaning and either rail can be retired without a destructive migration.
+
+
+def upsert_payment_subscription(
+    subscription_id: str,
+    account_id: str,
+    *,
+    plan: str,
+    status: str,
+    current_end: str | None = None,
+    cancel_at_period_end: bool | None = None,
+) -> dict[str, Any]:
+    existing = get_payment_subscription(subscription_id) or {}
+    merged_end = current_end if current_end is not None else existing.get("current_end")
+    merged_cancel = bool(
+        cancel_at_period_end
+        if cancel_at_period_end is not None
+        else existing.get("cancel_at_period_end")
+    )
+    now = now_iso()
+    with connect() as conn:
+        conn.execute(
+            """
+            INSERT INTO payment_subscriptions
+                (id, account_id, plan_id, status, current_end,
+                 cancel_at_period_end, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(id) DO UPDATE SET
+                account_id = excluded.account_id,
+                plan_id = excluded.plan_id,
+                status = excluded.status,
+                current_end = excluded.current_end,
+                cancel_at_period_end = excluded.cancel_at_period_end,
+                updated_at = excluded.updated_at
+            """,
+            (
+                subscription_id,
+                account_id,
+                plan,
+                status,
+                merged_end,
+                merged_cancel,
+                now,
+                now,
+            ),
+        )
+    return get_payment_subscription(subscription_id) or {}
+
+
+def get_payment_subscription(subscription_id: str) -> dict[str, Any] | None:
+    if not subscription_id:
+        return None
+    with connect() as conn:
+        row = conn.execute(
+            "SELECT * FROM payment_subscriptions WHERE id = ?", (subscription_id,)
+        ).fetchone()
+    return row_to_dict(row)
+
+
+def get_active_payment_subscription(account_id: str) -> dict[str, Any] | None:
+    """Most recent Razorpay subscription for an account (any non-terminal state)."""
+
+    with connect() as conn:
+        row = conn.execute(
+            """
+            SELECT * FROM payment_subscriptions
+            WHERE account_id = ? AND status IN ('created', 'authenticated', 'active', 'pending', 'paused')
+            ORDER BY created_at DESC LIMIT 1
+            """,
+            (account_id,),
+        ).fetchone()
+    return row_to_dict(row)
+
+
+def list_payment_subscriptions(account_id: str) -> list[dict[str, Any]]:
+    with connect() as conn:
+        rows = conn.execute(
+            "SELECT * FROM payment_subscriptions WHERE account_id = ? ORDER BY created_at DESC",
+            (account_id,),
+        ).fetchall()
+    return [dict(row) for row in rows]
+
+
+# --------------------------------------------------------------------------- #
 # Usage
 # --------------------------------------------------------------------------- #
 

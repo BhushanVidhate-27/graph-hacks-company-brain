@@ -411,6 +411,17 @@ CREATE TABLE IF NOT EXISTS payment_orders (
     paid_at TEXT
 );
 CREATE INDEX IF NOT EXISTS idx_payment_orders_account ON payment_orders(account_id);
+CREATE TABLE IF NOT EXISTS payment_subscriptions (
+    id TEXT PRIMARY KEY,
+    account_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+    plan_id TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'created',
+    current_end TEXT,
+    cancel_at_period_end INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_payment_subscriptions_account ON payment_subscriptions(account_id);
 CREATE TABLE IF NOT EXISTS facts (
     id TEXT PRIMARY KEY,
     account_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
@@ -762,6 +773,17 @@ CREATE TABLE IF NOT EXISTS payment_orders (
     paid_at TEXT
 );
 CREATE INDEX IF NOT EXISTS idx_payment_orders_account ON payment_orders(account_id);
+CREATE TABLE IF NOT EXISTS payment_subscriptions (
+    id TEXT PRIMARY KEY,
+    account_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+    plan_id TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'created',
+    current_end TEXT,
+    cancel_at_period_end INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_payment_subscriptions_account ON payment_subscriptions(account_id);
 CREATE TABLE IF NOT EXISTS facts (
     id TEXT PRIMARY KEY,
     account_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,

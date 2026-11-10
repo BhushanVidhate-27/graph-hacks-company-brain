@@ -102,14 +102,31 @@ export const AccountView: React.FC<AccountViewProps> = ({ onBack, onSelectMode }
     };
   }, []);
 
+  const cancelSubscription = async (): Promise<boolean> => {
+    if (
+      !window.confirm(
+        "Cancel at the end of the paid month? You keep access until then, and you can subscribe again afterwards.",
+      )
+    ) {
+      return false;
+    }
+    const result = await api.razorpay.cancel(undefined, true);
+    setBillingMessage(result.message || "Subscription cancelled.");
+    await refresh();
+    return true;
+  };
+
   const handleUpgrade = async (target: Plan) => {
     setBillingBusy(target.id);
     setBillingError(null);
     setBillingMessage(null);
     try {
       if (target.id === "free") {
-        // Downgrading/canceling a paid plan is handled through the billing portal
-        // (or by contacting us when portal/local billing doesn't apply).
+        // Razorpay subscriptions cancel in-app; Stripe/local billing uses the portal.
+        if (billing?.subscriptions && isPaid) {
+          await cancelSubscription();
+          return;
+        }
         await portal();
         return;
       }
@@ -143,6 +160,21 @@ export const AccountView: React.FC<AccountViewProps> = ({ onBack, onSelectMode }
     } catch (err) {
       setBillingError(
         err instanceof ApiError ? err.message : "Could not open the billing portal.",
+      );
+    } finally {
+      setBillingBusy(null);
+    }
+  };
+
+  const handleCancel = async () => {
+    setBillingBusy("cancel");
+    setBillingError(null);
+    setBillingMessage(null);
+    try {
+      await cancelSubscription();
+    } catch (err) {
+      setBillingError(
+        err instanceof ApiError ? err.message : "Could not cancel the subscription.",
       );
     } finally {
       setBillingBusy(null);
@@ -416,6 +448,19 @@ export const AccountView: React.FC<AccountViewProps> = ({ onBack, onSelectMode }
                 {billingBusy === "portal" ? "Opening…" : "Manage billing"}
               </HeronButton>
             )}
+            {isPaid &&
+              billing?.subscriptions &&
+              subscription?.status === "active" &&
+              !subscription?.cancel_at_period_end && (
+                <HeronButton
+                  variant="outline"
+                  size="sm"
+                  onClick={() => void handleCancel()}
+                  className="border-white/40 text-white hover:bg-white hover:text-[#282828]"
+                >
+                  {billingBusy === "cancel" ? "Cancelling…" : "Cancel subscription"}
+                </HeronButton>
+              )}
             <HeronButton
               variant="brand"
               size="sm"
@@ -446,10 +491,16 @@ export const AccountView: React.FC<AccountViewProps> = ({ onBack, onSelectMode }
             {billing?.configured ? (
               <>
                 <div className="font-mono text-xs text-[#282828] font-bold">
-                  Payment method on file
+                  {billing.subscriptions ? "Monthly subscription" : "Payment method on file"}
                 </div>
-                <div className="font-mono text-[10px] text-[#5c5c56] mt-1">
-                  Invoices, receipts and plan changes are handled through the billing portal.
+                <div className="font-mono text-[10px] text-[#5c5c56] mt-1 leading-relaxed">
+                  {billing.subscriptions
+                    ? isPaid && subscription?.cancel_at_period_end
+                      ? `Cancelled — access ends ${formatDate(subscription?.current_period_end)}. No further charges.`
+                      : isPaid
+                        ? `Razorpay charges this account every month. Next charge ${formatDate(subscription?.current_period_end)}. Cancel anytime.`
+                        : "No subscription yet. Choose a plan to authorise a monthly mandate on Razorpay."
+                    : "Invoices, receipts and plan changes are handled through the billing portal."}
                 </div>
               </>
             ) : (
