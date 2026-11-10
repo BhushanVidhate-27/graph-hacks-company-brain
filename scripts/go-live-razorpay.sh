@@ -26,7 +26,7 @@ CONFIG="$HOME/.razorpay/config.yaml"
 
 # Load .env without overriding variables already set in the shell.
 if [ -f .env ]; then
-  while IFS='=' read -r key value; do
+  while IFS='=' read -r key value || [ -n "$key" ]; do
     case "$key" in ''|\#*) continue ;; esac
     if [ -z "${!key:-}" ]; then
       export "$key=$value"
