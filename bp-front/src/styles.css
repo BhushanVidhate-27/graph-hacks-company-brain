@@ -1,0 +1,117 @@
+@import "tailwindcss";
+@import "@fontsource-variable/instrument-sans";
+@import "@fontsource/space-mono/400.css";
+@import "@fontsource/space-mono/700.css";
+
+@theme {
+  --font-sans: "Instrument Sans Variable", ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", sans-serif;
+  --font-mono: "Space Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --color-ink: #08080a;
+  --color-ink-soft: #0e0e12;
+  --color-ink-card: #111116;
+  --color-line: #242429;
+  --color-line-soft: #1b1b20;
+  --color-paper: #f4f2ec;
+  --color-fog: #a3a09a;
+  --color-accent: #ff5b3a;
+  --color-accent-deep: #d8401f;
+  --color-mint: #63d6a4;
+
+  --animate-drift: drift 26s ease-in-out infinite alternate;
+  --animate-pulse-dot: pulseDot 2.4s ease-in-out infinite;
+  --animate-marquee: marquee 34s linear infinite;
+
+  @keyframes drift {
+    from { transform: translate3d(-2%, -1%, 0) scale(1.02); }
+    to { transform: translate3d(2%, 2%, 0) scale(1.06); }
+  }
+  @keyframes pulseDot {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.35; }
+  }
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+}
+
+html {
+  background-color: var(--color-ink);
+  color-scheme: dark;
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background-color: var(--color-ink);
+  color: var(--color-paper);
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: color-mix(in oklab, var(--color-accent) 70%, transparent);
+  color: #fff;
+}
+
+/* One global, visible focus treatment. Every interactive element inherits it. */
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+  border-radius: 3px;
+}
+
+/* Keyboard-only focus on elements that are not inputs. */
+a:focus-visible,
+button:focus-visible,
+[role="button"]:focus-visible,
+[tabindex]:focus-visible {
+  outline-offset: 4px;
+}
+
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+/* Thin dark scrollbar so it matches the page. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-line) transparent;
+}
+
+@utility grid-bg {
+  background-image:
+    linear-gradient(to right, color-mix(in oklab, #fff 4%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in oklab, #fff 4%, transparent) 1px, transparent 1px);
+  background-size: 44px 44px;
+}
+
+@utility text-balance {
+  text-wrap: balance;
+}
+
+@utility mask-fade-b {
+  mask-image: linear-gradient(to bottom, #000 42%, transparent 100%);
+}
+
+/* Respect users who asked for less motion: every decorative loop stops. */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
