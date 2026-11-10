@@ -9,6 +9,47 @@ import {
   Section,
 } from './MarketingChrome';
 
+const GROUPS: {
+  id: string;
+  title: string;
+  blurb: string;
+  paths: string[];
+}[] = [
+  {
+    id: 'ownership',
+    title: 'Ownership',
+    blurb: 'Who is accountable for a service, how to verify it, and what to do when nobody is.',
+    paths: [
+      '/learn/service-ownership',
+      '/learn/find-service-owner',
+      '/learn/who-owns-this-service',
+      '/learn/service-ownership-tools',
+    ],
+  },
+  {
+    id: 'dependencies',
+    title: 'Dependencies',
+    blurb: 'What fails with a service, and how far the failure travels through the graph.',
+    paths: ['/learn/blast-radius-analysis'],
+  },
+  {
+    id: 'concepts',
+    title: 'Concepts',
+    blurb: 'How graph-backed answers differ from text retrieval, and where each one fits.',
+    paths: ['/learn/knowledge-graph-vs-rag'],
+  },
+  {
+    id: 'freshness',
+    title: 'Freshness',
+    blurb: 'Keeping ownership, on-call rotations, and documentation true over time.',
+    paths: [
+      '/learn/service-ownership-checklist',
+      '/learn/service-ownership-on-call',
+      '/learn/stale-documentation',
+    ],
+  },
+];
+
 const SUMMARIES: Record<string, string> = {
   '/learn/service-ownership':
     'What ownership means, the four questions an ownership system must answer, and how to keep the record current.',
@@ -30,48 +71,80 @@ const SUMMARIES: Record<string, string> = {
     'A practical stale-doc check using verification dates, supersession edges and code-touch signals.',
 };
 
-export const LearnPage: React.FC = () => (
-  <MarketingShell>
-    <PageHero
-      eyebrow="Learn"
-      title="Guides for ownership, impact, and evidence."
-      lede="Practical guides on service ownership, blast radius, on-call, stale documentation, and knowledge graphs."
-    >
-      <CtaLink href="/agent">Open the console</CtaLink>
-      <CtaLink href="/how-it-works" variant="outline">How Helio works</CtaLink>
-    </PageHero>
-
-    <Section eyebrow="Guides" title="Start with the problem you have">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        {ARTICLES.map((article) => (
-          <a
-            key={article.path}
-            href={article.path}
-            className="group cad-border bg-[#f4f4ec] p-6 hover:bg-[#282828] transition-colors"
-          >
-            <div className="font-mono text-[10px] uppercase tracking-widest text-[#e15c46] font-bold">
-              {article.eyebrow}
-            </div>
-            <h2 className="mt-2 font-mono text-lg md:text-xl font-bold uppercase text-[#282828] group-hover:text-white leading-tight">
-              {article.h1}
-            </h2>
-            <p className="mt-3 font-mono text-xs text-[#5c5c56] group-hover:text-white/70 leading-relaxed">
-              {SUMMARIES[article.path]}
-            </p>
-            <span className="mt-4 inline-block font-mono text-[10px] uppercase tracking-widest text-[#e15c46]">
-              Read the guide →
-            </span>
-          </a>
-        ))}
-      </div>
-    </Section>
-
-    <CtaBand
-      title="See it in the product"
-      body="Ask an ownership or impact question in the console and inspect the evidence trail behind the answer."
-    />
-  </MarketingShell>
+const ArticleCard: React.FC<{ article: Article }> = ({ article }) => (
+  <a
+    href={article.path}
+    className="group cad-border bg-[#f4f4ec] p-6 hover:bg-[#282828] transition-colors"
+  >
+    <div className="font-mono text-[10px] uppercase tracking-widest text-[#e15c46] font-bold">
+      {article.eyebrow}
+    </div>
+    <h3 className="mt-2 font-mono text-lg md:text-xl font-bold uppercase text-[#282828] group-hover:text-white leading-tight">
+      {article.h1}
+    </h3>
+    <p className="mt-3 font-mono text-xs text-[#5c5c56] group-hover:text-white/70 leading-relaxed">
+      {SUMMARIES[article.path]}
+    </p>
+    <span className="mt-4 inline-block font-mono text-[10px] uppercase tracking-widest text-[#e15c46]">
+      Read the guide →
+    </span>
+  </a>
 );
+
+export const LearnPage: React.FC = () => {
+  const byPath = new Map(ARTICLES.map((article) => [article.path, article]));
+
+  return (
+    <MarketingShell>
+      <PageHero
+        eyebrow="Learn"
+        title="Guides for ownership, impact, and evidence."
+        lede="Practical guides on service ownership, blast radius, on-call, stale documentation, and knowledge graphs."
+      >
+        <CtaLink href="/agent">Open the console</CtaLink>
+        <CtaLink href="/how-it-works" variant="outline">How Helio works</CtaLink>
+      </PageHero>
+
+      <Section eyebrow="Guides" title="Start with the problem you have">
+        <nav aria-label="Guide topics" className="mb-10 flex flex-wrap gap-2">
+          {GROUPS.map((group) => (
+            <a
+              key={group.id}
+              href={`#${group.id}`}
+              className="cad-border px-3 py-2 font-mono text-[10px] uppercase tracking-widest text-[#282828] hover:bg-[#282828] hover:text-white transition-colors"
+            >
+              {group.title}
+            </a>
+          ))}
+        </nav>
+
+        <div className="space-y-12">
+          {GROUPS.map((group) => (
+            <section key={group.id} id={group.id} className="scroll-mt-24">
+              <h2 className="font-mono text-xl md:text-2xl font-bold uppercase tracking-tight text-[#282828]">
+                {group.title}
+              </h2>
+              <p className="mt-2 max-w-2xl font-mono text-xs text-[#5c5c56] leading-relaxed">
+                {group.blurb}
+              </p>
+              <div className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-5">
+                {group.paths.map((path) => {
+                  const article = byPath.get(path);
+                  return article ? <ArticleCard key={article.path} article={article} /> : null;
+                })}
+              </div>
+            </section>
+          ))}
+        </div>
+      </Section>
+
+      <CtaBand
+        title="See it in the product"
+        body="Ask an ownership or impact question in the console and inspect the evidence trail behind the answer."
+      />
+    </MarketingShell>
+  );
+};
 
 export const ArticlePage: React.FC<{ article: Article }> = ({ article }) => (
   <MarketingShell>
