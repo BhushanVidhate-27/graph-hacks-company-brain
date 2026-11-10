@@ -34,6 +34,7 @@ const ScrollManager: React.FC = () => {
 export const App: React.FC = () => (
   <BrowserRouter>
     <ScrollManager />
+    <div className="grain" aria-hidden="true" />
     <React.Suspense
       fallback={
         <div className="flex min-h-svh items-center justify-center">

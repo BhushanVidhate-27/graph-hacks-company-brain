@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link, NavLink } from 'react-router-dom';
+import gsap from 'gsap';
 import { Mark } from './Mark';
 import { Button } from './ui';
 import { useAuth } from '../lib/auth';
@@ -16,6 +17,24 @@ const NAV_LINKS = [
 export const Nav: React.FC = () => {
   const { me } = useAuth();
   const [open, setOpen] = React.useState(false);
+  const menuRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    const el = menuRef.current;
+    if (!el) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      el.style.height = open ? 'auto' : '0px';
+      el.style.opacity = open ? '1' : '0';
+      return;
+    }
+    gsap.to(el, {
+      height: open ? el.scrollHeight : 0,
+      opacity: open ? 1 : 0,
+      duration: 0.3,
+      ease: 'power2.inOut',
+      overwrite: true,
+    });
+  }, [open]);
 
   return (
     <header className="fixed inset-x-0 top-0 z-40 border-b border-line/60 bg-ink/80 backdrop-blur-md">
@@ -26,7 +45,7 @@ export const Nav: React.FC = () => {
           aria-label="Helio home"
           onClick={() => setOpen(false)}
         >
-          <Mark className="h-9 w-16 shrink-0" />
+          <Mark className="relative h-9 w-12 shrink-0" />
           <span className="text-lg font-semibold tracking-tight text-paper">helio</span>
         </Link>
 
@@ -92,9 +111,12 @@ export const Nav: React.FC = () => {
         </button>
       </nav>
 
-      {open && (
-        <div className="border-t border-line/60 bg-ink px-5 pb-6 pt-3 lg:hidden">
-          <div className="flex flex-col gap-1">
+      <div
+        ref={menuRef}
+        className="overflow-hidden border-t border-line/60 bg-ink lg:hidden"
+        style={{ height: 0, opacity: 0 }}
+      >
+        <div className="flex flex-col gap-1 px-5 pb-6 pt-3">
             {NAV_LINKS.map((link) => (
               <Link
                 key={link.label}
@@ -115,8 +137,7 @@ export const Nav: React.FC = () => {
               </Button>
             </Link>
           </div>
-        </div>
-      )}
+      </div>
     </header>
   );
 };

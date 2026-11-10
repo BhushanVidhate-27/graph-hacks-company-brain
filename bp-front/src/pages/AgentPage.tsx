@@ -1,8 +1,9 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Nav } from '../components/Nav';
 import { Footer } from '../components/Footer';
 import { Button, Card, Eyebrow } from '../components/ui';
+import { Head } from '../components/Head';
 import { useAuth } from '../lib/auth';
 import {
   ApiError,
@@ -44,12 +45,14 @@ const TrailRow: React.FC<{ item: TrailItem }> = ({ item }) => (
 
 export const AgentPage: React.FC = () => {
   const { me } = useAuth();
+  const [params] = useSearchParams();
   const [question, setQuestion] = React.useState('');
   const [messages, setMessages] = React.useState<Message[]>([]);
   const [busy, setBusy] = React.useState(false);
   const controller = React.useRef<AbortController | null>(null);
   const nextId = React.useRef(1);
   const bottom = React.useRef<HTMLDivElement>(null);
+  const askedFromLink = React.useRef(false);
 
   React.useEffect(() => {
     bottom.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
@@ -109,8 +112,23 @@ export const AgentPage: React.FC = () => {
     }
   };
 
+  // A question handed over from the landing page asks itself.
+  React.useEffect(() => {
+    const incoming = params.get('q');
+    if (!incoming || askedFromLink.current) return;
+    askedFromLink.current = true;
+    void ask(incoming);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [params]);
+
   return (
     <>
+      <Head
+        title="Ask the graph — Helio"
+        description="Ask who owns a service, what breaks when it goes down, or where a decision was made. Every answer shows the trail behind it."
+        path="/agent"
+        noindex
+      />
       <Nav />
       <main className="mx-auto flex min-h-svh w-full max-w-4xl flex-col px-5 pb-16 pt-28 md:px-8 md:pt-36">
         <Eyebrow>Ask the graph</Eyebrow>

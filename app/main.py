@@ -475,23 +475,38 @@ def stream_answer(
     db_workspace_token = (
         db_service.set_current_workspace(workspace_id) if workspace_id else None
     )
+    # Reset exactly once, on the first path that leaves the bound region.
+    # This used to live in a `finally:` that wrapped the first `yield`, which
+    # meant the token was reset while the generator was suspended and a second
+    # reset never ran — leaving the tenant bound to the worker thread for the
+    # next request. Keeping the reset helpers here means both the failure path
+    # and the success path unbind before the stream starts emitting.
+    def _unbind() -> None:
+        try:
+            graph_service.reset_current_account(token)
+            if workspace_token is not None:
+                graph_service.reset_current_workspace(workspace_token)
+            if db_token is not None:
+                db_service.reset_current_tenant(db_token)
+            if db_workspace_token is not None:
+                db_service.reset_current_workspace(db_workspace_token)
+        except (ValueError, RuntimeError):
+            # A ContextVar token is only valid in the context that created it.
+            # Starlette may evaluate the generator in a different context, in
+            # which case there is nothing bound here to unbind.
+            pass
+
     try:
         result = answer_question(question)
     except Exception as exc:  # noqa: BLE001 - the failure must reach the client
         # Log the whole traceback for whoever is on the deploy, and send a
         # well-formed frame so the UI can say something instead of hanging.
         logger.exception("answer_question failed for question=%r", question)
+        _unbind()
         yield _sse(_failure_frame(exc))
         yield "data: [DONE]\n\n"
         return
-    finally:
-        graph_service.reset_current_account(token)
-        if workspace_token is not None:
-            graph_service.reset_current_workspace(workspace_token)
-        if db_token is not None:
-            db_service.reset_current_tenant(db_token)
-        if db_workspace_token is not None:
-            db_service.reset_current_workspace(db_workspace_token)
+    _unbind()
 
     if on_success is not None:
         try:

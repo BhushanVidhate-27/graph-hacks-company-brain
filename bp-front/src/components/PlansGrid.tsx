@@ -73,6 +73,7 @@ export const PlansGrid: React.FC<{
   showEnterprise?: boolean;
   compact?: boolean;
 }> = ({ showEnterprise = true, compact = false }) => {
+  const root = React.useRef<HTMLDivElement>(null);
   const [plans, setPlans] = React.useState<Plan[]>(FALLBACK_PLANS);
   const [billing, setBilling] = React.useState<BillingSetup | null>(null);
 
@@ -91,12 +92,41 @@ export const PlansGrid: React.FC<{
     };
   }, []);
 
+  React.useEffect(() => {
+    const el = root.current;
+    if (!el) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    let cancelled = false;
+    import('gsap').then(({ default: gsap }) => {
+      import('gsap/ScrollTrigger').then(({ ScrollTrigger }) => {
+        if (cancelled) return;
+        gsap.registerPlugin(ScrollTrigger);
+
+        gsap.from(el.querySelectorAll('[data-plan-card]'), {
+          y: 44,
+          autoAlpha: 0,
+          duration: 0.8,
+          stagger: 0.1,
+          ease: 'power3.out',
+          scrollTrigger: {
+            trigger: el,
+            start: 'top 78%',
+            once: true,
+          },
+        });
+      });
+    });
+
+    return () => { cancelled = true; };
+  }, [plans]);
+
   const currency = billingCurrency(billing);
   const cards = [...plans];
   if (showEnterprise && !cards.some((plan) => plan.id === 'enterprise')) cards.push(ENTERPRISE);
 
   return (
-    <div>
+    <div ref={root}>
       <p className="mb-8 font-mono text-xs uppercase tracking-[0.2em] text-fog">
         {currency} · billed monthly · cancel anytime
       </p>
@@ -112,10 +142,13 @@ export const PlansGrid: React.FC<{
           return (
             <Card
               key={plan.id}
+              hover
+              data-plan-card
               className={cn(
                 'flex flex-col p-6',
                 plan.highlighted && 'border-accent/60 bg-accent/[0.06]',
               )}
+              style={{ opacity: 0 }}
             >
               <div className="flex items-baseline justify-between gap-2">
                 <h3 className="text-lg font-semibold tracking-tight">{plan.name}</h3>

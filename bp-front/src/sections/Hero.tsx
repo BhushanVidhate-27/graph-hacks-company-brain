@@ -1,145 +1,205 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { motion } from 'motion/react';
+import { Link, useNavigate } from 'react-router-dom';
+import gsap from 'gsap';
+import { useGSAP } from '@gsap/react';
+import { HeroBackdrop } from '../components/viz/HeroBackdrop';
 import { Button, Eyebrow } from '../components/ui';
 
-// The two WebGL layers are the heavy part of the hero. Loading them after the
-// shell means the headline paints immediately and the visual fades in behind it.
-const HeroBackdrop = React.lazy(() =>
-  import('../components/viz/HeroBackdrop').then((module) => ({ default: module.HeroBackdrop })),
-);
-const GraphOrb = React.lazy(() =>
-  import('../components/viz/GraphOrb').then((module) => ({ default: module.GraphOrb })),
-);
+gsap.registerPlugin(useGSAP);
 
-const fadeUp = {
-  hidden: { opacity: 0, y: 22 },
-  show: (index: number) => ({
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.7, delay: 0.12 * index, ease: [0.22, 1, 0.36, 1] as const },
-  }),
-};
+const LINES = [
+  { text: 'Know who owns it.', accent: false },
+  { text: 'Know what breaks.', accent: false },
+  { text: 'Know who to page.', accent: true },
+];
 
-export const Hero: React.FC = () => (
-  <section className="relative overflow-hidden">
-    <React.Suspense
-      fallback={
-        <div
-          aria-hidden="true"
-          className="absolute inset-0 mask-fade-b"
-          style={{
-            background:
-              'radial-gradient(60% 50% at 70% 20%, rgba(255,91,58,0.22) 0%, rgba(255,91,58,0) 70%), #08080a',
-          }}
-        />
-      }
-    >
-      <HeroBackdrop className="absolute inset-0 mask-fade-b" />
-    </React.Suspense>
-    <div
-      aria-hidden="true"
-      className="absolute inset-0"
-      style={{
-        background:
-          'radial-gradient(120% 95% at 74% 8%, rgba(8,8,10,0.22) 0%, rgba(8,8,10,0.55) 55%, #08080a 98%)',
-      }}
-    />
-    <div aria-hidden="true" className="grid-bg absolute inset-0 opacity-60" />
-    <div className="relative mx-auto grid w-full max-w-6xl items-center gap-12 px-5 pb-20 pt-32 md:px-8 md:pt-40 lg:grid-cols-[1.05fr_0.95fr] lg:pb-28">
-      <div>
-        <motion.div variants={fadeUp} initial="hidden" animate="show" custom={0}>
-          <Eyebrow>Knowledge graph for engineering orgs</Eyebrow>
-        </motion.div>
+const FACTS = ['50 free questions / month', 'No card required', 'Cancel anytime'];
 
-        <motion.h1
-          variants={fadeUp}
-          initial="hidden"
-          animate="show"
-          custom={1}
-          className="mt-5 text-balance text-[clamp(2.6rem,6vw,4.4rem)] font-semibold leading-[1.02] tracking-[-0.03em]"
-        >
-          Know who owns it.
-          <br />
-          Know what breaks.
-          <br />
-          <span className="text-accent">Know who to page.</span>
-        </motion.h1>
+const SOURCES = ['GitHub', 'Slack', 'Linear', 'Notion', 'CSV', 'Webhook'];
 
-        <motion.p
-          variants={fadeUp}
-          initial="hidden"
-          animate="show"
-          custom={2}
-          className="mt-6 max-w-xl text-lg leading-relaxed text-fog"
-        >
-          Helio connects repos, on-call rotations and decision records into one graph, so every
-          answer about ownership, blast radius and history shows the path behind it.
-        </motion.p>
+const EXAMPLES = [
+  'Who owns payments-gateway?',
+  'What breaks if the ledger goes down?',
+  'Where was the payments provider decided?',
+];
 
-        <motion.div
-          variants={fadeUp}
-          initial="hidden"
-          animate="show"
-          custom={3}
-          className="mt-8 flex flex-wrap items-center gap-3"
-        >
-          <Link to="/auth?plan=starter">
-            <Button size="lg">Start free</Button>
-          </Link>
-          <Link to="/pricing">
-            <Button size="lg" variant="outline">
-              See pricing
-            </Button>
-          </Link>
-        </motion.div>
+export const Hero: React.FC = () => {
+  const root = React.useRef<HTMLElement>(null);
+  const glow = React.useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
+  const [draft, setDraft] = React.useState('');
 
-        <motion.div
-          variants={fadeUp}
-          initial="hidden"
-          animate="show"
-          custom={4}
-          className="mt-8 flex flex-wrap gap-x-6 gap-y-2 font-mono text-xs text-fog"
-        >
-          <span>50 free questions / month</span>
-          <span>No card required</span>
-          <span>Cancel anytime</span>
-        </motion.div>
-      </div>
+  useGSAP(
+    () => {
+      const mm = gsap.matchMedia();
 
-      <motion.div
-        initial={{ opacity: 0, scale: 0.97 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.9, delay: 0.25, ease: [0.22, 1, 0.36, 1] }}
-        className="relative"
+      mm.add('(prefers-reduced-motion: no-preference)', () => {
+        const timeline = gsap.timeline({ defaults: { ease: 'power3.out', duration: 1 } });
+
+        timeline
+          .from('[data-hero-fade="eyebrow"]', { y: 14, autoAlpha: 0, duration: 0.7 })
+          .from('[data-hero-line]', { yPercent: 118, duration: 1.05, stagger: 0.08 }, '-=0.35')
+          .from('[data-hero-fade="copy"]', { y: 18, autoAlpha: 0, duration: 0.8, stagger: 0.12 }, '-=0.55')
+          .from('[data-hero-fade="ask"]', { y: 22, autoAlpha: 0, duration: 0.9 }, '-=0.5')
+          .from('[data-hero-fade="strip"]', { autoAlpha: 0, duration: 0.9 }, '-=0.35');
+
+        // A soft warm light that follows the pointer across the hero.
+        const element = glow.current;
+        const host = root.current;
+        if (!element || !host) return;
+
+        const xTo = gsap.quickTo(element, 'x', { duration: 0.7, ease: 'power3.out' });
+        const yTo = gsap.quickTo(element, 'y', { duration: 0.7, ease: 'power3.out' });
+
+        const onMove = (event: PointerEvent) => {
+          const rect = host.getBoundingClientRect();
+          xTo(event.clientX - rect.left);
+          yTo(event.clientY - rect.top);
+        };
+
+        host.addEventListener('pointermove', onMove);
+        return () => host.removeEventListener('pointermove', onMove);
+      });
+    },
+    { scope: root },
+  );
+
+  const ask = (question: string) => {
+    const trimmed = question.trim();
+    if (!trimmed) return;
+    navigate(`/agent?q=${encodeURIComponent(trimmed)}`);
+  };
+
+  return (
+    <section ref={root} className="relative flex min-h-svh flex-col overflow-hidden">
+      <React.Suspense
+        fallback={
+          <div
+            aria-hidden="true"
+            className="absolute inset-0 mask-fade-b"
+            style={{
+              background:
+                'radial-gradient(70% 50% at 74% 12%, rgba(255,91,58,0.18) 0%, rgba(255,91,58,0) 70%), #08080a',
+            }}
+          />
+        }
       >
-        <div className="rounded-3xl border border-line/70 bg-ink/40 p-3 backdrop-blur-sm">
-          <div className="relative h-[380px] overflow-hidden rounded-2xl md:h-[460px]">
-            <React.Suspense fallback={null}>
-              <GraphOrb className="absolute inset-0" />
-            </React.Suspense>
-            <div className="absolute inset-x-0 top-0 flex items-center justify-between px-4 py-3">
-              <span className="font-mono text-xs uppercase tracking-[0.18em] text-fog">
-                ownership · dependents · decisions
+        <HeroBackdrop className="absolute inset-0 mask-fade-b" />
+      </React.Suspense>
+      <div
+        aria-hidden="true"
+        className="absolute inset-0"
+        style={{
+          background:
+            'radial-gradient(120% 95% at 74% 8%, rgba(8,8,10,0.22) 0%, rgba(8,8,10,0.55) 55%, #08080a 98%)',
+        }}
+      />
+      <div aria-hidden="true" className="grid-bg absolute inset-0 opacity-60" />
+      <div ref={glow} aria-hidden="true" className="pointer-glow" />
+
+      <div className="relative mx-auto flex w-full max-w-6xl flex-1 flex-col justify-center gap-12 px-5 pb-12 pt-32 md:px-8 md:pt-36">
+        <div>
+          <div data-hero-fade="eyebrow">
+            <Eyebrow>Knowledge graph for engineering orgs</Eyebrow>
+          </div>
+
+          <h1 className="mt-6 text-balance text-[clamp(2.6rem,6.4vw,4.9rem)] font-semibold leading-[0.98] tracking-[-0.035em]">
+            {LINES.map((line) => (
+              <span key={line.text} className="block overflow-hidden pb-[0.08em]">
+                <span data-hero-line className={`block ${line.accent ? 'text-accent' : ''}`}>
+                  {line.text}
+                </span>
               </span>
-              <span className="rounded-full border border-line px-2.5 py-1 font-mono text-[11px] text-fog">
-                sample graph
-              </span>
+            ))}
+          </h1>
+        </div>
+
+        <div className="grid items-end gap-12 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16">
+          <div>
+            <p
+              data-hero-fade="copy"
+              className="max-w-xl text-lg leading-relaxed text-fog md:text-xl"
+            >
+              Helio connects repos, on-call rotations and decision records into one graph, so every
+              answer about ownership, blast radius and history shows the path behind it.
+            </p>
+
+            <div data-hero-fade="copy" className="mt-9 flex flex-wrap items-center gap-3">
+              <Link to="/auth?plan=starter">
+                <Button size="lg">Start free</Button>
+              </Link>
+              <Link to="/pricing">
+                <Button size="lg" variant="outline">
+                  See pricing
+                </Button>
+              </Link>
             </div>
-            <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-3 bg-gradient-to-t from-ink/90 to-transparent px-4 pb-4 pt-10">
-              <div>
-                <p className="font-mono text-xs text-fog">payments-gateway</p>
-                <p className="mt-1 text-sm font-medium text-paper">
-                  8 dependents · 3 hops · Platform rotation
-                </p>
-              </div>
-              <span className="shrink-0 rounded-full border border-accent/40 bg-accent/10 px-3 py-1 font-mono text-[11px] text-accent">
-                D-21
-              </span>
+
+            <div
+              data-hero-fade="copy"
+              className="mt-8 flex flex-wrap gap-x-6 gap-y-2 font-mono text-xs text-fog"
+            >
+              {FACTS.map((fact) => (
+                <span key={fact}>{fact}</span>
+              ))}
             </div>
           </div>
+
+          <div data-hero-fade="ask" className="hidden lg:block">
+            <div className="rounded-2xl border border-line bg-ink/55 p-5 backdrop-blur-md">
+              <p className="font-mono text-xs uppercase tracking-[0.18em] text-fog">
+                <span className="text-accent">/</span> ask the graph
+              </p>
+              <form
+                className="mt-4 flex items-center gap-2"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  ask(draft);
+                }}
+              >
+                <input
+                  value={draft}
+                  onChange={(event) => setDraft(event.target.value)}
+                  placeholder="Who owns payments-gateway?"
+                  aria-label="Ask the graph a question"
+                  className="min-w-0 flex-1 rounded-xl border border-line bg-ink/80 px-3.5 py-3 text-[15px] text-paper placeholder:text-fog/70 focus:border-accent focus:outline-none"
+                />
+                <Button type="submit" disabled={!draft.trim()}>
+                  Ask
+                </Button>
+              </form>
+              <div className="mt-4 space-y-2">
+                {EXAMPLES.map((example) => (
+                  <button
+                    key={example}
+                    type="button"
+                    onClick={() => ask(example)}
+                    className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-sm text-fog transition-colors hover:bg-white/[0.04] hover:text-paper"
+                  >
+                    <span className="text-accent">→</span>
+                    {example}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <p className="mt-3 text-center font-mono text-[11px] text-fog">
+              No account needed for the first question.
+            </p>
+          </div>
         </div>
-      </motion.div>
-    </div>
-  </section>
-);
+      </div>
+
+      <div
+        data-hero-fade="strip"
+        className="relative border-t border-line/60 bg-ink/50 backdrop-blur-sm"
+      >
+        <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center gap-x-8 gap-y-2 px-5 py-4 font-mono text-xs uppercase tracking-[0.18em] text-fog md:px-8">
+          <span className="text-accent">sources</span>
+          {SOURCES.map((source) => (
+            <span key={source}>{source}</span>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};

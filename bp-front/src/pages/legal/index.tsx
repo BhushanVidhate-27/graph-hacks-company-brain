@@ -2,6 +2,7 @@ import React from 'react';
 import { Nav } from '../../components/Nav';
 import { Footer } from '../../components/Footer';
 import { Eyebrow } from '../../components/ui';
+import { Head } from '../../components/Head';
 
 interface LegalSection {
   title: string;
@@ -11,11 +12,13 @@ interface LegalSection {
 const LegalLayout: React.FC<{
   eyebrow: string;
   title: string;
+  path: string;
   updated: string;
   intro: string;
   sections: LegalSection[];
-}> = ({ eyebrow, title, updated, intro, sections }) => (
+}> = ({ eyebrow, title, path, updated, intro, sections }) => (
   <>
+    <Head title={`${title} — Helio`} description={intro} path={path} />
     <Nav />
     <main className="mx-auto w-full max-w-3xl px-5 pb-24 pt-32 md:px-8 md:pt-40">
       <Eyebrow>{eyebrow}</Eyebrow>
@@ -195,6 +198,7 @@ export const TermsPage: React.FC = () => (
   <LegalLayout
     eyebrow="Legal"
     title="Terms of service"
+    path="/terms"
     updated="10 November 2026"
     intro="These terms govern your use of Helio. By creating an account you agree to them."
     sections={TERMS}
@@ -205,6 +209,7 @@ export const PrivacyPage: React.FC = () => (
   <LegalLayout
     eyebrow="Legal"
     title="Privacy policy"
+    path="/privacy"
     updated="10 November 2026"
     intro="What we collect, why we collect it, and the choices you have."
     sections={PRIVACY}
@@ -215,6 +220,7 @@ export const RefundsPage: React.FC = () => (
   <LegalLayout
     eyebrow="Legal"
     title="Refunds & cancellation"
+    path="/refunds"
     updated="10 November 2026"
     intro="Cancel anytime. A full refund inside 7 days of your first charge."
     sections={REFUNDS}

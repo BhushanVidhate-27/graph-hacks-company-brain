@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Nav } from '../components/Nav';
 import { Footer } from '../components/Footer';
 import { Button, Card, Eyebrow } from '../components/ui';
+import { Head } from '../components/Head';
 import { useAuth } from '../lib/auth';
 import {
   ApiError,
@@ -187,6 +188,12 @@ export const AccountPage: React.FC = () => {
 
   return (
     <>
+      <Head
+        title="Your Helio account"
+        description="Manage your Helio plan, usage, API keys and subscription."
+        path="/account"
+        noindex
+      />
       <Nav />
       <main className="mx-auto w-full max-w-6xl px-5 pb-24 pt-28 md:px-8 md:pt-36">
         <Eyebrow>Account</Eyebrow>

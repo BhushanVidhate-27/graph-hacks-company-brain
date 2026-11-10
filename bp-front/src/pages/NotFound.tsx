@@ -3,9 +3,16 @@ import { Link } from 'react-router-dom';
 import { Nav } from '../components/Nav';
 import { Footer } from '../components/Footer';
 import { Button } from '../components/ui';
+import { Head } from '../components/Head';
 
 const NotFound: React.FC = () => (
   <>
+    <Head
+      title="Page not found — Helio"
+      description="This page is not in the graph."
+      path="/404"
+      noindex
+    />
     <Nav />
     <main className="mx-auto flex min-h-svh w-full max-w-3xl flex-col items-center justify-center px-5 py-32 text-center">
       <p className="font-mono text-sm text-accent">404</p>

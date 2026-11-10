@@ -3,8 +3,7 @@ import { Liquid } from 'liquid-gooey';
 
 /**
  * The Helio mark: three drops that merge gooily as the pointer approaches.
- * Items are inline-block so they sit in one row; the x/y offsets are what pull
- * them apart at rest and let the liquid bridge them on hover.
+ * The drops are real DOM, so the effect keeps its shadow and stays crisp.
  */
 export const Mark: React.FC<{ className?: string }> = ({ className }) => {
   const [active, setActive] = React.useState(false);
@@ -13,7 +12,7 @@ export const Mark: React.FC<{ className?: string }> = ({ className }) => {
     <Liquid
       className={className}
       blur={7}
-      contrast={22}
+      contrast={24}
       fill="#ff5b3a"
       shadow="0 8px 18px rgba(255,91,58,0.35)"
       filterPadding={28}
@@ -21,33 +20,36 @@ export const Mark: React.FC<{ className?: string }> = ({ className }) => {
       onMouseLeave={() => setActive(false)}
     >
       <Liquid.Item
-        x={active ? 6 : 0}
-        y={active ? 3 : 0}
+        x={active ? 5 : 0}
+        y={active ? 4 : 0}
         transition="bouncy"
         radius={10}
-        className="inline-block h-5 w-5 align-top"
+        className="absolute"
+        style={{ left: 0, top: 10 }}
       >
-        <span className="block h-full w-full rounded-full bg-accent" />
+        <span className="block h-5 w-5 rounded-full bg-accent" />
       </Liquid.Item>
       <Liquid.Item
-        x={active ? 16 : 14}
-        y={active ? 4 : 4}
+        x={active ? 0 : 0}
+        y={active ? 5 : 0}
         transition="bouncy"
         delay={45}
         radius={8}
-        className="inline-block h-4 w-4 align-top"
+        className="absolute"
+        style={{ left: 18, top: 0 }}
       >
-        <span className="block h-full w-full rounded-full bg-paper" />
+        <span className="block h-4 w-4 rounded-full bg-paper" />
       </Liquid.Item>
       <Liquid.Item
-        x={active ? 22 : 26}
-        y={active ? 9 : 12}
+        x={active ? 2 : 0}
+        y={active ? 9 : 0}
         transition="bouncy"
         delay={90}
         radius={6}
-        className="inline-block h-3 w-3 align-top"
+        className="absolute"
+        style={{ left: 21, top: 17 }}
       >
-        <span className="block h-full w-full rounded-full bg-[#ffb199]" />
+        <span className="block h-3 w-3 rounded-full bg-[#ffb199]" />
       </Liquid.Item>
     </Liquid>
   );

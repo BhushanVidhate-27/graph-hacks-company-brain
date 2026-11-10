@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Nav } from '../components/Nav';
 import { Footer } from '../components/Footer';
 import { Button, Card, Eyebrow } from '../components/ui';
+import { Head } from '../components/Head';
 import { useAuth } from '../lib/auth';
 import { ApiError, displayPrice, fallbackPrice, type PlanId } from '../lib/api';
 import { cn } from '../lib/utils';
@@ -84,6 +85,12 @@ export const AuthPage: React.FC = () => {
 
   return (
     <>
+      <Head
+        title="Sign in to Helio"
+        description="Sign in to your Helio workspace, or create a free account with 50 questions a month."
+        path="/auth"
+        noindex
+      />
       <Nav />
       <main className="mx-auto grid min-h-svh w-full max-w-6xl items-center gap-12 px-5 pb-20 pt-32 md:px-8 lg:grid-cols-[0.85fr_1.15fr]">
         <div>

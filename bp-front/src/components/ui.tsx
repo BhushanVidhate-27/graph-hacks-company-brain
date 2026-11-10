@@ -7,12 +7,7 @@ export const Eyebrow: React.FC<{ children: React.ReactNode; className?: string }
   children,
   className,
 }) => (
-  <p
-    className={cn(
-      'font-mono text-xs uppercase tracking-[0.2em] text-fog',
-      className,
-    )}
-  >
+  <p className={cn('font-mono text-xs uppercase tracking-[0.2em] text-fog', className)}>
     <span className="mr-2 text-accent">/</span>
     {children}
   </p>
@@ -27,10 +22,8 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const buttonVariants: Record<ButtonVariant, string> = {
-  primary:
-    'bg-accent text-ink hover:bg-[#ff7358] active:bg-[#e04a2c] border border-accent',
-  outline:
-    'bg-transparent text-paper border border-line hover:border-fog hover:bg-white/[0.04]',
+  primary: 'bg-accent text-ink hover:bg-[#ff7358] active:bg-[#e04a2c] border border-accent',
+  outline: 'bg-transparent text-paper border border-line hover:border-fog hover:bg-white/[0.04]',
   ghost: 'bg-transparent text-fog hover:text-paper border border-transparent',
 };
 
@@ -45,7 +38,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     <button
       ref={ref}
       className={cn(
-        'inline-flex items-center justify-center gap-2 rounded-full font-medium tracking-tight transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-55',
+        'inline-flex items-center justify-center gap-2 rounded-full font-medium tracking-tight transition-[background-color,border-color,color,transform] duration-150 active:scale-[0.985] disabled:cursor-not-allowed disabled:opacity-55',
         buttonVariants[variant],
         buttonSizes[size],
         block && 'w-full',
@@ -69,7 +62,7 @@ export const LinkButton = React.forwardRef<HTMLAnchorElement, LinkButtonProps>(
       to={to}
       ref={ref}
       className={cn(
-        'inline-flex items-center justify-center gap-2 rounded-full font-medium tracking-tight transition-colors duration-150',
+        'inline-flex items-center justify-center gap-2 rounded-full font-medium tracking-tight transition-[background-color,border-color,color,transform] duration-150 active:scale-[0.985]',
         buttonVariants[variant],
         buttonSizes[size],
         className,
@@ -83,62 +76,31 @@ LinkButton.displayName = 'LinkButton';
 export const Card: React.FC<{
   children: React.ReactNode;
   className?: string;
-}> = ({ children, className }) => (
+  hover?: boolean;
+} & React.HTMLAttributes<HTMLDivElement>> = ({ children, className, hover, ...rest }) => (
   <div
     className={cn(
       'rounded-2xl border border-line bg-ink-soft shadow-[0_1px_0_0_rgba(255,255,255,0.04)_inset]',
+      hover && 'hover-lift',
       className,
     )}
+    {...rest}
   >
     {children}
   </div>
 );
 
-export const Section: React.FC<{
+export const Section = React.forwardRef<HTMLElement, {
   id?: string;
   children: React.ReactNode;
   className?: string;
-}> = ({ id, children, className }) => (
-  <section id={id} className={cn('mx-auto w-full max-w-6xl px-5 py-20 md:px-8 md:py-28', className)}>
+}>(({ id, children, className }, ref) => (
+  <section
+    ref={ref}
+    id={id}
+    className={cn('mx-auto w-full max-w-6xl px-5 py-20 md:px-8 md:py-28', className)}
+  >
     {children}
   </section>
-);
-
-export const Reveal: React.FC<{
-  children: React.ReactNode;
-  delay?: number;
-  className?: string;
-}> = ({ children, delay = 0, className }) => {
-  const [shown, setShown] = React.useState(false);
-  const ref = React.useRef<HTMLDivElement>(null);
-
-  React.useEffect(() => {
-    const node = ref.current;
-    if (!node) return;
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0]?.isIntersecting) {
-          setShown(true);
-          observer.disconnect();
-        }
-      },
-      { threshold: 0.12, rootMargin: '0px 0px -8% 0px' },
-    );
-    observer.observe(node);
-    return () => observer.disconnect();
-  }, []);
-
-  return (
-    <div
-      ref={ref}
-      className={cn('transition-all duration-700 ease-out will-change-transform', className)}
-      style={{
-        opacity: shown ? 1 : 0,
-        transform: shown ? 'none' : 'translateY(18px)',
-        transitionDelay: `${delay}ms`,
-      }}
-    >
-      {children}
-    </div>
-  );
-};
+));
+Section.displayName = 'Section';

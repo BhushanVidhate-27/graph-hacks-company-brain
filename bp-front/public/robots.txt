@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+
+# Application screens need a session. Keep crawlers out of them entirely.
+Disallow: /account
+Disallow: /auth
+Disallow: /agent
+Disallow: /api
+
+Sitemap: https://helio.runs-on.dev/sitemap.xml

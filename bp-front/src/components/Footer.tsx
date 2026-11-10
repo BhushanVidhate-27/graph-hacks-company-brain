@@ -34,7 +34,7 @@ export const Footer: React.FC = () => (
     <div className="mx-auto grid w-full max-w-6xl gap-10 px-5 py-14 md:grid-cols-[1.4fr_1fr_1fr_1fr] md:px-8">
       <div>
         <Link to="/" className="flex items-center gap-2" aria-label="Helio home">
-          <Mark className="h-9 w-16" />
+          <Mark className="relative h-9 w-12" />
           <span className="text-lg font-semibold tracking-tight">helio</span>
         </Link>
         <p className="mt-4 max-w-xs text-sm leading-relaxed text-fog">
