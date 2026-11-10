@@ -1,5 +1,6 @@
 import React from 'react';
 import { ARTICLES, type Article } from '../content/articles';
+import { OwnershipChecklist } from '../components/OwnershipChecklist';
 import {
   CtaBand,
   CtaLink,
@@ -199,6 +200,8 @@ export const ArticlePage: React.FC<{ article: Article }> = ({ article }) => (
           ))}
         </div>
       </section>
+
+      {article.path === '/learn/service-ownership-checklist' ? <OwnershipChecklist /> : null}
 
       <section className="max-w-3xl pt-10">
         <h2 className="font-mono text-xl md:text-2xl font-bold uppercase tracking-tight text-[#282828]">
