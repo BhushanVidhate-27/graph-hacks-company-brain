@@ -2,8 +2,14 @@ import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
-import { HeroBackdrop } from '../components/viz/HeroBackdrop';
+import { Liquid } from 'liquid-gooey';
 import { Button, Eyebrow } from '../components/ui';
+
+// The shader wash ships in its own chunk (~300 kB of three.js). The hero paints
+// with the CSS gradient fallback first and the canvas streams in behind it.
+const HeroBackdrop = React.lazy(() =>
+  import('../components/viz/HeroBackdrop').then((module) => ({ default: module.HeroBackdrop })),
+);
 
 gsap.registerPlugin(useGSAP);
 
@@ -28,6 +34,7 @@ export const Hero: React.FC = () => {
   const glow = React.useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const [draft, setDraft] = React.useState('');
+  const [hovered, setHovered] = React.useState(-1);
 
   useGSAP(
     () => {
@@ -168,19 +175,37 @@ export const Hero: React.FC = () => {
                   Ask
                 </Button>
               </form>
-              <div className="mt-4 space-y-2">
-                {EXAMPLES.map((example) => (
-                  <button
-                    key={example}
-                    type="button"
-                    onClick={() => ask(example)}
-                    className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-sm text-fog transition-colors hover:bg-white/[0.04] hover:text-paper"
-                  >
-                    <span className="text-accent">→</span>
-                    {example}
-                  </button>
-                ))}
-              </div>
+              <Liquid
+                className="relative mt-4"
+                blur={6}
+                contrast={20}
+                fill="#17171c"
+                shadow="0 2px 10px rgba(0,0,0,0.45)"
+                filterPadding={16}
+              >
+                <div className="space-y-2">
+                  {EXAMPLES.map((example, index) => (
+                    <Liquid.Item
+                      key={example}
+                      x={hovered === index ? 4 : 0}
+                      transition="smooth"
+                      radius={8}
+                      dissolve={0.4}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => ask(example)}
+                        onMouseEnter={() => setHovered(index)}
+                        onMouseLeave={() => setHovered(-1)}
+                        className="flex w-full items-center gap-2 rounded-lg bg-ink-card/60 px-2 py-1.5 text-left text-sm text-fog transition-colors hover:text-paper"
+                      >
+                        <span className="text-accent">→</span>
+                        {example}
+                      </button>
+                    </Liquid.Item>
+                  ))}
+                </div>
+              </Liquid>
             </div>
             <p className="mt-3 text-center font-mono text-[11px] text-fog">
               No account needed for the first question.

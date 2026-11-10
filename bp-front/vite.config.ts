@@ -17,6 +17,21 @@ export default defineConfig(({ mode }) => {
         '/ask': { target, changeOrigin: false },
       },
     },
-    build: { target: 'es2022' },
+    build: {
+      target: 'es2022',
+      // Three.js, GSAP and the liquid/glass libraries are large and change far
+      // less often than app code. Splitting them into their own chunks keeps the
+      // entry file small and lets the vendor chunks stay cached across deploys.
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            gsap: ['gsap', '@gsap/react'],
+            liquid: ['liquid-gooey', 'liquid-glass-js'],
+            shadergradient: ['@shadergradient/react'],
+          },
+        },
+      },
+      chunkSizeWarningLimit: 700,
+    },
   };
 });

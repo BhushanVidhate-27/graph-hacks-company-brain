@@ -123,7 +123,7 @@ export const Scene: React.FC = () => {
 
         <div className="relative h-[320px] overflow-hidden rounded-2xl border border-line/70 bg-ink-soft/60 md:h-[480px]">
           <React.Suspense fallback={null}>
-            <SceneCanvas state={sceneState} />
+            <SceneCanvas state={sceneState} effects={!reduced} />
           </React.Suspense>
         </div>
       </div>

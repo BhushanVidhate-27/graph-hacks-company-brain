@@ -1,5 +1,7 @@
 import React from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
+import { EffectComposer, Bloom, Vignette } from '@react-three/postprocessing';
+import { KernelSize } from 'postprocessing';
 import * as THREE from 'three';
 import { SCENE_EDGES, SCENE_NODES, SCENE_STEPS } from './sceneData';
 
@@ -91,7 +93,9 @@ const SceneGraph: React.FC<SceneGraphProps> = ({ state }) => {
 /** The graph scene. Rotation and focus are driven by the scroll timeline. */
 export const SceneCanvas: React.FC<{
   state: React.MutableRefObject<{ rotation: number; step: number }>;
-}> = ({ state }) => (
+  /** Bloom is a fullscreen pass; skip it for users who asked for less motion. */
+  effects?: boolean;
+}> = ({ state, effects = true }) => (
   <Canvas
     camera={{ position: [0, 0, 6.2], fov: 42 }}
     dpr={[1, 1.6]}
@@ -102,5 +106,17 @@ export const SceneCanvas: React.FC<{
     <directionalLight position={[3, 4, 5]} intensity={1.2} color="#fff3ea" />
     <pointLight position={[-3, -2, 3]} intensity={2.4} color="#ff5b3a" />
     <SceneGraph state={state} />
+    {effects && (
+      <EffectComposer multisampling={0}>
+        <Bloom
+          intensity={0.85}
+          luminanceThreshold={0.28}
+          luminanceSmoothing={0.5}
+          kernelSize={KernelSize.LARGE}
+          mipmapBlur
+        />
+        <Vignette offset={0.28} darkness={0.72} eskil={false} />
+      </EffectComposer>
+    )}
   </Canvas>
 );
