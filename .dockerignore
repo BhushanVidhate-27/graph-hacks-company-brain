@@ -39,6 +39,15 @@ front/temp/
 frontend/node_modules/
 frontend/dist/
 
+# TanStack Start app (`final front saas`) — dependencies and build output are
+# produced inside the `site` stage, never copied from the host.
+final front saas/node_modules/
+final front saas/.output/
+final front saas/.tanstack/
+final front saas/.wrangler/
+final front saas/.git/
+final front saas/frontends/
+
 # Per-agent instruction folders that ship with the frontend template. They are
 # committed so a teammate's editor config travels with the tree, but they have
 # no business inside the image.

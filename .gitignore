@@ -9,6 +9,9 @@ data/helio.db
 data/helio.db-wal
 data/helio.db-shm
 
+# Uploaded objects are runtime state, not fixtures.
+data/object-storage/
+
 # Virtual environments
 .venv/
 venv/
@@ -39,3 +42,9 @@ dist/
 # nothing about the product.
 .playwright-mcp/
 .opencode/
+
+# TanStack Start build output (the Dockerfile builds this in the `site` stage).
+.output/
+.tanstack/
+.wrangler/
+site/

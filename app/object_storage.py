@@ -44,4 +44,4 @@ def save_bytes(tenant_id: str, workspace_id: str, filename: str, raw: bytes) -> 
     path = _local_dir() / key
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_bytes(raw)
-    return path.as_uri()
+    return path.resolve().as_uri()

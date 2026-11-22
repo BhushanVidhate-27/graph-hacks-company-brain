@@ -1,0 +1,339 @@
+/*
+ * Tailwind v4 entry: config lives here, with no tailwind.config.js or PostCSS plugin.
+ * Keep every @import in this top block. Remote fonts load via <link> in __root.tsx.
+ */
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * Helio design system — black canvas, frosted glass surfaces, solar accent,
+ * Apple-style display typography.
+ */
+
+@theme inline {
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", system-ui, sans-serif;
+  --font-display:
+    -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", system-ui, sans-serif;
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-ring-offset-background: var(--background);
+  --color-solar: var(--solar);
+  --color-solar-soft: var(--solar-soft);
+  --color-ember: var(--ember);
+  --color-caution: var(--caution);
+  --color-glass: var(--glass);
+  --color-glass-strong: var(--glass-strong);
+  --color-glass-border: var(--glass-border);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+:root {
+  --radius: 1rem;
+  --background: oklch(0 0 0);
+  --foreground: oklch(0.97 0 0);
+  --card: oklch(1 0 0 / 0.04);
+  --card-foreground: oklch(0.97 0 0);
+  --popover: oklch(0.16 0 0);
+  --popover-foreground: oklch(0.97 0 0);
+  --primary: oklch(0.97 0 0);
+  --primary-foreground: oklch(0 0 0);
+  --secondary: oklch(1 0 0 / 0.08);
+  --secondary-foreground: oklch(0.97 0 0);
+  --muted: oklch(1 0 0 / 0.06);
+  --muted-foreground: oklch(0.62 0.005 286);
+  --accent: oklch(1 0 0 / 0.1);
+  --accent-foreground: oklch(0.97 0 0);
+  --destructive: oklch(0.65 0.2 25);
+  --destructive-foreground: oklch(0.97 0 0);
+  --border: oklch(1 0 0 / 0.1);
+  --input: oklch(1 0 0 / 0.12);
+  --ring: oklch(0.82 0.14 70);
+
+  /* Helio solar palette */
+  --solar: oklch(0.83 0.14 72);
+  --solar-soft: oklch(0.93 0.07 85);
+  --ember: oklch(0.7 0.17 40);
+  --caution: oklch(0.8 0.14 85);
+
+  /* Glass */
+  --glass: oklch(1 0 0 / 0.045);
+  --glass-strong: oklch(1 0 0 / 0.08);
+  --glass-border: oklch(1 0 0 / 0.11);
+  --glass-highlight: oklch(1 0 0 / 0.14);
+
+  --gradient-solar: linear-gradient(
+    120deg,
+    var(--solar-soft) 0%,
+    var(--solar) 45%,
+    var(--ember) 100%
+  );
+  --gradient-silver: linear-gradient(180deg, oklch(0.99 0 0) 0%, oklch(0.68 0 0) 100%);
+  --shadow-glass: inset 0 1px 0 0 var(--glass-highlight), 0 30px 80px -30px oklch(0 0 0 / 0.9);
+  --shadow-solar: 0 0 80px -10px color-mix(in oklab, var(--solar) 45%, transparent);
+
+  --chart-1: var(--solar);
+  --chart-2: var(--ember);
+  --chart-3: oklch(0.7 0 0);
+  --chart-4: oklch(0.5 0 0);
+  --chart-5: oklch(0.9 0 0);
+  --sidebar: oklch(0.1 0 0);
+  --sidebar-foreground: oklch(0.97 0 0);
+  --sidebar-primary: var(--solar);
+  --sidebar-primary-foreground: oklch(0 0 0);
+  --sidebar-accent: oklch(1 0 0 / 0.08);
+  --sidebar-accent-foreground: oklch(0.97 0 0);
+  --sidebar-border: oklch(1 0 0 / 0.1);
+  --sidebar-ring: var(--solar);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  html {
+    background-color: var(--color-background);
+    color-scheme: dark;
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    letter-spacing: -0.01em;
+  }
+
+  ::selection {
+    background: color-mix(in oklab, var(--solar) 40%, transparent);
+  }
+}
+
+/* Frosted glass surfaces */
+@utility glass {
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(28px) saturate(170%);
+  box-shadow: var(--shadow-glass);
+}
+
+@utility glass-strong {
+  background: var(--glass-strong);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(40px) saturate(180%);
+  box-shadow: var(--shadow-glass);
+}
+
+/* Apple-style display type */
+@utility display {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.045em;
+  line-height: 1.02;
+}
+
+@utility eyebrow {
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--solar);
+}
+
+@utility text-solar-gradient {
+  background: var(--gradient-solar);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+@utility text-silver-gradient {
+  background: var(--gradient-silver);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+@utility glow-solar {
+  box-shadow: var(--shadow-solar);
+}
+
+@utility bg-solar-gradient {
+  background: var(--gradient-solar);
+}
+
+@utility mask-fade-x {
+  mask-image: linear-gradient(90deg, transparent, black 12%, black 88%, transparent);
+}
+
+@utility mask-fade-b {
+  mask-image: linear-gradient(180deg, black 60%, transparent);
+}
+
+/* Motion */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotate(var(--r, 0deg));
+  }
+  50% {
+    transform: translate3d(var(--dx, 10px), var(--dy, -14px), 0) rotate(var(--r, 0deg));
+  }
+}
+
+@keyframes caret {
+  50% {
+    opacity: 0;
+  }
+}
+
+@keyframes breathe {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.85;
+  }
+  50% {
+    transform: scale(1.04);
+    opacity: 1;
+  }
+}
+
+@utility animate-rise {
+  animation: rise 1s cubic-bezier(0.2, 0.7, 0.1, 1) both;
+}
+@utility animate-marquee {
+  animation: marquee 40s linear infinite;
+}
+@utility animate-drift {
+  animation: drift 9s ease-in-out infinite;
+}
+@utility animate-caret {
+  animation: caret 1s steps(1) infinite;
+}
+@utility animate-breathe {
+  animation: breathe 7s ease-in-out infinite;
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(32px);
+  filter: blur(8px);
+  transition:
+    opacity 1.1s cubic-bezier(0.2, 0.7, 0.1, 1),
+    transform 1.1s cubic-bezier(0.2, 0.7, 0.1, 1),
+    filter 1.1s cubic-bezier(0.2, 0.7, 0.1, 1);
+}
+.reveal.is-visible {
+  opacity: 1;
+  transform: none;
+  filter: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+    filter: none;
+    transition: none;
+  }
+  .animate-marquee,
+  .animate-drift,
+  .animate-breathe {
+    animation: none;
+  }
+}
+
+/* Ambient light field behind glass, so blur has something to refract */
+@utility bg-aurora {
+  background:
+    radial-gradient(
+      60% 40% at 50% -10%,
+      color-mix(in oklab, var(--solar) 14%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      40% 30% at 100% 40%,
+      color-mix(in oklab, var(--ember) 8%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      40% 30% at 0% 75%,
+      color-mix(in oklab, var(--solar-soft) 6%, transparent),
+      transparent 70%
+    ),
+    var(--background);
+}
+
+@utility grid-lines {
+  background-image:
+    linear-gradient(var(--glass-border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--glass-border) 1px, transparent 1px);
+  background-size: 64px 64px;
+  mask-image: radial-gradient(ellipse at center, black 20%, transparent 70%);
+}
+
+@utility mask-radial {
+  mask-image: radial-gradient(closest-side, black 70%, transparent 100%);
+}

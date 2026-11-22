@@ -1,0 +1,176 @@
+Here is a comprehensive product specification prompt. It contains every functional detail, business rule, and content requirement extracted from your codebase, completely decoupled from the current visual design so you can hand it to any frontend generator or designer as a blank-slate brief.
+Product Specification: Helio Frontend
+1. Product Identity
+- Name: Helio
+- Tagline: Know who owns it, what breaks, who to page.
+- Core Value Proposition: Helio connects repos, on-call rotations, and decision records into one knowledge graph. Every answer about ownership, blast radius, and history shows the verifiable path behind it. Unlike RAG-based search that retrieves document chunks and guesses, Helio walks a structured graph and returns "no owner recorded" when there is no answer instead of hallucinating one.
+- Target Audience: Engineering teams, platform teams, SREs, and engineering managers who need defensible answers about service ownership, dependency impact, and architectural decisions.
+2. Data Sources & Integrations
+Helio ingests from four source categories into a single unified graph:
+1. GitHub – Managed connector. Syncs issues, PRs, code ownership, commit history.
+2. Slack – Managed connector. On-call rotation entries, incident channels.
+3. Linear / Notion / CSV – Import-based. Decision records, documentation, manual data.
+4. Webhook – Catch-all for any other system.
+Jira is not natively supported yet.
+3. Core User Interaction: Ask the Graph
+The primary interaction is a natural-language question input. No query language or schema knowledge required. Three canonical example questions define the product's capabilities:
+Question	What the Graph Returns
+"Who owns payments-gateway?"	Current owner (person + team/rotation), date ownership last changed, and the decision record that established it. Stale owners are flagged, not trusted.
+"What breaks if the ledger goes down?"	Full downstream dependency list with hop count. e.g., "8 services break across 3 hops: ledger, settlement, webhook first."
+"Where was the payments provider decided?"	The specific decision record (e.g., D-21), its date, what it supersedes (e.g., D-14), and any conflicting documentation that was overridden.
+Every answer includes provenance: the exact records, edges, and timestamps the answer was derived from. Answers display latency and record count (e.g., "412 ms · 4 records read").
+4. Page Structure & Required Pages
+4.1 Landing Page (/)
+Sections in order:
+1. Hero – Tagline, value prop copy, dual CTAs ("Start free" primary, "See pricing" secondary), inline question input with 3 example prompts, trust strip listing all 6 data sources. Facts line: "50 free questions/month · No card required · Cancel anytime."
+2. Answer Frame – Demonstrates provenance. Shows a rendered answer card for "Who owns payments-gateway?" with the full trail: Person → Service → Decision, each with edge labels (OWNED_BY, DEPENDS_ON, SUPERSEDES). Includes a note explaining why a high-commit contributor is NOT the current owner. Metrics bar: dependents count, hop distance, stale owner count.
+3. Scene / One Graph – Explains that every question is a path through the same graph. Three-step walkthrough matching the three canonical questions above. Visual legend: focused node, person, decision, service.
+4. How It Works – Three steps: (1) Connect trusted systems, (2) Ask in plain language, (3) Act on the trail with copyable provenance.
+5. Pricing – Inline pricing grid (see §5). Heading: "Start free. Upgrade when the graph earns it." Subtext: "Every paid plan starts with a 14-day trial. No card until you ask for one."
+6. Trust / Promises – Four commitments: (a) Your graph is yours – per-account isolation, no shared multi-tenant graph. (b) Payments never touch us – Razorpay handles cards/mandates, Helio stores only subscription status. (c) Cancel and keep – access runs to end of paid period, data stays readable. (d) We say no – if no owner exists, Helio says so instead of inventing one. Each links to relevant legal/policy page.
+7. FAQ – Six questions (see §6).
+8. Final CTA – "Stop guessing who owns it." Dual buttons: Start free, Compare plans.
+4.2 Pricing Page (/pricing)
+- Standalone page with full pricing grid + three guarantee cards below: 14-day trial, Cancel anytime, 7-day refund.
+- SEO description specifies INR pricing via Razorpay.
+4.3 Auth Page (/auth)
+- Accepts ?plan= query param to pre-select a plan during signup.
+- Supports sign-in and sign-up flows.
+4.4 Account Page (/account)
+- Authenticated users manage subscription, seats, API keys, usage analytics.
+- Cancellation available here. Access continues to end of paid period.
+4.5 Agent Page (/agent)
+- The "Ask the graph" interface. Accepts ?q= query param to pre-fill a question.
+- Displays answer with full provenance trail.
+4.6 Legal Pages
+- /terms – Terms of Service
+- /privacy – Privacy Policy
+- /refunds – Refunds & Cancellation Policy
+4.7 404 Page
+- Custom not-found page.
+5. Pricing Plans
+Plan	Price (USD)	Credits	Seats	Graphs	Key Features
+Free	$0	50 questions/mo	1	1	Provenance on every answer
+Starter	$15/mo ($150/yr)	1,000 questions/mo	3	1	GitHub issue & PR sync, 90-day staleness alerts, email support. 14-day trial.
+Professional	$49/mo ($490/yr)	5,000 questions/mo	10	Unlimited	API access & keys, priority inference, analytics & usage. 14-day trial. Highlighted as "Most chosen."
+Enterprise	Custom	Custom volume	Unlimited	Dedicated instance	SSO/RBAC, SLA-backed uptime. CTA: "Talk to us."
+Billing rules:
+- Currency displayed dynamically based on billing setup (USD default, INR via Razorpay for Indian accounts).
+- All paid plans have a 14-day trial. No card required until trial ends.
+- Monthly billing. Cancel anytime from account page.
+- Refund: full refund if cancelled within 7 days of first charge via email to support@helio.runs-on.dev. Later cancellations stop next renewal only.
+- Post-cancellation: account drops to Free tier. Data remains readable.
+6. FAQ Content
+1. How is this different from RAG? – RAG retrieves chunks and hopes. Helio walks a graph and returns the path, or says "no owner recorded."
+2. What does Helio connect to? – GitHub, Slack (managed); Linear, Notion, CSV (import); webhook (catch-all). Jira not native yet.
+3. Is my data isolated? – Yes. Per-account graph. No shared multi-tenant graph.
+4. What happens when I cancel? – Access until end of paid period, then Free tier. Data stays readable.
+5. Do you offer refunds? – Full refund within 7 days of first charge. Email support@helio.runs-on.dev.
+6. Can I self-host? – Enterprise plans include dedicated graph instance with SSO/RBAC and SLA.
+7. Navigation Structure
+- Primary nav links: Product (#product), How it works (#how), Pricing (/pricing), Ask the graph (/agent), FAQ (#faq)
+- Auth states: Unauthenticated shows "Sign in" + "Start free." Authenticated shows "Your account."
+- Mobile: Hamburger menu with all nav links + primary CTA.
+8. Footer
+- Three link columns: Product (Pricing, Ask the graph, How it works, FAQ), Account (Sign in, Your account), Legal (Terms, Privacy, Refunds).
+- Brand mark + one-liner: "One graph over repos, rotations and decisions. Every answer shows the path behind it."
+- Support email: support@helio.runs-on.dev
+- Copyright line + billing disclaimer.
+9. SEO & Metadata Requirements
+- Title pattern: "Helio: know who owns it, what breaks, who to page"
+- OG image: /og/helio-home.png (1200×630)
+- Favicon: SVG. Apple touch icon: PNG.
+- Sitemap: /sitemap.xml. Robots: /robots.txt.
+- Web manifest: /site.webmanifest.
+- JSON-LD: Organization + SoftwareApplication structured data on landing page. SoftwareApplication schema on pricing page.
+- Canonical URL: https://helio.runs-on.dev/
+- Meta robots: index, follow, max-image-preview:large
+- Theme color: dark
+10. Functional Constraints for Any Frontend Implementation
+- API proxy: Dev environment proxies /api and /ask to backend. Production expects same-origin API.
+- Lazy loading: Pricing, Auth, Account, and Agent pages must be code-split/lazy-loaded. Landing page should not pull in authenticated-route code.
+- Scroll management: Hash links (/#how, /#faq) must smooth-scroll to target section. Route changes scroll to top.
+- Reduced motion: All decorative animation must respect prefers-reduced-motion: reduce. Functional transitions (focus rings,epileptichurts
+Here is a complete, self-contained prompt you can paste into any AI frontend generator. It includes every product concept, pricing tier, page structure, and content detail from your codebase — with zero styling or design directives so the generator has full creative freedom.
+PROMPT:
+Build a complete frontend for Helio, a knowledge graph product for engineering organizations. Helio connects GitHub repos, on-call rotations, and decision records into one unified graph so every answer about ownership, blast radius, and history shows the verifiable path behind it.
+Core Product Concept
+Helio is not a search tool or RAG system. It walks a structured graph of owners, services, and decisions. When there is no recorded owner, Helio says "no owner recorded" instead of inventing one. Every answer includes provenance: who owns it, what depends on it, and which decision set it that way.
+Key differentiators:
+- Ownership from the graph, not the loudest name. Derived from recent commits, on-call entries, and decision records. Stale records are flagged, not trusted.
+- Blast radius with hop counts. Every downstream service is counted with its distance, so "what breaks" is a number you can put in an incident channel.
+- Decisions with dates. When a doc and a decision disagree, Helio follows the decision and tells you which one it ignored.
+- Provenance on every answer. Search returns documents. Helio returns a path.
+Example interaction:
+- Question: "Who owns payments-gateway?"
+- Answer: "Ravi Menon owns payments-gateway right now. If it goes down, eight services break across three hops. Ownership moved on 15 Apr 2026, decided in D-21."
+- Trail shown: Person (Ravi Menon, Platform rotation) → OWNED_BY → Service (payments-gateway, 8 dependents across 3 hops) → DEPENDS_ON → Decision (D-21, 15 Apr 2026, ownership moved from Priya Sharma) → SUPERSEDES → Decision (D-19)
+- Note displayed: "Priya Sharma still has the most commits on the migration, but she left on 15 Apr 2026 — so she is not the current answer."
+- Metadata: "412 ms · 4 records read"
+Data Sources
+GitHub and Slack ship as managed connectors. Linear, Notion, and CSV are imports. A webhook covers everything else. Jira is not native yet.
+Pages Required
+1. Landing Page
+Sections in order:
+- Hero: Tagline "Know who owns it. Know what breaks. Know who to page." Subtext explaining Helio connects repos, on-call rotations and decision records into one graph. Two CTAs: "Start free" and "See pricing". Facts strip: "50 free questions / month", "No card required", "Cancel anytime". An interactive question input with example questions: "Who owns payments-gateway?", "What breaks if the ledger goes down?", "Where was the payments provider decided?". Sources strip showing: GitHub, Slack, Linear, Notion, CSV, Webhook.
+- Answer Frame: Shows a mock answer card demonstrating provenance. Metrics: 8 dependents, 3 hops away, 1 stale owner. Three explanation points: (1) The owner, not the loudest name, (2) Blast radius with the hops, (3) Decisions with dates. Includes the full example answer trail described above.
+- Scene / One Graph: Explains that every question is a path through the same graph. Three scroll-driven steps: Step 1 "Who owns payments-gateway?" → "Ravi Menon, Platform rotation. Ownership moved on 15 Apr 2026, decided in D-21." Step 2 "What breaks if it goes down?" → "Eight services break across three hops: ledger, settlement and webhook first." Step 3 "Where was that decided?" → "D-19 on 6 May 2026 supersedes D-14. The evaluation doc still says Stripe-only." Legend: focused (accent), person (white), decision (peach), service (gray).
+- How It Works: Three steps: (01) Connect the systems you already trust, (02) Ask in plain language, (03) Act on the trail.
+- Pricing (inline section): Heading "Start free. Upgrade when the graph earns it." Subtext "Every paid plan starts with a 14-day trial. No card until you ask for one." Full pricing grid (see Pricing section below).
+- Trust / Promises: Four cards: (1) "Your graph is yours" — every account gets its own graph, no shared multi-tenant graph. Links to Privacy policy. (2) "Payments never touch us" — Razorpay handles the card and mandate, Helio stores subscription status only. Links to Terms. (3) "Cancel and keep" — cancel anytime, access runs to end of paid period, data stays readable. Links to Refunds. (4) "We say no" — if the graph has no owner recorded, Helio says so instead of inventing one. Links to Ask the graph.
+- FAQ: Six questions: How is this different from RAG? What does Helio connect to? Is my data isolated from other customers? What happens when I cancel? Do you offer refunds? Can I self-host? (Answers provided in FAQ section below.)
+- CTA: "Stop guessing who owns it." Subtext "Connect a source, ask one question, and see the path. No card, no sales call." Two buttons: "Start free" and "Compare plans".
+2. Pricing Page
+Heading: "One graph. Four ways to pay for it." Subtext explains INR billing via Razorpay, 14-day trials, cancel anytime. Full pricing grid plus three reassurance cards: "14-day trial — No card until you ask for one", "Cancel anytime — Access until the end of the paid period", "7-day refund — Email support within a week of your first charge".
+3. Auth Page
+Sign in / sign up flow. Accepts ?plan= query parameter to pre-select a plan after signup.
+4. Account Page
+Authenticated user dashboard. Manage subscription, view usage, cancel.
+5. Agent Page
+The "Ask the graph" interface. Accepts ?q= query parameter to pre-fill a question. Displays answers with full provenance trails.
+6. Legal Pages
+- Terms of Service
+- Privacy Policy
+- Refunds & Cancellation Policy
+7. 404 Page
+Pricing Tiers
+All prices in USD. Billed monthly. Cancel anytime.
+ 	Free	Starter	Professional
+Price	$0	$15/mo	$49/mo
+Questions	50/month	1,000/month	5,000/month
+Seats	1	3	10
+Graphs	1	1	Unlimited
+API access	No	No	Yes
+GitHub sync	No	Yes	Yes
+Trial	—	14 days	14 days
+Features	50 questions/month, 1 knowledge graph, 1 seat, Provenance on every answer	1,000 questions/month, 3 seats, GitHub issue & PR sync, 90-day staleness alerts, Email support	5,000 questions/month, Unlimited graphs, 10 seats, API access & keys, Priority inference, Analytics & usage
+CTA	Start free	Start Starter	Start Professional
+Highlighted	No	No	Yes ("Most chosen")
+Taglines:
+- Free: "Evaluate the graph on a real company brain."
+- Starter: "For one engineering team that needs answers it can defend."
+- Professional: "For platform teams running many services and decisions."
+- Enterprise: "A dedicated graph, SSO and an SLA."
+FAQ Answers
+1. How is this different from RAG? RAG retrieves chunks and hopes the answer is in them. Helio walks a graph of owners, services and decisions, so it returns the path — and says "no owner recorded" when there is none instead of inventing one.
+2. What does Helio connect to? GitHub and Slack ship as managed connectors; Linear, Notion and CSV are imports; a webhook covers everything else. Jira is not native yet.
+3. Is my data isolated from other customers? Yes. Every account gets its own graph. There is no shared multi-tenant graph, so one workspace can never read another workspace's records.
+4. What happens when I cancel? Your subscription keeps access until the end of the paid period, then the account drops to Free: 50 questions a month, one graph, one seat. Your data stays readable.
+5. Do you offer refunds? If you cancel within 7 days of your first charge, email support@helio.runs-on.dev and we refund in full. Later cancellations stop the next renewal.
+6. Can I self-host? Enterprise plans run a dedicated graph instance with SSO/RBAC and an SLA. Talk to us from the pricing page.
+Navigation
+Links: Product, How it works, Pricing, Ask the graph, FAQ. Auth-aware: show "Sign in" / "Start free" when logged out, "Your account" when logged in.
+Footer
+Three columns: Product (Pricing, Ask the graph, How it works, FAQ), Account (Sign in, Your account), Legal (Terms, Privacy, Refunds). Contact: support@helio.runs-on.dev. Copyright line. Billing note: "Prices in INR, billed monthly. Cancel anytime from your account."
+SEO Metadata
+- Title: "Helio — know who owns it, what breaks, who to page"
+- Description: "Helio turns repos, on-call rotations and decision records into one knowledge graph, so every answer about ownership, blast radius and history shows the path behind it."
+- Canonical: https://helio.runs-on.dev/
+- OG image: https://helio.runs-on.dev/og/helio-home.png (1200×630)
+Technical Requirements
+- React + TypeScript + Vite
+- Client-side routing with lazy-loaded pages (Pricing, Auth, Account, Agent)
+- Scroll-to-hash support for anchor links
+- Responsive (mobile hamburger menu)
+- Accessible (semantic HTML, focus management, keyboard navigation)
+- No design system specified — you have full creative freedom on visual design, layout, typography, color, animation, and component styling

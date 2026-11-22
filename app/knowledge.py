@@ -11,7 +11,7 @@ from app import object_storage, pipeline, store
 
 UPLOAD_DIR = Path(os.getenv("HELIO_UPLOAD_DIR", "data/uploads"))
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
-ALLOWED_EXT = {".pdf", ".txt", ".md", ".csv"}
+ALLOWED_EXT = {".pdf", ".txt", ".md", ".csv", ".docx"}
 MAX_BYTES = 20 * 1024 * 1024  # 20MB
 
 
@@ -88,6 +88,8 @@ def ingest(account_id: str, filename: str, raw: bytes) -> dict[str, Any]:
         text = raw.decode("utf-8", errors="ignore")
     elif ext == ".csv":
         text = _extract_csv(raw)
+    elif ext == ".docx":
+        text = _extract_docx(raw)
     else:
         text = ""
 

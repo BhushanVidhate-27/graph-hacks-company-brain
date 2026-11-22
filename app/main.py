@@ -321,6 +321,47 @@ def _to_payload(case: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _retrieval_only_answer(question: str, account_id: str) -> dict[str, Any] | None:
+    """Answer from indexed workspace content when no LLM synthesis is available.
+
+    ``USE_MOCK=1`` keeps the public demo fixture, but a signed-in workspace that
+    has uploaded documents should see its own evidence instead of the fixture.
+    This is deliberately extractive: it quotes retrieved chunks and their
+    citations, so nothing is asserted that retrieval did not return.
+
+    Returns ``None`` when the workspace has no matching chunks, which lets the
+    caller fall back to the shared demo.
+    """
+    from app import graph as graph_service
+
+    try:
+        result = graph_service.search_content(question, limit=6)
+    except Exception:  # noqa: BLE001 - demo fallback is safer than a failed ask
+        return None
+
+    rows = result.get("rows") or []
+    if not rows:
+        return None
+
+    lines = ["Here is what the indexed sources in this workspace say:"]
+    for index, row in enumerate(rows[:4], 1):
+        text = " ".join(str(row.get("text") or "").split())
+        snippet = text[:700] + ("…" if len(text) > 700 else "")
+        document = row.get("document_id") or "unknown document"
+        chunk = (row.get("citation") or {}).get("chunk_index")
+        source = f"{document}" + (f", chunk {chunk}" if chunk is not None else "")
+        lines.append(f"{index}. {snippet}\n   [source: {source}]")
+    lines.append(
+        "These are direct extracts from indexed sources; no model synthesis was applied."
+    )
+
+    return {
+        "answer": "\n\n".join(lines),
+        "trail": result.get("trail") or [],
+        "stale": [],
+    }
+
+
 def answer_question(question: str) -> dict[str, Any]:
     """THE seam.  Mocks in, real graph out — one branch, one line to delete.
 
@@ -497,7 +538,11 @@ def stream_answer(
             pass
 
     try:
-        result = answer_question(question)
+        result = None
+        if account_id and USE_MOCK:
+            result = _retrieval_only_answer(question, account_id)
+        if result is None:
+            result = answer_question(question)
     except Exception as exc:  # noqa: BLE001 - the failure must reach the client
         # Log the whole traceback for whoever is on the deploy, and send a
         # well-formed frame so the UI can say something instead of hanging.

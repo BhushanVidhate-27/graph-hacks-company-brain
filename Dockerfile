@@ -5,18 +5,20 @@
 # proxy between the browser and the SSE stream.
 
 # --------------------------------------------------------------------------- #
-# Stage 1: build the Helio frontend (frontend).
+# Stage 1: build the Helio frontend (TanStack Start in `final front saas`).
 # --------------------------------------------------------------------------- #
-FROM node:22-slim AS site
+FROM oven/bun:1.4-slim AS site
 
 WORKDIR /site
 
-# Lockfile first so source edits do not re-run npm ci.
-COPY frontend/package.json frontend/package-lock.json ./
-RUN npm ci --no-audit --no-fund
+# Lockfile first so source edits do not re-run the install layer.
+COPY ["final front saas/package.json", "final front saas/bun.lock", "./"]
+RUN bun install --frozen-lockfile
 
-COPY frontend/ ./
-RUN npm run build
+COPY ["final front saas/", "./"]
+# SPA mode emits `_shell.html` and hashed client assets. FastAPI serves them on
+# the same origin as the API, so the browser never crosses an origin boundary.
+RUN bun run build
 
 # --------------------------------------------------------------------------- #
 # Stage 2: the runtime image.
@@ -40,8 +42,8 @@ COPY data/ ./data/
 # with "can't open file '/srv/scripts/generate.py'".
 COPY scripts/ ./scripts/
 
-# The exported site (Vite dist), mounted at / by app.serve.
-COPY --from=site /site/dist ./site/
+# The exported site (TanStack Start SPA build), mounted at / by app.serve.
+COPY --from=site /site/.output/public ./site/
 
 EXPOSE 8080
 

@@ -603,6 +603,30 @@ TOOLS: list[dict[str, Any]] = [
             "required": ["keyword"],
         },
     },
+    {
+        "name": "search_content",
+        "description": (
+            "Search the text of uploaded/imported documents in the current "
+            "workspace (hybrid lexical + vector retrieval over canonical chunks). "
+            "Use this to answer questions about file contents the user uploaded. "
+            "Returns chunk text snippets with document/chunk citations. If it "
+            "returns no rows, say the content was not found in uploaded documents."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "question": {
+                    "type": "string",
+                    "description": "The question or keywords to search for in document content.",
+                },
+                "limit": {
+                    "type": "integer",
+                    "description": "Max chunks to return (default 8).",
+                },
+            },
+            "required": ["question"],
+        },
+    },
 ]
 
 

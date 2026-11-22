@@ -813,6 +813,51 @@ def sla_of(service: str) -> dict[str, Any]:
             "trail": [], "count": len(rows)}
 
 
+def search_content(question: str, limit: int = 8) -> dict[str, Any]:
+    """Search uploaded/canonical document chunks for the current workspace.
+
+    Use this to answer questions grounded in uploaded files and imported content,
+    not just the demo company graph. Returns chunk text with source citations.
+    """
+    account_id = get_current_account()
+    if not account_id:
+        return {"rows": [], "trail": [], "count": 0, "error": "no tenant context set"}
+    try:
+        from app import retrieval  # lazy to avoid import cycles
+        result = retrieval.hybrid_search(account_id, question, limit=limit)
+    except Exception as exc:  # noqa: BLE001 - surfaced to agent as empty/error payload
+        return {"rows": [], "trail": [], "count": 0, "error": f"{type(exc).__name__}: {exc}"}
+
+    rows, trail = [], []
+    for item in result.get("results", []):
+        text = (item.get("text") or "").strip()
+        doc = item.get("document_id") or ""
+        chunk_id = item.get("chunk_id") or ""
+        snippet = text[:500] + ("…" if len(text) > 500 else "")
+        rows.append({
+            "chunk_id": chunk_id,
+            "document_id": doc,
+            "score": item.get("score"),
+            "text": snippet,
+            "citation": item.get("citation") or {},
+            "detail": f"chunk {item.get('chunk_index')} of {doc}",
+        })
+        trail.append({
+            "type": "Document",
+            "name": doc or chunk_id,
+            "detail": snippet[:120],
+            "date": "",
+            "via_edge": "EVIDENCED_BY",
+        })
+    return {
+        "question": question,
+        "rows": rows,
+        "trail": _trail(trail),
+        "count": len(rows),
+        "workspace_id": result.get("workspace_id"),
+    }
+
+
 def current_team(person: str) -> dict[str, Any]:
     """Current team. Empty when MEMBER_OF.valid_to is set — the person left (fact 19)."""
     g = _graph()
@@ -1328,4 +1373,6 @@ TOOLS = {
     "team_members": team_members,
     "search_messages": search_messages,
     "find_documents": find_documents,
+    # Canonical uploaded/imported content search (workspace-scoped).
+    "search_content": search_content,
 }

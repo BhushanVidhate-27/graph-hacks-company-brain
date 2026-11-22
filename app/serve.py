@@ -16,9 +16,11 @@ Why same-origin matters, twice:
     the SSE response. A proxy that buffers turns a working local stream into a
     dead production one.
 
-`site/` is the Vite build of frontend, produced by the `site` stage of the
-Dockerfile. It is plain HTML/CSS/JS with no Node runtime behind it, so this
-process is still the only thing that has to stay alive.
+`site/` is the TanStack Start build of `final front saas`, produced by the `site`
+stage of the Dockerfile. The app is built in SPA mode: the build emits
+`_shell.html` plus hashed client assets, and every route renders in the browser.
+There is no Node runtime behind it, so this process is still the only thing that
+has to stay alive.
 
 The StaticFiles mount is registered LAST so it cannot shadow the API routes:
 Starlette matches routes in registration order, and /ask and /health are already
@@ -36,56 +38,40 @@ from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.gzip import GZipMiddleware
 
-# Overridable so a local `npm run build` in frontend can be served without
-# rebuilding the image.
+# Overridable so a local `bun run build` in `final front saas` can be served
+# without rebuilding the image.
 SITE_DIR = Path(os.getenv("HELIO_SITE_DIR", "site"))
 
 
 class SiteFiles(StaticFiles):
     """
-    StaticFiles that understands a Next.js static export's layout.
+    StaticFiles with a single-page-app fallback.
 
-    `next build` with output: "export" writes each route as BOTH `<route>.html`
-    and a `<route>/` directory of client-navigation segment files. For /demo that
-    means `demo.html` next to `demo/__next.demo.__PAGE__.txt`.
+    A real file always wins, so /assets/*, /favicon.png and /helio-logo.png keep
+    their immutable caching and correct content types. Anything else that looks
+    like a client route (no file extension in the last segment) gets
+    `_shell.html`; TanStack Router then matches the path in the browser.
 
-    Plain StaticFiles(html=True) cannot serve that. Asked for /demo it stats the
-    path, finds the `demo` DIRECTORY, looks for `demo/index.html`, does not find
-    it, and 404s — even though demo.html is sitting right there. The symptom is a
-    styled landing page whose own nav link to /demo is a dead end.
-
-    get_response is overridden rather than the route table because the set of
-    exported routes is decided at build time. Listing them here would mean every
-    new page needs a matching line in the backend, and a forgotten line fails
-    silently as a 404 rather than as a build error.
-
-    Two rules, in order:
-      1. If the path does not resolve to a file, try `<path>.html`. This is what
-         rescues /demo.
-      2. Otherwise defer to StaticFiles, which already serves 404.html with a 404
-         status when html=True.
-
-    Only the fallback is added. Everything that already worked — /, /favicon.ico,
-    /_next/*, /images/*, /demo/*.txt — is served by the original lookup, so this
-    cannot change the behaviour of an existing URL.
+    Requests that look like files (`/assets/missing.js`, `/favicon.ico`) still
+    404 instead of returning HTML, so a missing asset never masks itself as a
+    working page.
     """
 
     async def get_response(self, path: str, scope):
         _, stat_result = await anyio.to_thread.run_sync(self.lookup_path, path)
 
-        # Rule 1: not a regular file on disk. Try the sibling `<path>.html`.
-        # This is how /pricing is served from pricing.html without a redirect.
-        if not (stat_result and stat.S_ISREG(stat_result.st_mode)):
-            html_full, html_stat = await anyio.to_thread.run_sync(
-                self.lookup_path, f"{path}.html"
-            )
-            if html_stat and stat.S_ISREG(html_stat.st_mode):
-                return self.file_response(html_full, html_stat, scope)
+        if stat_result and stat.S_ISREG(stat_result.st_mode):
+            return await super().get_response(path, scope)
 
-        # Rule 2: hand back to StaticFiles. With html=True it serves 404.html
-        # with a real 404 status. There is deliberately no SPA fallback to
-        # index.html: that turned every typo into a 200 and let crawlers index
-        # an infinite set of empty URLs.
+        last_segment = path.rsplit("/", 1)[-1]
+        is_client_route = last_segment in ("", ".") or "." not in last_segment
+        if is_client_route:
+            shell_full, shell_stat = await anyio.to_thread.run_sync(
+                self.lookup_path, "_shell.html"
+            )
+            if shell_stat and stat.S_ISREG(shell_stat.st_mode):
+                return self.file_response(shell_full, shell_stat, scope)
+
         return await super().get_response(path, scope)
 
 
@@ -102,9 +88,12 @@ CSP = (
     "frame-ancestors 'none'; "
     "form-action 'self' mailto:; "
     "img-src 'self' data:; "
-    "font-src 'self'; "
-    "style-src 'self' 'unsafe-inline'; "
-    "script-src 'self'; "
+    "font-src 'self' https://fonts.gstatic.com; "
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+    # TanStack Start's SPA shell embeds its hydration bootstrap inline. There is
+    # no user-controlled data in that script, and every other source stays
+    # restricted to this origin.
+    "script-src 'self' 'unsafe-inline'; "
     "connect-src 'self'"
 )
 

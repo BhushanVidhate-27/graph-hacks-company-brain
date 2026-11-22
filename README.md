@@ -1,415 +1,238 @@
-# Helio — a company brain
+# Helio Terminal Client
 
-**Track 03: Company Brain · Graph Hacks**
+A command-line interface for interacting with the Helio company brain system.
 
-Ask *"who knows about the payments service, what breaks if it goes down, and where
-was that decided?"* — and get one answer with the path that produced it, including
-the parts that are stale and the parts that do not exist.
+## Overview
 
-Existing enterprise search answers *"where is the doc about X."* We answer **who
-knows about X, what breaks if it goes down, where was that decided, and how current
-is that answer** — in one traversal, with the path shown. Text search is used only at
-the leaves.
+The Helio Terminal Client provides a CLI interface for:
 
-The company is **Helio**: a synthetic 120-person fintech, 5 teams, 20 services,
-mid-migration between payment providers. All data is synthetic.
+- Creating accounts and workspaces
+- Uploading documents (PDF, DOCX, TXT, CSV)
+- Querying the company brain with real graph traversals
+- Managing sessions and API keys
+- Interactive terminal mode for step-by-step operations
 
-**Live:** <https://helio.runs-on.dev> · **Video:** see submission
+## Features
 
----
+- **Account Management**: Create accounts, login, logout
+- **Document Upload**: Upload documents to the knowledge base with automatic text extraction
+- **Query Interface**: Ask natural language questions about the company and get graph-based answers
+- **Document Management**: List, view, and manage uploaded documents
+- **Interactive Mode**: Guided, step-by-step interaction for new users
+- **Non-Interactive Mode**: Use via command-line arguments for automation
 
-## Why this is more than a chatbot
-
-An LLM asked *"is this answer correct?"* is **circular**. A hallucinated ownership
-chain looks exactly like a correct one, because both are plausible prose over
-structurally valid edges.
-
-So Helio answers from the graph itself: every ownership, dependency and provenance
-claim is a Cypher result, and a missing edge returns an explicit negative instead
-of invented prose.
-
-```
-generate.py → load.py → graph.py (Cypher) → verify.py
-                                              │
-                                    ┌─────────┘
-                                    ▼
-                          agent.py + main.py → frontend/
-```
-
----
-
-## What it actually does
-
-| Traversal | Question | The interesting part |
-|---|---|---|
-| **Blast radius** | What breaks if this service dies, and who gets paged? | Walks `HAS_DEPENDENT`, reports hop depth, owning team, on-call person |
-| **Expertise** | Who knows this best? | Returns **volume and recency separately** — never a single rank |
-| **Provenance** | Where was this decided, and is it still current? | Traverses `SUPERSEDES` so superseded decisions show *as* superseded |
-| **Staleness** | What has not been re-verified in 90 days? | Freshness as edge properties, not a separate system |
-
-### Three answers worth reading
-
-**The trap.** Priya Sharma has the most commits on `payments-gateway` — 14. Her last
-touch was 2026-04-15, the day she left the company. A single `ORDER BY count DESC`
-returns her and is *technically correct on volume while being the wrong answer*.
-Ours returns both signals:
-
-> The Platform team owns payments. **Ravi Menon** has worked on it most recently
-> (2026-09-28). **Priya Sharma** has the most commits (14), but her last touch was
-> 2026-04-15 and is flagged as stale. Ask **Ravi Menon**.
-
-**The contradiction.** A March document and a March Slack thread both say *"single
-provider, Stripe."* Decision **D-19** (2026-05-06) says *"dual provider, Adyen
-primary, Stripe fallback."* The document is stale, and the graph can prove it.
-
-**The failure.** *"Who owns `config-service`?"* → **"The graph contains no
-`OWNED_BY` edge. No team owns it."** Confident, not an apology — because that is the
-truth, not a gap.
-
-That last one is the point. Five of the twenty questions have **no answer in the
-graph**, and an agent that invents one has failed even if the sentence reads
-perfectly.
-
----
-
-## Quick start
+## Installation
 
 ```bash
-cp .env.example .env      # add ANTHROPIC_API_KEY
-docker compose -f deploy/docker-compose.yml up --build
-open http://localhost:8080
-```
-
-That is the whole setup. The `seed` service generates the CSVs and loads them into
-FalkorDB, then the API waits for it to finish — so you never hit a live server
-pointing at an empty graph.
-
-- **FalkorDB Browser** (visual explorer): <http://localhost:3000>
-
-> **Port 3000 collides.** FalkorDB's Browser wants it. If a standalone FalkorDB is
-> already running, compose fails with `Bind for 0.0.0.0:3000 failed: port is already
-> allocated` — that is a port clash, not a broken compose file. Stop the other
-> container first.
-
-### Without Docker
-
-```bash
-python3 -m venv .venv && source .venv/bin/activate
+# Ensure you have Python 3.7+ installed
+cd /path/to/helio
 pip install -r requirements.txt
-docker run -d --name falkordb -p 6379:6379 -p 3000:3000 falkordb/falkordb:latest
-python scripts/generate.py     # writes data/*.csv, self-checks 25 facts
-python scripts/load.py         # loads and asserts counts
-uvicorn app.serve:app --port 8080
 ```
 
-### Configuration
+## Quick Start
 
-| Variable | Default | Notes |
-|---|---|---|
-| `ANTHROPIC_API_KEY` | — | required for `/ask` |
-| `ANTHROPIC_BASE_URL` | — | set to `https://openrouter.ai/api` to use OpenRouter |
-| `ANTHROPIC_MODEL` | `claude-sonnet-4-5` | must match your provider's slug |
-| `ANTHROPIC_MAX_TOKENS` | `1024` | lower it on a thin API budget — see below |
-| `USE_MOCK` | `1` | **set to `0` for real data.** `1` answers from a JSON fixture and never touches the graph |
-| `FALKORDB_HOST` / `_PORT` | `localhost` / `6379` | |
-| `FALKORDB_SSL` | `false` | Cloud is plaintext on its instance port despite implying TLS |
-| `FALKORDB_GRAPH` | `helio` | |
-
-> **The `USE_MOCK` trap.** It defaults to `1`. Leave it and the app looks perfect,
-> streams beautifully, answers every question, and never once reads the graph —
-> because it is reading Ujwal's fixture. `GET /health` returns `{"mock": true|false}`
-> and that one field tells you which you are looking at.
-
-> **Token budget.** Some providers reject the entire request when `max_tokens`
-> exceeds the remaining balance, rather than truncating the answer. Lower
-> `ANTHROPIC_MAX_TOKENS` to fit.
-
----
-
-## Verification
-
-Two scripts, and the distinction between them matters.
+### Interactive Mode
 
 ```bash
-python scripts/verify.py         # 21 checks — the Cypher is correct
-python scripts/verify_agent.py   # 20 questions — the AGENT uses it correctly
+python scripts/terminal_client.py --interactive
 ```
 
-`verify.py` asks the graph directly. `verify_agent.py` sends the same 20 questions
-through the real `POST /ask` and checks the **answer text**, because a tool can
-return perfect rows and the agent can still misreport them, invent a node, or
-refuse. The agent is the thing being judged; the Cypher is only the mechanism.
+This will start an interactive session where you can:
+- Login or create an account
+- Upload documents
+- Query the company brain
+- List documents and more
 
-The generator self-checks **25 facts** against the CSVs it just wrote, and exits
-non-zero on any mismatch. It reads the files back **off disk** rather than trusting
-in-memory objects — which is how it caught three real bugs on its first run.
+### Non-Interactive Mode
 
----
+```bash
+# Create an account
+python scripts/terminal_client.py create-account \
+  --email user@example.com \
+  --name "User Name" \
+  --account-name "user-account" \
+  --password "secure_password"
 
-## Data model
+# Login
+python scripts/terminal_client.py login \
+  --email user@example.com \
+  --password "secure_password"
 
-Seven node types — `Person`, `Team`, `Project`, `Service`, `Decision`, `Document`,
-`Message` — and nothing else.
+# Upload a document
+python scripts/terminal_client.py upload \
+  --account "acct_xxx" \
+  --file document.pdf
 
-Full description: [`SCHEMA.md`](SCHEMA.md) · diagram: [`docs/schema.md`](docs/schema.md)
+# Query the company brain
+python scripts/terminal_client.py query \
+  --account "acct_xxx" \
+  --question "what does the payment gateway decision say about Adyen?"
 
-```
-(Person)-[:MEMBER_OF      { since, role, valid_to }]->(Team)
-(Person)-[:CONTRIBUTED_TO { role, commits, last_touch, last_verified_at }]->(Project)
-(Service)-[:OWNED_BY]->(Team)
-(Service)-[:DEPENDS_ON]->(Service)          (Service)-[:HAS_DEPENDENT]->(Service)
-(Project)-[:USES]->(Service)
-(Team)-[:HAS_ROTATION]->(:Person:Member)
-(:Person:Member)-[:ON_CALL { week_start, week_end }]->(Team)
-(Decision)-[:ABOUT]->(Project)              (Decision)-[:SUPERSEDES]->(Decision)
-(Decision)-[:EVIDENCED_BY]->(Document|Message)  (Document|Message)-[:AUTHORED_BY]->(Person)
-(Message)-[:MENTIONS]->(Person|Service|Project|Decision)
-```
-
-Two conventions carry weight:
-
-**`DEPENDS_ON` and `HAS_DEPENDENT` are both emitted from one DAG row.** Cypher cannot
-traverse an edge backwards. Skip the inverse and the blast-radius query returns `[]`
-— not an error, just nothing.
-
-**Freshness is edge properties, not a system.** `valid_to`, `last_touch`,
-`last_verified_at`, `SUPERSEDES`. A separate staleness model would be a second
-project.
-
-### The dependency DAG
-
-20 services, 22 edges, **verified acyclic**. `ledger-core` is the root that the
-financial services hang off; `auth-service`, `api-gateway` and `ledger-core`
-intentionally depend on nothing — the public tier is the edge, it is downstream of
-nothing. Blast radius of `payments-gateway` is 8 services across 3 hops.
-
----
-
-## The Cypher
-
-All of it lives in [`app/graph.py`](app/graph.py) and nowhere else.
-
-```cypher
-// 1. Blast radius — what breaks, how deep, who is paged.
-//    min(length(path)) is required: notifications depends on BOTH payments-gateway
-//    and dispute-service, so it is reachable at depth 1 AND 2. Without min() it is
-//    returned twice and the count reads 9 instead of 8.
-MATCH path = (s:Service {name: $service})-[:HAS_DEPENDENT*1..4]->(dep:Service)
-WITH dep, min(length(path)) AS depth
-OPTIONAL MATCH (dep)-[:OWNED_BY]->(t:Team)
-OPTIONAL MATCH (t)-[:HAS_ROTATION]->(m:Person:Member)-[oc:ON_CALL]->(t)
-RETURN dep.name AS dep, depth, t.name AS owner_team, m.name AS on_call
-ORDER BY depth, dep
+# List documents
+python scripts/terminal_client.py list-docs \
+  --account "acct_xxx"
 ```
 
-```cypher
-// 2. Expertise — volume AND recency, never fused into one rank.
-//    A single ORDER BY count DESC returns the top contributor, which on this data
-//    is someone who left the company two months before the demo.
-MATCH (p:Person)-[c:CONTRIBUTED_TO]->(proj:Project)-[:USES]->(s:Service {name: $service})
-RETURN p.name AS person, sum(c.commits) AS commits, max(c.last_touch) AS latest
-ORDER BY commits DESC
+## Usage Examples
+
+### Create Account
+
+```bash
+python scripts/terminal_client.py \
+  create-account \
+  --email john.doe@company.com \
+  --name "John Doe" \
+  --account-name "john-account" \
+  --password "J0hnP@ssw0rd"
 ```
 
-```cypher
-// 3. Provenance — where it was decided, and whether it still stands.
-//    Evidence is aggregated, not fanned out, or one decision returns a row per
-//    evidence node and the count is wrong.
-MATCH (d:Decision)-[:ABOUT]->(p:Project {name: $project})
-OPTIONAL MATCH (d)-[:SUPERSEDES]->(prev:Decision)
-OPTIONAL MATCH (d)-[:EVIDENCED_BY]->(ev)
-WITH d, prev, collect(DISTINCT ev.name) AS evidence
-RETURN d.id, d.summary, d.date, d.status, evidence, prev.id, prev.summary
+### Login
+
+```bash
+python scripts/terminal_client.py \
+  login \
+  --email john.doe@company.com \
+  --password "J0hnP@ssw0rd"
 ```
 
-```cypher
-// 4. Staleness — anything not re-verified in 90 days.
-MATCH ()-[r]->()
-WHERE r.last_verified_at IS NOT NULL
-  AND r.last_verified_at < date() - duration({days: 90})
-RETURN type(r) AS edge, r.last_verified_at
+### Upload Document
+
+```bash
+python scripts/terminal_client.py \
+  upload \
+  --account "acct_xxx" \
+  --file "decision.pdf"
 ```
 
-**FalkorDB is a subset of OpenCypher.** No Neo4j-only syntax. No undirected
-`shortestPath`. No `db.idx.fulltext.*`. `g.query(...).result_set` — the result is not
-iterable.
+### Query Company Brain
 
----
-
-## Known limitations
-
-**ACL / permission enforcement is out of scope.** This is the real one. Glean's moat
-is that answers respect access control; production needs an authz layer over every
-traversal. Named rather than faked.
-
-**Free-tier hosting sleeps.** Render's free tier spins down after 15 minutes idle;
-a cold start takes about 22 seconds. The first request after a gap is slow.
-**Fix — keep-alive pinger.** The project includes `scripts/ping-render.sh`, which pings `/health` every 5 minutes to keep the free Render tier awake. The `Dockerfile` starts this background process automatically, so the deployment stays up. You can also run it manually with `bash scripts/ping-render.sh` — see the script header for configuration options.
-
-**Single-writer assumptions.** The generator is seeded and deterministic — three
-consecutive runs are byte-identical — which is what makes the ground-truth
-verification honest. It is not designed for concurrent writers.
-
-**REA's frame grouping is shallow-unaware.** `rea/` groups SSE frames by full
-nested shape, so the same event sent with different payload sizes can surface as
-several frame types. Documented in `docs/rea.md` rather than silently wrong.
-
-**Entity resolution is lexical.** `resolve_service()` maps *"the payments service"* →
-`payments-gateway` by stripping generic suffixes and matching tokens. It returns the
-original string when nothing matches confidently, so unknown services still produce
-honest negatives. It will not resolve *"the thing that handles money"* to
-`payments-gateway`.
-
----
-
-## Project layout
-
-| Path | Owner | What |
-|---|---|---|
-| `GROUND_TRUTH.md` | Bhushan | the 20 hand-written facts |
-| `SCHEMA.md` · `docs/schema.md` | Bhushan · Ujwal | graph model, diagram |
-| `scripts/generate.py` | Bhushan | seeded generator, self-checks 25 facts |
-| `scripts/load.py` | Bhushan | CSV → FalkorDB, asserts counts |
-| `scripts/verify.py` · `verify_agent.py` | Bhushan | 21 Cypher checks · 20 agent checks |
-| `app/graph.py` | Bhushan | **the only Cypher in the repo** |
-| `app/agent.py` · `app/main.py` | Soham | tool-use loop, SSE |
-| `app/serve.py` | Bhushan | single-origin production entrypoint |
-| `web/` · `mock/` | Ujwal | frontend, shared fixture |
-| `deploy/` | Bhushan | compose |
-| `rea/` · `docs/rea.md` | Bhushan | reverse-engineer any target into a frontend-ready contract |
-
----
-
-## AI use disclosure
-
-**Rule 11.**
-
-AI was used throughout development, and we are explicit about how:
-
-- **The data is entirely synthetic**, generated by `scripts/generate.py` from a fixed
-  seed. No real company, person, message or document is represented. Rule 6.
-- **The ground truth was written by hand**, not generated or validated by an LLM.
-  This was deliberate: asking a model "is this answer correct?" is circular, and it
-  is the only reason the verification below means anything.
-- **AI assistants wrote and reviewed code** across all three of us — scaffolding,
-  refactors, test generation, and review. Every commit is attributed to the human who
-  made it, and every change is visible in the git history.
-- **The agent itself calls an LLM at runtime.** That is the product. It is called only
-  through `app/agent.py`, with a fixed system prompt, and constrained to the
-  traversal tools in `app/graph.py`. It has no direct database access and no ability
-  to write.
-- **No third-party model was used to generate, label or validate the ground truth.**
-
-We can all explain the schema, the queries, the architecture and the trade-offs.
-
----
-
-## Validation & Test Coverage
-
-- **Data-Driven Test Suite**: `tests/test_generated_1000.py` contains 1000+ auto-generated cases covering alias resolution, every graph tool, invariants, vocabularies, hostile inputs, unknown services, all 20 hand-written facts, and the `/ask` SSE + validation + CORS + failure-frame contract. It runs against the real FalkorDB graph (no API key required for the structural/API cases).
-- **Bug-catching discipline**: the suite caught a real bug (`on_call` reading the date from the wrong property) and, after a one-line fix, passes **1001/1001 (100.00%)** in ~27s. The existing suite (`tests/`) continues to pass.
-- **Deterministic ground truth**: Scored against hand-written facts in [`GROUND_TRUTH.md`](GROUND_TRUTH.md), not against an LLM. Direct graph verification via [`scripts/verify.py`](scripts/verify.py); end-to-end agent verification via [`scripts/verify_agent.py`](scripts/verify_agent.py).
-
----
-
-## Credits
-
-Built by **Bhushan**, **Soham** and **Ujwal**.
-
----
-
-
-## SaaS layer
-
-The reasoning engine is the product; the SaaS layer is the commercial surface around it. It is implemented, not mocked:
-
-- **Accounts and sessions** — email/password signup creates an account, an owner user, a free subscription and an HttpOnly session cookie. Passwords are hashed with stdlib `scrypt`; only session-token hashes are stored.
-- **Plans and quotas** — Free (50 questions/month), Starter ($15/mo, 1,000), Professional ($49/mo, 5,000), Enterprise (custom). The catalog lives in `app/plans.py` and is served from `GET /api/plans`, so the marketing page and the quota check cannot drift.
-- **Metering** — signed-in questions are counted per calendar month in SQLite and checked *before* the SSE stream starts. A failed answer is not charged. Anonymous visitors keep a per-IP daily allowance (`ANON_DAILY_LIMIT`, default 100) so the public demo still works.
-- **Stripe** — Checkout Sessions, Customer Portal, HMAC-verified webhooks with replay tolerance, and idempotent event handling. No Stripe SDK; the API is called over `httpx`.
-- **API keys** — available on Professional and above. Keys are shown once, stored hashed, revoked individually, and authenticate `POST /ask` with `Authorization: Bearer helio_...` or `X-API-Key`.
-- **Account console** — the frontend has real sign-in, signup, plan, usage, billing and API-key views; pricing CTAs create checkouts instead of scrolling nowhere.
-
-### Auth and billing endpoints
-
-| Method | Path | Purpose |
-|---|---|---|
-| `POST` | `/api/auth/signup` | Create account + owner, start session |
-| `POST` | `/api/auth/login` | Sign in (throttled after repeated failures) |
-| `POST` | `/api/auth/logout` | Delete the session |
-| `GET` | `/api/auth/me` | Identity, plan, usage, catalog, billing state |
-| `GET` | `/api/plans` | Public plan catalog |
-| `GET` | `/api/usage` | Current month's usage |
-| `GET` / `POST` / `DELETE` | `/api/keys` | List, create and revoke API keys |
-| `GET` | `/api/billing/me` | Subscription and billing state |
-| `POST` | `/api/billing/checkout` | Create a checkout (Razorpay payment link by default) |
-| `POST` | `/api/billing/portal` | Create a billing portal session |
-| `POST` | `/api/razorpay/order` + `/verify` | `/pay` embedded checkout (Orders + HMAC verify) |
-| `POST` | `/api/razorpay/webhook` | Verify and apply Razorpay events |
-| `POST` | `/api/stripe/webhook` | Verify and apply Stripe events (opt-in fallback) |
-
-`POST /ask` keeps its frozen contract: an SSE stream of `{answer, trail[], stale[]}` followed by `data: [DONE]`. Authentication is optional by default; set `HELIO_REQUIRE_AUTH=1` to require it.
-
-### Pricing
-
-| Plan | Price | Questions/month | Seats | Graphs | API keys |
-|---|---|---|---|---|---|
-| Free | $0 | 50 | 1 | 1 | — |
-| Starter | $15/mo ($150/yr) | 1,000 | 3 | 1 | — |
-| Professional | $49/mo ($490/yr) | 5,000 | 10 | Unlimited | Yes |
-| Enterprise | Custom | Unlimited | Unlimited | Unlimited | Yes |
-
-The low price is deliberate: the graph, Cypher and agent loop are open source and self-hostable, so the paid plans pay for the managed surface — identity, quotas, billing, GitHub sync and onboarding — rather than for a markup on inference.
-
-### GitHub integration
-
-- `GET /api/repo/settings` — validates `GITHUB_OWNER`, `GITHUB_REPO` and `GITHUB_TOKEN`.
-- `GET /api/repo/issues` — open (or requested) issues.
-- `GET /api/repo/pulls` — open (or requested) pull requests.
-- `GET /api/repo/items` — combined issues and pull requests.
-
-Items are normalised to a small JSON surface:
-
-```json
-{
-  "id": "123",
-  "number": 42,
-  "title": "Rotate provider to Adyen/Stripe",
-  "state": "open",
-  "user": { "login": "soham" },
-  "labels": [{ "name": "pending-review", "color": "e11d48" }],
-  "comments": 4,
-  "created_at": "2026-10-24T10:00:00Z",
-  "updated_at": "2026-10-26T09:12:00Z",
-  "html_url": "https://github.com/BhushanVidhate-27/graph-hacks-company-brain/issues/42",
-  "pull_request": false
-}
+```bash
+python scripts/terminal_client.py \
+  query \
+  --account "acct_xxx" \
+  --question "who decided the payments provider?"
 ```
 
-## Configuration for the SaaS layer
+### List Documents
 
-Add these to `.env` (`.env.example` documents each one):
+```bash
+python scripts/terminal_client.py \
+  list-docs \
+  --account "acct_xxx"
+```
 
-| Variable | Default | Meaning |
-|---|---|---|
-| `HELIO_DB_PATH` | `data/helio.db` | SQLite file for accounts, sessions, keys, usage, subscriptions |
-| `HELIO_REQUIRE_AUTH` | `0` | `1` requires a session or API key for `/ask` |
-| `ANON_DAILY_LIMIT` | `100` | Anonymous questions per IP per day (0 disables) |
-| `HELIO_TRUST_PROXY` | `0` | Trust `X-Forwarded-For` for the anonymous limit |
-| `HELIO_COOKIE_SECURE` | auto | Force the session cookie's `Secure` flag |
-| `HELIO_APP_URL` | request origin | Public origin for Stripe redirects |
-| `STRIPE_MODE` | `local` | `local`, `test` or `live` |
-| `HELIO_ALLOW_LOCAL_BILLING` | `0` | Development-only immediate upgrade; never enable in production |
-| `STRIPE_SECRET_KEY` | — | Stripe secret key |
-| `STRIPE_WEBHOOK_SECRET` | — | Webhook signing secret |
-| `STRIPE_PRICE_STARTER` | — | Stripe Price ID for Starter |
-| `STRIPE_PRICE_PROFESSIONAL` | — | Stripe Price ID for Professional |
+## Command Reference
 
-See [`billing-setup.md`](billing-setup.md) for the full Stripe walkthrough, including local testing.
+### Global Options
 
-## Deployment
+```
+--mock              Use mock data instead of real graph (testing)
+--account ID        Account ID to use (defaults to current session)
+--workspace ID      Workspace ID to use
+--interactive      Run in interactive mode (default: non-interactive)
+```
 
-- **Local**: `docker compose -f deploy/docker-compose.yml up --build`, then open <http://localhost:8080>. The `api` service mounts a named volume at `/srv/state` for `helio.db`, so accounts survive a restart.
-- **Production**: set the env vars above in the host's secret store, attach a persistent disk/volume for `HELIO_DB_PATH`, set `STRIPE_MODE=live`, and set `HELIO_APP_URL` to the public HTTPS origin. Add the Stripe webhook endpoint as `https://<your-host>/api/stripe/webhook`.
-- **Single instance only**: SQLite is a single-writer database. The store is isolated in `app/store.py` so it can be moved to Postgres before running multiple API replicas.
-- **CI**: the GitHub Actions workflow runs the backend tests and the frontend type-check + build.
+### Commands
+
+#### create-account
+Creates a new account with an owner user.
+
+**Options:**
+- `--email`: User's email address
+- `--name`: User's full name
+- `--account-name`: Name for the account
+- `--password`: User's password
+
+#### login
+Logs into an existing account.
+
+**Options:**
+- `--email`: User's email address
+- `--password`: User's password
+
+#### upload
+Uploads a document to the knowledge base.
+
+**Options:**
+- `--account ID`: Account ID to upload to
+- `--file PATH`: Path to the document file (PDF, DOCX, TXT, CSV)
+
+#### query
+Queries the company brain with a question.
+
+**Options:**
+- `--account ID`: Account ID to query
+- `--question TEXT`: The question to ask
+
+#### list-docs
+Lists documents in the knowledge base.
+
+**Options:**
+- `--account ID`: Account ID to list documents for
+- `--limit N`: Maximum number of documents to return (default: 10)
+
+### Error Handling
+
+The terminal client provides clear error messages for:
+- Invalid credentials
+- File upload errors (unsupported format, too large)
+- Network issues
+- Database connection problems
+
+### Dependencies
+
+- Python 3.7+
+- FastAPI
+- FalkorDB
+- PostgreSQL/SQLite (depending on configuration)
+- PyPDF2
+- python-docx
+- questionary (for interactive mode)
+
+### Environment Variables
+
+The client reads from `.env` file (same as the rest of the Helio system):
+
+- `USE_MOCK`: Use mock data instead of real graph (default: `1`)
+- `DATABASE_URL`: PostgreSQL connection string
+- `HELIO_DB_PATH`: SQLite database path
+- `FALKORDB_HOST`: FalkorDB host
+- `FALKORDB_PORT`: FalkorDB port
+- `FALKORDB_SSL`: Whether to use SSL for FalkorDB connection
+
+## Development
+
+### Adding New Commands
+
+1. Add the command handling to the `handle_command` method in `TerminalClient`
+2. Add command-line argument parsing in the `main()` function
+3. Update the help text in `show_help()`
+
+### Interactive Mode
+
+The interactive mode uses `questionary` for a guided experience. To customize prompts or add validation, modify the methods:
+
+- `interactive_login()`
+- `interactive_create_account()`
+- `interactive_upload()`
+- `interactive_query()`
+- `interactive_list_docs()`
+
+### Testing
+
+To run the terminal client with the verification scripts:
+
+```bash
+# Run the built-in verification script
+python scripts/verify.py
+
+# Verify the agent can answer questions correctly
+python scripts/verify_agent.py
+```
+
+## Notes
+
+- The terminal client uses the same authentication system as the web interface
+- Document uploads go through the same pipeline as the web interface
+- Queries use the same agent system as the web interface
+- All operations are tenant-aware (per-account)
