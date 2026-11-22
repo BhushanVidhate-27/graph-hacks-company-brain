@@ -1,0 +1,1 @@
+export function AskDemo(){ return <div className="glass mx-auto max-w-2xl rounded-2xl p-6"><label htmlFor="preview-question">Ask Helio</label><input id="preview-question" readOnly placeholder="Who owns payments-gateway?" className="mt-3 block w-full rounded-lg border border-border bg-background p-3" /></div>; }
