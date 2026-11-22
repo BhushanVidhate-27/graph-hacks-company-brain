@@ -41,13 +41,6 @@ export const Route = createFileRoute("/")({
   component: Home,
 });
 
-const heroChips = [
-  { label: "Q3 board review", cls: "left-[8%] top-[28%]", d: "0s" },
-  { label: "Client · Northwind", cls: "right-[9%] top-[24%]", d: "-3s" },
-  { label: "Pricing decision", cls: "left-[12%] bottom-[22%]", d: "-5s" },
-  { label: "Onboarding wiki", cls: "right-[12%] bottom-[26%]", d: "-1.5s" },
-];
-
 const fragments = [
   { icon: FileText, label: "final_v7_REAL.pdf", cls: "left-[4%] top-[8%]", r: "-6deg" },
   { icon: Mail, label: "Re: Re: Fwd: decision?", cls: "left-[34%] top-[0%]", r: "3deg" },
@@ -98,50 +91,29 @@ const industries = [
 function Home() {
   return (
     <>
-      {/* HERO */}
-      <section className="relative flex min-h-[100svh] items-center justify-center overflow-hidden px-4">
-        <GlassBrain className="absolute inset-0 h-full w-full" />
-        <div
-          className="pointer-events-none absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-background to-transparent"
-          aria-hidden="true"
-        />
-
-        {heroChips.map((c) => (
-          <div
-            key={c.label}
-            className={`glass animate-drift absolute hidden rounded-full px-4 py-2 text-[12px] text-muted-foreground lg:block ${c.cls}`}
-            style={{ animationDelay: c.d }}
-          >
-            <span className="mr-2 inline-block size-1.5 rounded-full bg-solar align-middle" />
-            {c.label}
+      <section className="memory-hero" aria-labelledby="memory-title">
+        <div className="memory-layout">
+          <div className="memory-copy">
+            <p className="memory-kicker"><span aria-hidden="true" /> The company brain</p>
+            <h1 id="memory-title">Your company,<br /><em>remembered.</em></h1>
+            <p className="memory-intro">One living brain for everything your organization knows.</p>
+            <div className="memory-actions">
+              <Button asChild size="lg"><Link to="/access">Get early access <ArrowRight /></Link></Button>
+              <Link className="memory-secondary" to="/how-it-works">See how it thinks</Link>
+            </div>
           </div>
-        ))}
-
-        <div className="relative z-10 mx-auto max-w-4xl text-center">
-          <p className="eyebrow animate-rise">Helio · The Company Brain</p>
-          <h1 className="display mt-5 text-[56px] animate-rise [animation-delay:120ms] sm:text-8xl md:text-[120px]">
-            <span className="text-silver-gradient">Your company,</span>
-            <br />
-            <span className="text-solar-gradient">remembered.</span>
-          </h1>
-          <p className="mx-auto mt-7 max-w-md text-lg text-muted-foreground animate-rise [animation-delay:260ms] sm:text-xl">
-            One living brain for everything your organization knows.
-          </p>
-          <div className="mt-9 flex flex-wrap items-center justify-center gap-3 animate-rise [animation-delay:380ms]">
-            <Button asChild size="lg">
-              <Link to="/access">Get early access</Link>
-            </Button>
-            <Button asChild size="lg" variant="glass">
-              <Link to="/how-it-works">
-                See how it thinks <ArrowRight />
-              </Link>
-            </Button>
+          <div className="memory-stage" role="img" aria-label="A rotating brain formed from thousands of glowing points">
+            <div className="orbit-ring" aria-hidden="true" />
+            <div className="brain-surface"><GlassBrain /></div>
+            <span className="brain-note note-decision">Pricing decision</span>
+            <span className="brain-note note-wiki">Onboarding wiki</span>
           </div>
         </div>
+        <a href="#scattered" className="memory-scroll">Explore Helio <span aria-hidden="true">↓</span></a>
       </section>
 
       {/* PROBLEM */}
-      <section className="relative px-4 py-32">
+      <section id="scattered" className="relative px-4 py-32">
         <div className="mx-auto max-w-6xl">
           <Reveal className="text-center">
             <h2 className="display text-5xl sm:text-7xl md:text-8xl">

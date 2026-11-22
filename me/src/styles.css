@@ -337,3 +337,55 @@
 @utility mask-radial {
   mask-image: radial-gradient(closest-side, black 70%, transparent 100%);
 }
+
+/* The hero uses a warm point cloud against a near-black field. */
+.memory-header { position: absolute; inset: 0 0 auto; z-index: 40; padding-inline: 6vw; }
+.memory-nav { max-width: 1480px; margin: auto; display: flex; align-items: center; justify-content: space-between; min-height: 78px; border-bottom: 1px solid #ffffff24; }
+.helio-wordmark { display: inline-flex; gap: .5rem; align-items: center; font-weight: 650; font-size: 1.5rem; letter-spacing: -.075em; }
+.helio-wordmark svg { color: #ff8750; width: 27px; height: 27px; }
+.memory-nav nav { display: flex; gap: clamp(1rem, 3vw, 3rem); color: #d1c9c6; font-size: .84rem; }
+.nav-access { display: inline-flex; align-items: center; gap: .5em; font-size: .8rem; padding: .65em 1.1em; border: 1px solid #ffffff45; border-radius: 999px; }
+.memory-nav a:hover, .memory-secondary:hover, .memory-scroll:hover { color: #ffa573; }
+.memory-hero { position: relative; isolation: isolate; overflow: hidden; min-height: max(690px, 100svh); display: flex; flex-direction: column; justify-content: center; padding: 100px 6vw 80px; background: radial-gradient(ellipse at 77% 48%,#321e24 0, #161117 28%, transparent 57%), #0e0d10; }
+.memory-layout { display: grid; grid-template-columns: 1fr 1fr; align-items: center; width: 100%; max-width: 1480px; margin-inline: auto; }
+.memory-copy { position: relative; z-index: 3; }
+.memory-kicker, .memory-scroll, .brain-note { font-family: ui-monospace, monospace; letter-spacing: .12em; text-transform: uppercase; font-size: .65rem; }
+.memory-kicker { color: #ffab80; display:flex; align-items:center; gap: 12px; }
+.memory-kicker span { width: 31px; height: 1px; background: currentColor; }
+.memory-copy h1 { font-size: clamp(3.6rem, 6.65vw, 7.4rem); line-height: .97; letter-spacing: -.076em; font-weight: 530; margin: .32em 0 .31em; color: #fbf4ed; }
+.memory-copy h1 em { font-family: Georgia, "Times New Roman", serif; font-weight: 400; letter-spacing: -.078em; color: #ffa577; }
+.memory-intro { max-width: 26em; font-size: clamp(1rem,1.35vw,1.27rem); color: #c6bdbb; line-height: 1.55; }
+.memory-actions { margin-top: 2.1rem; display: flex; gap: 1.5rem; align-items: center; }
+.memory-actions > a:first-child { background: #ffa577; color: #21100b; border-radius: 999px; box-shadow: none; }
+.memory-actions > a:first-child:hover { background: #ffc5a4; }
+.memory-secondary { font-size: .85rem; color: #e4dad6; text-decoration: underline; text-underline-offset: .35em; text-decoration-color: #8c7873; }
+.memory-stage { aspect-ratio: 1.15; position: relative; min-width: 0; }
+.brain-surface { position: absolute; inset: -7%; mix-blend-mode:screen; background: url('/glass-brain-poster.webp') center / contain no-repeat; }
+.brain-surface:has(canvas[data-ready]) { background-image: none; }
+.brain-canvas { display:block; width:100%; height:100%; opacity:0; }
+.orbit-ring { position:absolute; inset: 11% 1%; border: 1px solid #f7b28a29; border-radius: 50%; transform: rotate(-24deg) scaleY(.64); }
+.brain-note { position:absolute; color:#d3b7ab; letter-spacing:.06em; font-size:.6rem; pointer-events:none; }
+.brain-note::before { content:""; display:inline-block; width:5px; height:5px; background:#ffa777; border-radius:50%; margin-right:8px; box-shadow:0 0 8px #ff9566; }
+.note-decision { top: 13%; right: 4%; }
+.note-wiki { bottom: 15%; left: 3%; }
+.memory-scroll { position:absolute; bottom:30px; left:6vw; right:6vw; margin:auto; max-width:1480px; padding-top:15px; border-top:1px solid #ffffff20; color:#bbb0ac; display:flex; justify-content:space-between; }
+@media (max-width: 760px) {
+  .memory-nav { min-height:64px; flex-wrap:wrap; }
+  .memory-nav nav { gap:12px; font-size:.72rem; }
+  .nav-access { font-size:.69rem; padding:.55em .7em; }
+  .memory-hero { min-height:100svh; padding:106px 6vw 64px; }
+  .memory-layout { grid-template-columns:1fr; }
+  .memory-copy h1 { font-size:clamp(3.55rem,10vw,5.5rem); }
+  .memory-stage { width:min(100%,480px); margin:1rem auto 0; aspect-ratio:1.55; }
+  .memory-actions { margin-top:1.4rem; }
+  .note-wiki { left:0; bottom:6%; }
+  .memory-scroll { bottom:16px; padding-top:9px; }
+}
+@media (max-width: 400px) {
+  .helio-wordmark { font-size:1.22rem; }
+  .helio-wordmark svg { width:21px; }
+  .memory-nav nav { gap:7px; }
+  .nav-access svg { display:none; }
+}
+
+.brain-canvas[data-ready] { opacity: 1; }
