@@ -29,26 +29,24 @@ export function GlassBrain() {
       camera.position.z = 3.65;
       const geometry = new THREE.BufferGeometry();
       geometry.setAttribute("position", new THREE.BufferAttribute(points, 3, true));
-      const uniforms = { pixelRatio: { value: 1 }, phase: { value: 0 } };
+      const uniforms = { pixelRatio: { value: 1 } };
       const material = new THREE.ShaderMaterial({
-        uniforms, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+        uniforms,
         vertexShader: `
-          uniform float pixelRatio, phase;
-          varying vec3 color;
+          uniform float pixelRatio;
+          varying float ink;
           void main() {
             vec4 p = modelViewMatrix * vec4(position, 1.);
-            float band = exp(-13. * abs(position.x - sin(phase * .48) * .96));
-            float nearSide = smoothstep(-.35, .70, position.z);
-            color = mix(vec3(.32,.19,.30), vec3(1.,.54,.27), nearSide);
-            color += band * vec3(.38,.20,.08);
-            gl_PointSize = pixelRatio * (1.25 + .75 * nearSide + .65 * band);
+            float depth = smoothstep(-.7, .68, (modelViewMatrix * vec4(position, 0.)).z);
+            ink = mix(.14, .93, depth * depth);
+            gl_PointSize = max(1., pixelRatio * mix(.8, 1.35, depth));
             gl_Position = projectionMatrix * p;
           }`,
         fragmentShader: `
-          varying vec3 color;
+          varying float ink;
           void main() {
-            float a = 1. - smoothstep(.05, .5, length(gl_PointCoord - .5));
-            gl_FragColor = vec4(color, a * .62);
+            if (length(gl_PointCoord - .5) > .48) discard;
+            gl_FragColor = vec4(vec3(ink), 1.);
           }`,
       });
       const brain = new THREE.Points(geometry, material);
@@ -70,7 +68,6 @@ export function GlassBrain() {
         const pitch = -.12 + (motion.matches ? 0 : pointerY * .22);
         brain.rotation.set(THREE.MathUtils.lerp(brain.rotation.x, pitch, .08),
           THREE.MathUtils.lerp(brain.rotation.y, yaw, .08), -.10);
-        uniforms.phase.value = time;
         renderer.render(scene, camera);
         canvas.dataset.ready = "true";
         if (!motion.matches) frame = requestAnimationFrame(draw);
