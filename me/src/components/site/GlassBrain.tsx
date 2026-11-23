@@ -52,51 +52,101 @@ export function GlassBrain() {
       const brain = new THREE.Points(geometry, material);
       scene.add(brain);
       const motion = matchMedia("(prefers-reduced-motion: reduce)");
-      let pointerX = 0, pointerY = 0, time = 0, last = 0, frame = 0, visible = true;
-      const move = (event: PointerEvent) => {
-        const bounds = canvas.getBoundingClientRect();
-        pointerX = (event.clientX - bounds.left) / bounds.width - .5;
-        pointerY = (event.clientY - bounds.top) / bounds.height - .5;
-      };
-      const leave = () => { pointerX = pointerY = 0; };
+      const openingYaw = -.42;
+      const turn = THREE.MathUtils.degToRad(6);
+      let elapsed = 0;
+      let previousTime = 0;
+      let frame = 0;
+      let visible = false;
+      let targetYaw = 0;
+      let targetPitch = 0;
+      let yaw = 0;
+      let pitch = 0;
+      let drag: { id: number; x: number; yaw: number } | undefined;
+
+      function requestDraw() {
+        if (!frame && visible && !document.hidden && !abort.signal.aborted) {
+          frame = requestAnimationFrame(draw);
+        }
+      }
+
       function draw(now: number) {
         frame = 0;
         if (!visible || document.hidden) return;
-        time += motion.matches ? 0 : Math.min((now - last) / 1000, .05);
-        last = now;
-        const yaw = -.42 + (motion.matches ? 0 : Math.sin(time * .24) * .22 + pointerX * .38);
-        const pitch = -.12 + (motion.matches ? 0 : pointerY * .22);
-        brain.rotation.set(THREE.MathUtils.lerp(brain.rotation.x, pitch, .08),
-          THREE.MathUtils.lerp(brain.rotation.y, yaw, .08), -.10);
+        const dt = previousTime ? Math.min(now - previousTime, 100) : 0;
+        previousTime = now;
+        elapsed = motion.matches ? 900 : Math.min(900, elapsed + dt);
+        const progress = 1 - (1 - elapsed / 900) ** 3;
+        const smoothing = 1 - Math.exp(-dt / 90);
+        yaw = motion.matches ? 0 : THREE.MathUtils.lerp(yaw, targetYaw, smoothing);
+        pitch = motion.matches ? 0 : THREE.MathUtils.lerp(pitch, targetPitch, smoothing);
+        brain.rotation.set(-.12 + pitch, openingYaw + turn * progress + yaw, -.10);
         renderer.render(scene, camera);
-        canvas.dataset.ready = "true";
-        if (!motion.matches) frame = requestAnimationFrame(draw);
+        canvas.dataset["ready"] = "true";
+        if (elapsed < 900 || (!motion.matches &&
+            (Math.abs(yaw - targetYaw) > .0002 || Math.abs(pitch - targetPitch) > .0002))) {
+          requestDraw();
+        } else {
+          previousTime = 0;
+        }
       }
-      function refresh() { cancelAnimationFrame(frame); last = performance.now(); draw(last); }
+
+      function refresh() {
+        cancelAnimationFrame(frame);
+        frame = 0;
+        previousTime = 0;
+        requestDraw();
+      }
+
       const resize = new ResizeObserver(() => {
         const { width, height } = canvas.getBoundingClientRect();
         if (!width || !height) return;
         const ratio = Math.min(devicePixelRatio, 1.6);
         renderer.setPixelRatio(ratio);
         renderer.setSize(width, height, false);
-        uniforms.pixelRatio.value = ratio * Math.max(1, height / 380);
+        uniforms.pixelRatio.value = ratio * Math.max(1, height / 560);
         camera.aspect = width / height;
-        camera.position.z = 3.3 / Math.min(1, camera.aspect);
+        camera.position.z = 2.90;
         camera.updateProjectionMatrix();
         refresh();
       });
-      const observer = new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; refresh(); });
-      brain.rotation.set(-.12, -.42, -.10);
+      const observer = new IntersectionObserver(([entry]) => {
+        visible = entry?.isIntersecting ?? false;
+        refresh();
+      });
       resize.observe(canvas);
       observer.observe(canvas);
       const options = { signal: abort.signal };
-      canvas.addEventListener("pointermove", move, options);
-      canvas.addEventListener("pointerleave", leave, options);
+      canvas.addEventListener("pointerdown", event => {
+        if (!event.isPrimary || event.pointerType === "mouse" || motion.matches) return;
+        drag = { id: event.pointerId, x: event.clientX, yaw: targetYaw };
+        canvas.setPointerCapture(event.pointerId);
+      }, options);
+      canvas.addEventListener("pointermove", event => {
+        if (motion.matches) return;
+        const rect = canvas.getBoundingClientRect();
+        if (drag && drag.id === event.pointerId) {
+          targetYaw = THREE.MathUtils.clamp(drag.yaw + (event.clientX - drag.x) / rect.width * 1.8, -.8, .8);
+        } else if (event.pointerType === "mouse") {
+          targetYaw = ((event.clientX - rect.left) / rect.width - .5) * .23;
+          targetPitch = ((event.clientY - rect.top) / rect.height - .5) * .12;
+        } else {
+          return;
+        }
+        requestDraw();
+      }, options);
+      canvas.addEventListener("lostpointercapture", () => { drag = undefined; }, options);
+      canvas.addEventListener("pointerleave", event => {
+        if (event.pointerType === "mouse") {
+          targetYaw = targetPitch = 0;
+          requestDraw();
+        }
+      }, options);
       motion.addEventListener("change", refresh, options);
       document.addEventListener("visibilitychange", refresh, options);
       canvas.addEventListener("webglcontextlost", () => {
         cancelAnimationFrame(frame);
-        delete canvas.dataset.ready;
+        delete canvas.dataset["ready"];
         observer.disconnect();
         resize.disconnect();
         abort.abort();
@@ -110,7 +160,7 @@ export function GlassBrain() {
         renderer.dispose();
       };
     }
-    mount(canvas).catch(() => { delete canvas.dataset.ready; });
+    mount(canvas).catch(() => { delete canvas.dataset["ready"]; });
     return () => { abort.abort(); dispose?.(); };
   }, []);
 
