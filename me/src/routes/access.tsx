@@ -1,21 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, type FormEvent } from "react";
-import { toast } from "sonner";
-import { Check } from "lucide-react";
-import { PageHero } from "@/components/site/PageHero";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { useEffect, useRef, useState, type FormEvent } from "react";
+import { ArrowRight } from "lucide-react";
 
 export const Route = createFileRoute("/access")({
   head: () => ({
     meta: [
-      { title: "Get early access — Helio" },
+      { title: "Get early access — NOMORE" },
       {
         name: "description",
-        content: "Request early access to Helio and give your organization a company brain.",
+        content: "Request early access to NOMORE and give your organization a company brain.",
       },
-      { property: "og:title", content: "Get early access to Helio" },
+      { property: "og:title", content: "Get early access to NOMORE" },
       {
         property: "og:description",
         content: "Be among the first organizations with a living company brain.",
@@ -27,95 +22,97 @@ export const Route = createFileRoute("/access")({
   component: Access,
 });
 
+const fields = [
+  { name: "name", label: "Name", type: "text", autoComplete: "name" },
+  { name: "email", label: "Work email", type: "email", autoComplete: "email" },
+  { name: "company", label: "Company", type: "text", autoComplete: "organization" },
+] as const;
 const sizes = ["1–50", "51–500", "501–5k", "5k+"];
 
 function Access() {
-  const [size, setSize] = useState(sizes[1]);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [done, setDone] = useState(false);
-
-  const onSubmit = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setDone(true);
-    toast.success("You're on the list.");
-  };
-
+  const confirmation = useRef<HTMLHeadingElement>(null);
+  useEffect(() => {
+    if (done) confirmation.current?.focus();
+  }, [done]);
+  function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const next: Record<string, string> = {};
+    for (const field of fields) {
+      const input = form.elements.namedItem(field.name) as HTMLInputElement;
+      if (!input.value.trim()) next[field.name] = "Enter your " + field.label.toLowerCase() + ".";
+      else if (!input.validity.valid) next[field.name] = "Enter a valid email address.";
+    }
+    setErrors(next);
+    const first = Object.keys(next)[0];
+    if (first) (form.elements.namedItem(first) as HTMLInputElement).focus();
+    else setDone(true);
+  }
   return (
-    <>
-      <PageHero
-        eyebrow="Early access"
-        title={
-          <>
-            Give your company
-            <br />
-            <span className="text-solar-gradient">a brain.</span>
-          </>
-        }
-      />
-      <section className="px-4 pb-16">
-        <div className="glass-strong mx-auto max-w-md rounded-[32px] p-8">
-          {done ? (
-            <div className="py-10 text-center animate-in fade-in">
-              <span className="bg-solar-gradient glow-solar mx-auto flex size-14 items-center justify-center rounded-full text-primary-foreground">
-                <Check className="size-6" />
-              </span>
-              <h2 className="display mt-6 text-3xl">You're on the list.</h2>
-              <p className="mt-2 text-muted-foreground">We'll be in touch soon.</p>
+    <div className="access-page page">
+      <header>
+        <img className="access-impression" src="/illustrations/impression.svg" alt="" />
+        <h1 className="page-title">Early access.</h1>
+        <p>Try the request form. This preview keeps your details in this browser tab.</p>
+      </header>
+      {done ? (
+        <section className="confirmation glass" aria-live="polite">
+          <img className="confirmation-imprint" src="/illustrations/the-imprint.svg" alt="" />
+          <h2 ref={confirmation} tabIndex={-1}>
+            Preview complete.
+          </h2>
+          <p>Your details passed validation. This demo does not send an access request.</p>
+          <button type="button" className="text-link" onClick={() => setDone(false)}>
+            Back to form
+          </button>
+        </section>
+      ) : (
+        <form className="access-form glass" noValidate onSubmit={submit}>
+          {fields.map(({ name, label, type, autoComplete }) => (
+            <div className="field" key={name}>
+              <label htmlFor={name}>{label}</label>
+              <input
+                name={name}
+                id={name}
+                type={type}
+                autoComplete={autoComplete}
+                required
+                aria-invalid={Boolean(errors[name])}
+                aria-describedby={errors[name] ? name + "-error" : undefined}
+                onInput={(e) => {
+                  if (
+                    errors[name] &&
+                    e.currentTarget.validity.valid &&
+                    e.currentTarget.value.trim()
+                  )
+                    setErrors((previous) => ({ ...previous, [name]: "" }));
+                }}
+              />
+              {errors[name] && (
+                <p className="field-error" id={name + "-error"}>
+                  {errors[name]}
+                </p>
+              )}
             </div>
-          ) : (
-            <form onSubmit={onSubmit} className="space-y-5">
-              <Field id="name" label="Name" placeholder="Jane Appleseed" />
-              <Field id="email" label="Work email" type="email" placeholder="jane@company.com" />
-              <Field id="company" label="Company" placeholder="Company name" />
-              <div className="space-y-2">
-                <Label className="text-[13px] text-muted-foreground">Team size</Label>
-                <div className="grid grid-cols-4 gap-1 rounded-full bg-glass p-1">
-                  {sizes.map((s) => (
-                    <button
-                      key={s}
-                      type="button"
-                      onClick={() => setSize(s)}
-                      className={`rounded-full py-2 text-[13px] transition-all ${size === s ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground"}`}
-                    >
-                      {s}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <Button type="submit" size="lg" variant="solar" className="w-full">
-                Request access
-              </Button>
-            </form>
-          )}
-        </div>
-      </section>
-    </>
-  );
-}
-
-function Field({
-  id,
-  label,
-  type = "text",
-  placeholder,
-}: {
-  id: string;
-  label: string;
-  type?: string;
-  placeholder: string;
-}) {
-  return (
-    <div className="space-y-2">
-      <Label htmlFor={id} className="text-[13px] text-muted-foreground">
-        {label}
-      </Label>
-      <Input
-        id={id}
-        name={id}
-        type={type}
-        required
-        placeholder={placeholder}
-        className="h-12 rounded-2xl border-glass-border bg-glass px-4 text-[15px]"
-      />
+          ))}
+          <fieldset>
+            <legend>Team size</legend>
+            <div className="sizes">
+              {sizes.map((size, i) => (
+                <label key={size}>
+                  <input type="radio" name="size" value={size} defaultChecked={i === 1} />
+                  <span>{size}</span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
+          <button type="submit" className="action action-light">
+            Preview request <ArrowRight aria-hidden="true" />
+          </button>
+        </form>
+      )}
     </div>
   );
 }

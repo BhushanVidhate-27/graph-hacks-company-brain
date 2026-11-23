@@ -1,19 +1,19 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { FileText, Database, MessagesSquare, KanbanSquare, Building2, Plug } from "lucide-react";
-import { PageHero } from "@/components/site/PageHero";
-import { Reveal } from "@/components/site/Reveal";
-import { Button } from "@/components/ui/button";
+import { useEffect } from "react";
+import { Citation } from "@/components/Citation";
+import { records, recordIds, recordSearch } from "@/lib/evidence";
 
 export const Route = createFileRoute("/sources")({
+  validateSearch: recordSearch,
   head: () => ({
     meta: [
-      { title: "Sources — Everything Helio connects to" },
+      { title: "Sources — Everything NOMORE connects to" },
       {
         name: "description",
         content:
-          "Documents, databases, email, chat, project tools, CRM, ERP, HR, finance and internal APIs — Helio learns from wherever knowledge lives.",
+          "Documents, databases, email, chat, project tools, CRM, ERP, HR, finance and internal APIs — NOMORE learns from wherever knowledge lives.",
       },
-      { property: "og:title", content: "Helio Sources — If it holds knowledge, Helio learns it" },
+      { property: "og:title", content: "NOMORE Sources — If it holds knowledge, NOMORE learns it" },
       {
         property: "og:description",
         content: "Files, data, conversations and business systems — all in one company brain.",
@@ -25,72 +25,117 @@ export const Route = createFileRoute("/sources")({
   component: Sources,
 });
 
-const groups = [
-  { icon: FileText, title: "Files", items: ["Docs", "PDFs", "Spreadsheets", "Slides"] },
-  { icon: Database, title: "Data", items: ["Databases", "Warehouses", "Reports"] },
-  { icon: MessagesSquare, title: "Conversations", items: ["Email", "Chat", "Meetings"] },
-  { icon: KanbanSquare, title: "Work", items: ["Projects", "Tickets", "Wikis"] },
-  { icon: Building2, title: "Systems", items: ["CRM", "ERP", "HR", "Finance", "Marketing"] },
-  { icon: Plug, title: "Everything else", items: ["Internal apps", "APIs", "Custom tools"] },
+const categories = [
+  ["Files", "Docs, PDFs, spreadsheets, slides"],
+  ["Data", "Databases, warehouses, reports"],
+  ["Conversations", "Email, chat, meetings"],
+  ["Work", "Projects, tickets, wikis"],
+  ["Systems", "CRM, ERP, HR, finance, marketing"],
+  ["Other tools", "Internal apps, APIs, custom tools"],
 ];
 
 function Sources() {
+  const { record: selected } = Route.useSearch();
+  const navigate = Route.useNavigate();
+  useEffect(() => {
+    if (!selected) return;
+    const row = document.getElementById("row-" + selected);
+    if (!row) return;
+    const frame = requestAnimationFrame(() => {
+      row.focus({ preventScroll: true });
+      const bounds = row.getBoundingClientRect();
+      if (bounds.top < 12 || bounds.top > window.innerHeight * 0.55)
+        row.scrollIntoView({ block: "start" });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [selected]);
   return (
-    <>
-      <PageHero
-        eyebrow="Sources"
-        title={
-          <>
-            If it holds knowledge,
-            <br />
-            <span className="text-solar-gradient">Helio learns it.</span>
-          </>
-        }
-        sub="Any format. Any tool. Any team."
-      />
-
-      <section className="px-4 py-12">
-        <div className="mx-auto grid max-w-6xl gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {groups.map((g, i) => (
-            <Reveal
-              key={g.title}
-              delay={(i % 3) * 90}
-              className="glass group rounded-[28px] p-8 transition-colors duration-500 hover:bg-glass-strong"
-            >
-              <span className="glass-strong flex size-12 items-center justify-center rounded-2xl">
-                <g.icon className="size-5 text-solar" strokeWidth={1.6} />
-              </span>
-              <h2 className="display mt-10 text-3xl text-foreground">{g.title}</h2>
-              <div className="mt-5 flex flex-wrap gap-2">
-                {g.items.map((it) => (
-                  <span
-                    key={it}
-                    className="rounded-full border border-glass-border bg-glass px-3 py-1 text-[12px] text-muted-foreground"
-                  >
-                    {it}
-                  </span>
-                ))}
-              </div>
-            </Reveal>
-          ))}
+    <div className="archive page">
+      <div className="page-intro">
+        <h1 className="page-title">Source archive.</h1>
+        <p>The decisions behind an answer, with the people and records that support them.</p>
+      </div>
+      <section className="archive-sheet glass" aria-label="Decision records">
+        <div className="archive-head caption">
+          <span>Record</span>
+          <span>Decision</span>
+          <span>Date</span>
         </div>
+        {recordIds.map((id) => {
+          const entry = records[id];
+          const expanded = selected === id;
+          return (
+            <article className="archive-row" key={id} data-expanded={expanded}>
+              <h2>
+                <button
+                  type="button"
+                  className="archive-toggle"
+                  id={"row-" + id}
+                  aria-expanded={expanded}
+                  aria-controls={"detail-" + id}
+                  onClick={() =>
+                    void navigate({ search: expanded ? {} : { record: id }, resetScroll: false })
+                  }
+                >
+                  <span className="record-id">{id}</span>
+                  <span className="record-title">{entry.title}</span>
+                  <time dateTime={entry.date}>{entry.dateLabel}</time>
+                  <span aria-hidden="true" className="expand-sign">
+                    {expanded ? "−" : "+"}
+                  </span>
+                </button>
+              </h2>
+              <div
+                hidden={!expanded}
+                id={"detail-" + id}
+                className="record-inside"
+                aria-labelledby={"row-" + id}
+              >
+                <p className="record-summary">{entry.summary}</p>
+                <dl className="metadata">
+                  <div>
+                    <dt>Decision owner</dt>
+                    <dd>{entry.owner}</dd>
+                  </div>
+                  <div>
+                    <dt>Status</dt>
+                    <dd>{entry.status}</dd>
+                  </div>
+                </dl>
+                <h3 className="caption">Evidence references</h3>
+                <ul className="references">
+                  {entry.evidence.map((ref) => (
+                    <li key={ref}>{ref}</li>
+                  ))}
+                </ul>
+                {entry.replaces && <Citation id={entry.replaces} label="Replaces" />}
+                {id === "D-14" && <Citation id="D-19" label="Replaced by" />}
+              </div>
+            </article>
+          );
+        })}
       </section>
-
-      <section className="px-4 py-24">
-        <Reveal className="glass mx-auto max-w-4xl rounded-[36px] px-8 py-16 text-center">
-          <h2 className="display text-4xl text-silver-gradient sm:text-6xl">
-            Your tools stay.
-            <br />
-            Your knowledge connects.
-          </h2>
-          <p className="mx-auto mt-5 max-w-md text-lg text-muted-foreground">
-            No migration. Helio reads where your work already happens.
-          </p>
-          <Button asChild size="lg" className="mt-10">
-            <Link to="/access">Get early access</Link>
-          </Button>
-        </Reveal>
+      <section className="category-spread section-layout">
+        <div className="source-types-aside">
+          <h2 className="aside-heading">Source types</h2>
+          <Link
+            className="archive-illustration"
+            to="/sources"
+            search={{ record: "D-19" }}
+            aria-label="Open decision D-19"
+          >
+            <img src="/illustrations/archive-grid.svg" alt="" loading="lazy" />
+          </Link>
+        </div>
+        <dl className="category-list">
+          {categories.map(([name, items]) => (
+            <div key={name}>
+              <dt>{name}</dt>
+              <dd>{items}</dd>
+            </div>
+          ))}
+        </dl>
       </section>
-    </>
+    </div>
   );
 }

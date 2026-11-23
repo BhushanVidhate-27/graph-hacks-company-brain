@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="166 458 1120 300">
+  <line x1="215" y1="646" x2="565" y2="646" stroke="#0B0B0D" stroke-width="2" opacity="1" />
+  <line x1="565" y1="646" x2="900" y2="575" stroke="#0B0B0D" stroke-width="2" opacity="1" />
+  <line x1="900" y1="575" x2="1210" y2="646" stroke="#0B0B0D" stroke-width="2" opacity="1" />
+  <circle cx="215" cy="646" r="18" fill="#0B0B0D" />
+  <text x="215" y="707" font-family="Inter Display, Inter, Arial, sans-serif" font-size="22" font-weight="730" fill="#0B0B0D" text-anchor="middle" opacity="1">TEAM</text>
+  <text x="215" y="734" font-family="IBM Plex Mono, DejaVu Sans Mono, monospace" font-size="12" font-weight="600" fill="#8C8D8A" text-anchor="middle" opacity="1">PEOPLE</text>
+  <circle cx="565" cy="646" r="18" fill="#0B0B0D" />
+  <text x="565" y="707" font-family="Inter Display, Inter, Arial, sans-serif" font-size="22" font-weight="730" fill="#0B0B0D" text-anchor="middle" opacity="1">OWNER</text>
+  <text x="565" y="734" font-family="IBM Plex Mono, DejaVu Sans Mono, monospace" font-size="12" font-weight="600" fill="#8C8D8A" text-anchor="middle" opacity="1">ACCOUNTABLE</text>
+  <circle cx="900" cy="575" r="18" fill="#FF4A4A" />
+  <text x="900" y="636" font-family="Inter Display, Inter, Arial, sans-serif" font-size="22" font-weight="730" fill="#0B0B0D" text-anchor="middle" opacity="1">DECISION</text>
+  <text x="900" y="663" font-family="IBM Plex Mono, DejaVu Sans Mono, monospace" font-size="12" font-weight="600" fill="#8C8D8A" text-anchor="middle" opacity="1">D—21</text>
+  <circle cx="1210" cy="646" r="18" fill="#0B0B0D" />
+  <text x="1210" y="707" font-family="Inter Display, Inter, Arial, sans-serif" font-size="22" font-weight="730" fill="#0B0B0D" text-anchor="middle" opacity="1">EVIDENCE</text>
+  <text x="1210" y="734" font-family="IBM Plex Mono, DejaVu Sans Mono, monospace" font-size="12" font-weight="600" fill="#8C8D8A" text-anchor="middle" opacity="1">1 RECORD</text>
+  <rect x="902" y="487" width="105" height="38" rx="0" fill="#FF4A4A" />
+  <text x="954" y="513" font-family="IBM Plex Mono, DejaVu Sans Mono, monospace" font-size="14" font-weight="700" fill="#0B0B0D" text-anchor="middle" opacity="1">CURRENT</text>
+</svg>

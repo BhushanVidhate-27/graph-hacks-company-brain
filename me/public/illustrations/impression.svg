@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="866 2055 555 749">
+  <defs>
+    <linearGradient id="crease" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#fff" stop-opacity="0" />
+      <stop offset=".45" stop-color="#ccc" stop-opacity=".55" />
+      <stop offset=".53" stop-color="#fff" stop-opacity=".7" />
+      <stop offset="1" stop-color="#000" stop-opacity="0" />
+    </linearGradient>
+    <linearGradient id="fold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fafafa" />
+      <stop offset=".5" stop-color="#dadada" />
+      <stop offset="1" stop-color="#fff" />
+    </linearGradient>
+    <filter id="shadow">
+      <feDropShadow dx="10" dy="16" stdDeviation="14" flood-color="#000" flood-opacity=".13" />
+    </filter>
+  </defs>
+  <g filter="url(#shadow)">
+    <path d="M922 2190 L1025 2140 L1232 2440 L1232 2170 L1360 2100 L1360 2685 L1255 2730 L1049 2438 L1049 2713 L922 2776 Z" fill="#d9d9d6" />
+    <path d="M933 2193 L1064 2193 L1248 2468 L1248 2193 L1379 2193 L1379 2752 L1251 2752 L1064 2474 L1064 2752 L933 2752 Z" fill="url(#fold)" stroke="#cfcfcc" stroke-width="2" />
+  </g>
+  <path d="M886 2070 V2780" stroke="#eaeae6" stroke-width="2" />
+  <path d="M918 2070 V2780" stroke="#eaeae6" stroke-width="2" />
+  <path d="M950 2070 V2780" stroke="#eaeae6" stroke-width="2" />
+  <path d="M982 2070 V2780" stroke="#eaeae6" stroke-width="2" />
+  <path d="M1014 2070 V2780" stroke="#eaeae6" stroke-width="2" />
+  <path d="M1046 2070 V2780" stroke="#eaeae6" stroke-width="2" />
+</svg>

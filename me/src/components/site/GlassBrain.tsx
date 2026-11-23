@@ -1,7 +1,7 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { WebGLRenderer } from "three";
 
-export function GlassBrain() {
+function AnimatedBrain() {
   const surface = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -51,51 +51,25 @@ export function GlassBrain() {
       });
       const brain = new THREE.Points(geometry, material);
       scene.add(brain);
-      const motion = matchMedia("(prefers-reduced-motion: reduce)");
-      const openingYaw = -.42;
-      const turn = THREE.MathUtils.degToRad(6);
-      let elapsed = 0;
-      let previousTime = 0;
+      const openingYaw = -0.42;
+      let started = performance.now();
+      let hiddenAt = document.hidden ? started : undefined;
       let frame = 0;
       let visible = false;
-      let targetYaw = 0;
-      let targetPitch = 0;
-      let yaw = 0;
-      let pitch = 0;
-      let drag: { id: number; x: number; yaw: number } | undefined;
-
-      function requestDraw() {
-        if (!frame && visible && !document.hidden && !abort.signal.aborted) {
-          frame = requestAnimationFrame(draw);
-        }
-      }
-
-      function draw(now: number) {
-        frame = 0;
-        if (!visible || document.hidden) return;
-        const dt = previousTime ? Math.min(now - previousTime, 100) : 0;
-        previousTime = now;
-        elapsed = motion.matches ? 900 : Math.min(900, elapsed + dt);
-        const progress = 1 - (1 - elapsed / 900) ** 3;
-        const smoothing = 1 - Math.exp(-dt / 90);
-        yaw = motion.matches ? 0 : THREE.MathUtils.lerp(yaw, targetYaw, smoothing);
-        pitch = motion.matches ? 0 : THREE.MathUtils.lerp(pitch, targetPitch, smoothing);
-        brain.rotation.set(-.12 + pitch, openingYaw + turn * progress + yaw, -.10);
-        renderer.render(scene, camera);
-        canvas.dataset["ready"] = "true";
-        if (elapsed < 900 || (!motion.matches &&
-            (Math.abs(yaw - targetYaw) > .0002 || Math.abs(pitch - targetPitch) > .0002))) {
-          requestDraw();
-        } else {
-          previousTime = 0;
-        }
-      }
 
       function refresh() {
         cancelAnimationFrame(frame);
-        frame = 0;
-        previousTime = 0;
-        requestDraw();
+        if (visible && !document.hidden && !abort.signal.aborted)
+          frame = requestAnimationFrame(draw);
+      }
+
+      function draw(now: number) {
+        if (document.hidden || !visible || abort.signal.aborted) return;
+        const angle = (((now - started) % 40000) / 40000) * 2 * Math.PI;
+        brain.rotation.set(-0.12, openingYaw + angle, -0.1);
+        renderer.render(scene, camera);
+        canvas.dataset["ready"] = "true";
+        frame = requestAnimationFrame(draw);
       }
 
       const resize = new ResizeObserver(() => {
@@ -106,7 +80,7 @@ export function GlassBrain() {
         renderer.setSize(width, height, false);
         uniforms.pixelRatio.value = ratio * Math.max(1, height / 560);
         camera.aspect = width / height;
-        camera.position.z = 2.90;
+        camera.position.z = 2.9;
         camera.updateProjectionMatrix();
         refresh();
       });
@@ -117,40 +91,30 @@ export function GlassBrain() {
       resize.observe(canvas);
       observer.observe(canvas);
       const options = { signal: abort.signal };
-      canvas.addEventListener("pointerdown", event => {
-        if (!event.isPrimary || event.pointerType === "mouse" || motion.matches) return;
-        drag = { id: event.pointerId, x: event.clientX, yaw: targetYaw };
-        canvas.setPointerCapture(event.pointerId);
-      }, options);
-      canvas.addEventListener("pointermove", event => {
-        if (motion.matches) return;
-        const rect = canvas.getBoundingClientRect();
-        if (drag && drag.id === event.pointerId) {
-          targetYaw = THREE.MathUtils.clamp(drag.yaw + (event.clientX - drag.x) / rect.width * 1.8, -.8, .8);
-        } else if (event.pointerType === "mouse") {
-          targetYaw = ((event.clientX - rect.left) / rect.width - .5) * .23;
-          targetPitch = ((event.clientY - rect.top) / rect.height - .5) * .12;
-        } else {
-          return;
-        }
-        requestDraw();
-      }, options);
-      canvas.addEventListener("lostpointercapture", () => { drag = undefined; }, options);
-      canvas.addEventListener("pointerleave", event => {
-        if (event.pointerType === "mouse") {
-          targetYaw = targetPitch = 0;
-          requestDraw();
-        }
-      }, options);
-      motion.addEventListener("change", refresh, options);
-      document.addEventListener("visibilitychange", refresh, options);
-      canvas.addEventListener("webglcontextlost", () => {
-        cancelAnimationFrame(frame);
-        delete canvas.dataset["ready"];
-        observer.disconnect();
-        resize.disconnect();
-        abort.abort();
-      }, options);
+      document.addEventListener(
+        "visibilitychange",
+        () => {
+          const now = performance.now();
+          if (document.hidden) hiddenAt ??= now;
+          else if (hiddenAt !== undefined) {
+            started += now - hiddenAt;
+            hiddenAt = undefined;
+          }
+          refresh();
+        },
+        options,
+      );
+      canvas.addEventListener(
+        "webglcontextlost",
+        () => {
+          cancelAnimationFrame(frame);
+          delete canvas.dataset["ready"];
+          observer.disconnect();
+          resize.disconnect();
+          abort.abort();
+        },
+        options,
+      );
       dispose = () => {
         cancelAnimationFrame(frame);
         resize.disconnect();
@@ -160,9 +124,30 @@ export function GlassBrain() {
         renderer.dispose();
       };
     }
-    mount(canvas).catch(() => { delete canvas.dataset["ready"]; });
-    return () => { abort.abort(); dispose?.(); };
+    mount(canvas).catch(() => {
+      delete canvas.dataset["ready"];
+    });
+    return () => {
+      abort.abort();
+      dispose?.();
+    };
   }, []);
 
   return <canvas className="brain-canvas" ref={surface} aria-hidden="true" />;
+}
+
+export function GlassBrain() {
+  const [animate, setAnimate] = useState(false);
+  useEffect(() => {
+    const preference = matchMedia("(prefers-reduced-motion: reduce)");
+    const update = () => setAnimate(!preference.matches);
+    update();
+    preference.addEventListener("change", update);
+    return () => preference.removeEventListener("change", update);
+  }, []);
+  return (
+    <div className="brain-backdrop" aria-hidden="true">
+      <div className="brain-portrait">{animate && <AnimatedBrain />}</div>
+    </div>
+  );
 }

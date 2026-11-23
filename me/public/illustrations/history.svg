@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="77 495 645 263">
+  <rect x="100" y="521" width="282" height="210" rx="0" fill="#E8E7E2" />
+  <text x="123" y="569" font-family="Inter Display, Inter, Arial, sans-serif" font-size="33" font-weight="780" fill="#0B0B0D" opacity="1">MAR</text>
+  <text x="123" y="645" font-family="IBM Plex Mono, DejaVu Sans Mono, monospace" font-size="68" font-weight="800" fill="#0B0B0D" opacity="1">D—14</text>
+  <line x1="123" y1="669" x2="358" y2="669" stroke="#C4C4BE" stroke-width="1" opacity="1" />
+  <text x="123" y="698" font-family="IBM Plex Mono, DejaVu Sans Mono, monospace" font-size="14" font-weight="650" fill="#8C8D8A" opacity="1">REPLACED</text>
+  <rect x="418" y="521" width="282" height="210" rx="0" fill="#0B0B0D" />
+  <text x="441" y="569" font-family="Inter Display, Inter, Arial, sans-serif" font-size="33" font-weight="780" fill="#F4F3EF" opacity="1">MAY</text>
+  <text x="441" y="645" font-family="IBM Plex Mono, DejaVu Sans Mono, monospace" font-size="68" font-weight="800" fill="#FF4A4A" opacity="1">D—19</text>
+  <line x1="441" y1="669" x2="676" y2="669" stroke="#444444" stroke-width="1" opacity="1" />
+  <text x="441" y="698" font-family="IBM Plex Mono, DejaVu Sans Mono, monospace" font-size="14" font-weight="650" fill="#F4F3EF" opacity="1">CURRENT</text>
+  <path d="M 381 622 L 418 622" stroke="#FF4A4A" stroke-width="2" fill="none" opacity="1" stroke-linecap="round" />
+</svg>

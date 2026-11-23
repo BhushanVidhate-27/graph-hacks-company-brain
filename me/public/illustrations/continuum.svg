@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="175 217 1208 716">
+  <circle cx="1020" cy="575" r="340" fill="none" stroke="#202124" stroke-width="1.4" />
+  <circle cx="1020" cy="575" r="307" fill="none" stroke="#2A2B2E" stroke-width="1.3" />
+  <circle cx="1020" cy="575" r="275" fill="none" stroke="#3B3C40" stroke-width="1.6" />
+  <circle cx="1020" cy="575" r="244" fill="none" stroke="#2C2D30" stroke-width="1" />
+  <path d="M 1065.12 362.74 A 217 217 0 1 1 997.32 359.19" fill="none" stroke="#FF4A4A" stroke-width="19" stroke-linecap="butt" />
+  <circle cx="1118" cy="369" r="7" fill="#FF4A4A" />
+  <circle cx="1286.0" cy="575.0" r="2.4" fill="#77787A" />
+  <circle cx="1266.6" cy="674.6" r="2.4" fill="#77787A" />
+  <circle cx="1211.3" cy="759.8" r="2.4" fill="#77787A" />
+  <circle cx="1128.2" cy="818.0" r="2.4" fill="#77787A" />
+  <circle cx="1029.3" cy="840.8" r="2.4" fill="#77787A" />
+  <circle cx="929.0" cy="825.0" r="2.4" fill="#77787A" />
+  <circle cx="842.0" cy="772.7" r="2.4" fill="#77787A" />
+  <circle cx="780.9" cy="691.6" r="2.4" fill="#77787A" />
+  <circle cx="754.6" cy="593.6" r="2.4" fill="#77787A" />
+  <circle cx="767.0" cy="492.8" r="2.4" fill="#77787A" />
+  <circle cx="816.2" cy="404.0" r="2.4" fill="#77787A" />
+  <circle cx="895.1" cy="340.1" r="2.4" fill="#77787A" />
+  <circle cx="992.2" cy="310.5" r="2.4" fill="#77787A" />
+  <circle cx="1093.3" cy="319.3" r="2.4" fill="#77787A" />
+  <circle cx="1183.8" cy="365.4" r="2.4" fill="#77787A" />
+  <circle cx="1250.4" cy="442.0" r="2.4" fill="#77787A" />
+  <circle cx="1283.4" cy="538.0" r="2.4" fill="#77787A" />
+  <line x1="200" y1="602" x2="603" y2="602" stroke="#FF4A4A" stroke-width="1.8" />
+  <path d="M603 602 L700 550 L782 550" fill="none" stroke="#FF4A4A" stroke-width="1.8" />
+  <circle cx="199" cy="602" r="4" fill="#FF4A4A" />
+</svg>

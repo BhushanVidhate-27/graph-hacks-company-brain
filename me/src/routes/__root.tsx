@@ -13,6 +13,7 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Nav } from "@/components/site/Nav";
+import { GlassBrain } from "@/components/site/GlassBrain";
 import { Footer } from "@/components/site/Footer";
 import { Toaster } from "@/components/ui/sonner";
 
@@ -78,15 +79,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Helio — The Company Brain" },
+      { title: "NOMORE — The Company Brain" },
       {
         name: "description",
         content:
-          "Helio connects everything your organization knows into one living, searchable brain.",
+          "NOMORE connects everything your organization knows into one living, searchable brain.",
       },
-      { name: "author", content: "Helio" },
+      { name: "author", content: "NOMORE" },
       { name: "theme-color", content: "#000000" },
-      { property: "og:title", content: "Helio — The Company Brain" },
+      { property: "og:title", content: "NOMORE — The Company Brain" },
       {
         property: "og:description",
         content: "One living brain for everything your organization knows.",
@@ -95,14 +96,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [
-      { rel: "preconnect", href: "https://fonts.googleapis.com" },
-      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
-        rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
+        rel: "preload",
+        href: "/fonts/inter-latin.woff2",
+        as: "font",
+        type: "font/woff2",
+        crossOrigin: "anonymous",
       },
       { rel: "stylesheet", href: appCss },
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      { rel: "icon", href: "/illustrations/utility-nom0re-mark.svg", type: "image/svg+xml" },
     ],
   }),
   shellComponent: RootShell,
@@ -130,9 +132,12 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <div className="bg-aurora pointer-events-none fixed inset-0 z-0" aria-hidden="true" />
+      <a className="skip-link" href="#main-content">
+        Skip to content
+      </a>
+      <GlassBrain />
       <Nav />
-      <main className="relative z-10">
+      <main className="relative z-10" id="main-content" tabIndex={-1}>
         <Outlet />
       </main>
       <div className="relative z-10">

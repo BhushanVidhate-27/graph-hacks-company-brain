@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="925 213 380 525">
+  <rect x="955" y="236" width="315" height="420" rx="0" fill="none" stroke="#444448" stroke-width="2" />
+  <circle cx="999" cy="283" r="15" fill="#5B5B60" />
+  <circle cx="1072" cy="283" r="15" fill="#5B5B60" />
+  <circle cx="1145" cy="283" r="15" fill="#5B5B60" />
+  <circle cx="1218" cy="283" r="15" fill="#5B5B60" />
+  <circle cx="999" cy="372" r="15" fill="#5B5B60" />
+  <circle cx="1072" cy="372" r="15" fill="#5B5B60" />
+  <circle cx="1145" cy="372" r="15" fill="#FF4A4A" />
+  <circle cx="1218" cy="372" r="15" fill="#5B5B60" />
+  <circle cx="999" cy="461" r="15" fill="#5B5B60" />
+  <circle cx="1072" cy="461" r="15" fill="#5B5B60" />
+  <circle cx="1145" cy="461" r="15" fill="#5B5B60" />
+  <circle cx="1218" cy="461" r="15" fill="#5B5B60" />
+  <circle cx="999" cy="550" r="15" fill="#5B5B60" />
+  <circle cx="1072" cy="550" r="15" fill="#5B5B60" />
+  <circle cx="1145" cy="550" r="15" fill="#5B5B60" />
+  <circle cx="1218" cy="550" r="15" fill="#5B5B60" />
+  <line x1="1110" y1="236" x2="1110" y2="657" stroke="#FF4A4A" stroke-width="2.4" opacity="1" />
+  <text x="986" y="705" font-family="IBM Plex Mono, DejaVu Sans Mono, monospace" font-size="14" font-weight="650" fill="#FF4A4A" opacity="1">PERMISSION EDGE</text>
+</svg>

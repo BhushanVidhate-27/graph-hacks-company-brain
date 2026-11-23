@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="56 510 1328 253">
+  <path d="M 130 622 L 440 622 L 610 685 L 860 685 L 1020 575 L 1310 575" stroke="#FF4A4A" stroke-width="3" fill="none" opacity="1" stroke-linecap="round" />
+  <circle cx="130" cy="622" r="7" fill="#FF4A4A" />
+  <text x="130" y="670" font-family="IBM Plex Mono, DejaVu Sans Mono, monospace" font-size="14" font-weight="650" fill="#F4F3EF" text-anchor="middle" opacity="1">QUESTION</text>
+  <circle cx="440" cy="622" r="7" fill="#FF4A4A" />
+  <text x="440" y="597" font-family="IBM Plex Mono, DejaVu Sans Mono, monospace" font-size="14" font-weight="650" fill="#F4F3EF" text-anchor="middle" opacity="1">ANSWER</text>
+  <circle cx="610" cy="685" r="7" fill="#FF4A4A" />
+  <text x="610" y="733" font-family="IBM Plex Mono, DejaVu Sans Mono, monospace" font-size="14" font-weight="650" fill="#F4F3EF" text-anchor="middle" opacity="1">D—19</text>
+  <circle cx="860" cy="685" r="7" fill="#FF4A4A" />
+  <text x="860" y="660" font-family="IBM Plex Mono, DejaVu Sans Mono, monospace" font-size="14" font-weight="650" fill="#F4F3EF" text-anchor="middle" opacity="1">SOURCE</text>
+  <circle cx="1020" cy="575" r="7" fill="#FF4A4A" />
+  <text x="1020" y="623" font-family="IBM Plex Mono, DejaVu Sans Mono, monospace" font-size="14" font-weight="650" fill="#F4F3EF" text-anchor="middle" opacity="1">REVIEW</text>
+  <circle cx="1310" cy="575" r="7" fill="#FF4A4A" />
+  <text x="1310" y="550" font-family="IBM Plex Mono, DejaVu Sans Mono, monospace" font-size="14" font-weight="650" fill="#F4F3EF" text-anchor="middle" opacity="1">CONTEXT</text>
+  <line x1="105" y1="781" x2="105" y2="796" stroke="#545457" stroke-width="1" opacity="1" />
+  <line x1="167" y1="781" x2="167" y2="796" stroke="#545457" stroke-width="1" opacity="1" />
+  <line x1="229" y1="781" x2="229" y2="796" stroke="#545457" stroke-width="1" opacity="1" />
+  <line x1="291" y1="781" x2="291" y2="796" stroke="#545457" stroke-width="1" opacity="1" />
+  <line x1="353" y1="781" x2="353" y2="796" stroke="#545457" stroke-width="1" opacity="1" />
+  <line x1="415" y1="781" x2="415" y2="796" stroke="#545457" stroke-width="1" opacity="1" />
+  <line x1="477" y1="781" x2="477" y2="796" stroke="#545457" stroke-width="1" opacity="1" />
+  <line x1="539" y1="781" x2="539" y2="796" stroke="#545457" stroke-width="1" opacity="1" />
+  <line x1="601" y1="781" x2="601" y2="796" stroke="#545457" stroke-width="1" opacity="1" />
+  <line x1="663" y1="781" x2="663" y2="796" stroke="#545457" stroke-width="1" opacity="1" />
+  <line x1="725" y1="781" x2="725" y2="796" stroke="#545457" stroke-width="1" opacity="1" />
+  <line x1="787" y1="781" x2="787" y2="796" stroke="#545457" stroke-width="1" opacity="1" />
+  <line x1="849" y1="781" x2="849" y2="796" stroke="#545457" stroke-width="1" opacity="1" />
+  <line x1="911" y1="781" x2="911" y2="796" stroke="#545457" stroke-width="1" opacity="1" />
+  <line x1="973" y1="781" x2="973" y2="796" stroke="#545457" stroke-width="1" opacity="1" />
+  <line x1="1035" y1="781" x2="1035" y2="796" stroke="#545457" stroke-width="1" opacity="1" />
+  <line x1="1097" y1="781" x2="1097" y2="796" stroke="#545457" stroke-width="1" opacity="1" />
+  <line x1="1159" y1="781" x2="1159" y2="796" stroke="#545457" stroke-width="1" opacity="1" />
+  <line x1="1221" y1="781" x2="1221" y2="796" stroke="#545457" stroke-width="1" opacity="1" />
+  <line x1="1283" y1="781" x2="1283" y2="796" stroke="#545457" stroke-width="1" opacity="1" />
+</svg>

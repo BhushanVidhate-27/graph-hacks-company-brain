@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="184 475 1310 330">
+  <path d="M254 722 C349 722, 347 654, 442 654" fill="none" stroke="#66666B" stroke-width="2" />
+  <path d="M442 654 C537 654, 542 729, 637 729" fill="none" stroke="#66666B" stroke-width="2" />
+  <path d="M637 729 C732 729, 730 590, 825 590" fill="none" stroke="#66666B" stroke-width="2" />
+  <path d="M825 590 C920 590, 941 644, 1036 644" fill="none" stroke="#66666B" stroke-width="2" />
+  <path d="M1036 644 C1131 644, 1185 520, 1280 520" fill="none" stroke="#66666B" stroke-width="2" />
+  <path d="M1280 520 C1375 520, 1326 590, 1421 590" fill="none" stroke="#66666B" stroke-width="2" />
+  <circle cx="254" cy="722" r="18" fill="#0B0B0C" stroke="#D0D0D0" stroke-width="3" />
+  <circle cx="254" cy="722" r="4" fill="#D0D0D0" />
+  <text x="254" y="770" font-family="Inter Display, Inter, Arial, sans-serif" font-size="15" font-weight="700" letter-spacing="1" fill="#999999" text-anchor="middle">QUERY</text>
+  <circle cx="442" cy="654" r="18" fill="#0B0B0C" stroke="#D0D0D0" stroke-width="3" />
+  <circle cx="442" cy="654" r="4" fill="#D0D0D0" />
+  <text x="442" y="702" font-family="Inter Display, Inter, Arial, sans-serif" font-size="15" font-weight="700" letter-spacing="1" fill="#999999" text-anchor="middle">SOURCE</text>
+  <circle cx="637" cy="729" r="18" fill="#0B0B0C" stroke="#D0D0D0" stroke-width="3" />
+  <circle cx="637" cy="729" r="4" fill="#D0D0D0" />
+  <text x="637" y="777" font-family="Inter Display, Inter, Arial, sans-serif" font-size="15" font-weight="700" letter-spacing="1" fill="#999999" text-anchor="middle">REVIEW</text>
+  <circle cx="825" cy="590" r="18" fill="#0B0B0C" stroke="#D0D0D0" stroke-width="3" />
+  <circle cx="825" cy="590" r="4" fill="#D0D0D0" />
+  <text x="825" y="638" font-family="Inter Display, Inter, Arial, sans-serif" font-size="15" font-weight="700" letter-spacing="1" fill="#999999" text-anchor="middle">D–14</text>
+  <circle cx="1036" cy="644" r="18" fill="#0B0B0C" stroke="#D0D0D0" stroke-width="3" />
+  <circle cx="1036" cy="644" r="4" fill="#D0D0D0" />
+  <text x="1036" y="692" font-family="Inter Display, Inter, Arial, sans-serif" font-size="15" font-weight="700" letter-spacing="1" fill="#999999" text-anchor="middle">CHANGE</text>
+  <circle cx="1280" cy="520" r="18" fill="#0B0B0C" stroke="#FF4A4A" stroke-width="3" />
+  <circle cx="1280" cy="520" r="4" fill="#FF4A4A" />
+  <text x="1280" y="568" font-family="Inter Display, Inter, Arial, sans-serif" font-size="15" font-weight="700" letter-spacing="1" fill="#FF4A4A" text-anchor="middle">D–19</text>
+  <circle cx="1421" cy="590" r="18" fill="#0B0B0C" stroke="#D0D0D0" stroke-width="3" />
+  <circle cx="1421" cy="590" r="4" fill="#D0D0D0" />
+  <text x="1421" y="638" font-family="Inter Display, Inter, Arial, sans-serif" font-size="15" font-weight="700" letter-spacing="1" fill="#999999" text-anchor="middle">ANSWER</text>
+  <line x1="1036" y1="644" x2="1036" y2="773" stroke="#777777" stroke-width="1.2" />
+</svg>
